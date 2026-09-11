@@ -1,0 +1,15 @@
+{
+  "name": "tp1",
+  "version": "1.0.0",
+  "description": "tp 1 de backend",
+  "license": "MIT",
+  "author": "Cristian Villagra",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
