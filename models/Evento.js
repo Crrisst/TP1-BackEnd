@@ -14,7 +14,13 @@ class Evento {
     return this.#entradasDisponibles;
   }
 
-  // Permite vender tickets controlando el stock disponible
+  setEntradasDisponibles(cantidad) {
+    if (cantidad < 0) {
+      throw new Error('La cantidad de entradas no puede ser negativa.');
+    }
+    this.#entradasDisponibles = cantidad;
+  }
+
   venderEntradas(cantidad) {
     if (cantidad <= 0) {
       throw new Error('La cantidad a vender debe ser mayor a cero.');
@@ -33,6 +39,7 @@ class Evento {
       descripcion: this.descripcion,
       fecha: this.fecha,
       hora: this.hora,
+      entradasDisponibles: this.#entradasDisponibles,
       agotado: this.#entradasDisponibles === 0
     };
   }
