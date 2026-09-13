@@ -40,7 +40,7 @@ const createSala = (req, res) => {
   //Validacion campos obligatorios
   if(!nombre || !descripcion || capacidad === undefined){
     return res.status(400).json({
-      message: ' Todos los campos deben ser obligatorios.'
+      message: ' Todos los campos son obligatorios.'
     })
   }
   //Valida la capacidad
@@ -62,7 +62,14 @@ const updateSala = (req, res) => {
   
   if (sala) {
     const { nombre, descripcion, capacidad } = req.body;
-    
+        
+    //validar capacidad antes de modificar la sala.
+    if (capacidad !== undefined && capacidad <= 0) {      
+      return res.status(400).json({
+        message: 'La capacidad debe ser mayor a 0.'        
+      });      
+    }
+
     if (nombre) sala.nombre = nombre;
     if (descripcion) sala.descripcion = descripcion;
     if (capacidad !== undefined) sala.setCapacidad(capacidad);
