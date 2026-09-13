@@ -37,6 +37,18 @@ const createSala = (req, res) => {
   const salas = leerSalas();
   const { nombre, descripcion, capacidad } = req.body;
   
+  //Validacion campos obligatorios
+  if(!nombre || !descripcion || capacidad === undefined){
+    return res.status(400).json({
+      message: ' Todos los campos deben ser obligatorios.'
+    })
+  }
+  //Valida la capacidad
+  if(capacidad <=0){
+    return res.status(400).json({
+      message: 'La capacidad debe ser mayor a 0.'
+    })
+  }
   const nuevaSala = new Sala(Date.now(), nombre, descripcion, capacidad);
   salas.push(nuevaSala);
   guardarSalas(salas);
