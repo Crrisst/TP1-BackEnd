@@ -1,0 +1,41 @@
+[
+  {
+    "id": 2,
+    "nombre": "Lucía Fernández",
+    "email": "lucia.admin@email.com",
+    "password": "hashed_password_456",
+    "nivelAcceso": "MODERADOR"
+  },
+  {
+    "id": 3,
+    "nombre": "Juan Pérez",
+    "email": "juan.perez@email.com",
+    "password": "hashed_password_789",
+    "tipo": "ESTANDAR",
+    "porcentajeDescuento": 0,
+    "historialEntradas": []
+  },
+  {
+    "id": 4,
+    "nombre": "Mariana López",
+    "email": "mariana.lopez@email.com",
+    "password": "hashed_password_321",
+    "tipo": "PREMIUM",
+    "porcentajeDescuento": 0.15,
+    "historialEntradas": [
+      101,
+      102
+    ]
+  },
+  {
+    "id": 5,
+    "nombre": "Roberto Rossi",
+    "email": "roberto.vip@email.com",
+    "password": "hashed_password_654",
+    "tipo": "VIP",
+    "porcentajeDescuento": 0.3,
+    "historialEntradas": [
+      105
+    ]
+  }
+]

@@ -1,1 +1,23 @@
-[]
+[
+  {
+    "id": 101,
+    "nombre": "Entrada General - Recital Rock",
+    "descripcion": "Acceso a campo general",
+    "precio": 15000,
+    "cantidad": 100
+  },
+  {
+    "id": 102,
+    "nombre": "Entrada VIP - Recital Rock",
+    "descripcion": "Acceso a sector preferencial y consumición",
+    "precio": 25000,
+    "cantidad": 30
+  },
+  {
+    "id": 105,
+    "nombre": "Obra de Teatro - Fila Preferencial",
+    "descripcion": "Asiento reservado filas 1 a 5",
+    "precio": 18000,
+    "cantidad": 50
+  }
+]

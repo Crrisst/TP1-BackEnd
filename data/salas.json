@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": 1,
+    "nombre": "Sala Principal",
+    "descripcion": "Escenario principal con sonido envolvente",
+    "capacidad": 500
+  },
+  {
+    "id": 2,
+    "nombre": "Auditorio B",
+    "descripcion": "Espacio íntimo para obras independientes y charlas",
+    "capacidad": 150
+  }
+]
