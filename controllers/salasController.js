@@ -17,9 +17,17 @@ const guardarSalas = (listaSalas) => {
   fs.writeFileSync(rutaArchivo, JSON.stringify(datosParaGuardar, null, 2), 'utf8');
 };
 
+const isHtmlRequest = (req) => {
+  return (req.headers.accept && req.headers.accept.includes('text/html')) ||
+         (req.headers['content-type'] && req.headers['content-type'].includes('application/x-www-form-urlencoded'));
+};
+
 const getSalas = (req, res) => {
-  const salas = leerSalas();
-  res.json(salas.map(s => s.obtenerInformacion()));
+  const salas = leerSalas().map(s => s.obtenerInformacion());
+  if (isHtmlRequest(req)) {
+    return res.render('salas', { salas });
+  }
+  res.json(salas);
 };
 
 const getSalaById = (req, res) => {
@@ -36,23 +44,33 @@ const getSalaById = (req, res) => {
 const createSala = (req, res) => {
   const salas = leerSalas();
   const { nombre, descripcion, capacidad } = req.body;
+  const capNum = parseInt(capacidad);
   
   //Validacion campos obligatorios
   if(!nombre || !descripcion || capacidad === undefined){
+    if (isHtmlRequest(req)) {
+      return res.redirect('/salas');
+    }
     return res.status(400).json({
-      message: ' Todos los campos son obligatorios.'
-    })
+      message: 'Todos los campos son obligatorios.'
+    });
   }
   //Valida la capacidad
-  if(capacidad <=0){
+  if(isNaN(capNum) || capNum <= 0){
+    if (isHtmlRequest(req)) {
+      return res.redirect('/salas');
+    }
     return res.status(400).json({
       message: 'La capacidad debe ser mayor a 0.'
-    })
+    });
   }
-  const nuevaSala = new Sala(Date.now(), nombre, descripcion, capacidad);
+  const nuevaSala = new Sala(Date.now(), nombre, descripcion, capNum);
   salas.push(nuevaSala);
   guardarSalas(salas);
   
+  if (isHtmlRequest(req)) {
+    return res.redirect('/salas');
+  }
   res.status(201).json(nuevaSala.obtenerInformacion());
 };
 
@@ -64,7 +82,10 @@ const updateSala = (req, res) => {
     const { nombre, descripcion, capacidad } = req.body;
         
     //validar capacidad antes de modificar la sala.
-    if (capacidad !== undefined && capacidad <= 0) {      
+    if (capacidad !== undefined && parseInt(capacidad) <= 0) {      
+      if (isHtmlRequest(req)) {
+        return res.redirect('/salas');
+      }
       return res.status(400).json({
         message: 'La capacidad debe ser mayor a 0.'        
       });      
@@ -72,11 +93,17 @@ const updateSala = (req, res) => {
 
     if (nombre) sala.nombre = nombre;
     if (descripcion) sala.descripcion = descripcion;
-    if (capacidad !== undefined) sala.setCapacidad(capacidad);
+    if (capacidad !== undefined) sala.setCapacidad(parseInt(capacidad));
     
     guardarSalas(salas);
+    if (isHtmlRequest(req)) {
+      return res.redirect('/salas');
+    }
     res.json(sala.obtenerInformacion());
   } else {
+    if (isHtmlRequest(req)) {
+      return res.redirect('/salas');
+    }
     res.status(404).json({ message: 'Sala no encontrada' });
   }
 };
@@ -88,11 +115,18 @@ const deleteSala = (req, res) => {
   if (salaIndex !== -1) {
     const [salaEliminada] = salas.splice(salaIndex, 1);
     guardarSalas(salas);
+    if (isHtmlRequest(req)) {
+      return res.redirect('/salas');
+    }
     res.json({ message: 'Sala eliminada', sala: salaEliminada.obtenerInformacion() });
   } else {
+    if (isHtmlRequest(req)) {
+      return res.redirect('/salas');
+    }
     res.status(404).json({ message: 'Sala no encontrada' });
   }
 };
+
 
 module.exports = {
   getSalas,
@@ -100,4 +134,4 @@ module.exports = {
   createSala,
   updateSala,
   deleteSala
-};
+};

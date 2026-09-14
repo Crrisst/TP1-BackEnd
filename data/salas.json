@@ -10,5 +10,11 @@
     "nombre": "Auditorio B",
     "descripcion": "Espacio íntimo para obras independientes y charlas",
     "capacidad": 150
+  },
+  {
+    "id": 1789422645439,
+    "nombre": "Gran Salon",
+    "descripcion": "Salon con mayor capaciodad",
+    "capacidad": 750
   }
 ]

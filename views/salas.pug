@@ -1,0 +1,44 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    title Gestión de Salas
+  body
+    h1 Gestión de Salas
+
+    h2 Cargar Nueva Sala
+    form(action="/salas" method="POST")
+      div
+        label(for="nombre") Nombre:
+        input#nombre(type="text" name="nombre" required)
+      div
+        label(for="descripcion") Descripción:
+        input#descripcion(type="text" name="descripcion" required)
+      div
+        label(for="capacidad") Capacidad:
+        input#capacidad(type="number" name="capacidad" min="1" required)
+      div
+        button(type="submit") Cargar Sala
+
+    h2 Listado de Salas
+    if salas && salas.length > 0
+      table(border="1")
+        thead
+          tr
+            th ID
+            th Nombre
+            th Descripción
+            th Capacidad
+            th Acciones
+        tbody
+          each sala in salas
+            tr
+              td= sala.id
+              td= sala.nombre
+              td= sala.descripcion
+              td= sala.capacidad
+              td
+                form(action="/salas/" + sala.id + "/delete" method="POST")
+                  button(type="submit") Eliminar
+    else
+      p No hay salas registradas.

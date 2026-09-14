@@ -17,9 +17,17 @@ const guardarEventos = (listaEventos) => {
   fs.writeFileSync(rutaArchivo, JSON.stringify(datosParaGuardar, null, 2), 'utf8');
 };
 
+const isHtmlRequest = (req) => {
+  return (req.headers.accept && req.headers.accept.includes('text/html')) ||
+         (req.headers['content-type'] && req.headers['content-type'].includes('application/x-www-form-urlencoded'));
+};
+
 const getEventos = (req, res) => {
-  const eventos = leerEventos();
-  res.json(eventos.map(e => e.obtenerFichaPublica()));
+  const eventos = leerEventos().map(e => e.obtenerFichaPublica());
+  if (isHtmlRequest(req)) {
+    return res.render('eventos', { eventos });
+  }
+  res.json(eventos);
 };
 
 const getEventoById = (req, res) => {
@@ -36,11 +44,15 @@ const getEventoById = (req, res) => {
 const createEvento = (req, res) => {
   const eventos = leerEventos();
   const { nombre, descripcion, fecha, hora, entradasDisponibles } = req.body;
+  const entradas = parseInt(entradasDisponibles) || 0;
   
-  const nuevoEvento = new Evento(Date.now(), nombre, descripcion, fecha, hora, entradasDisponibles);
+  const nuevoEvento = new Evento(Date.now(), nombre, descripcion, fecha, hora, entradas);
   eventos.push(nuevoEvento);
   guardarEventos(eventos);
   
+  if (isHtmlRequest(req)) {
+    return res.redirect('/eventos');
+  }
   res.status(201).json(nuevoEvento.obtenerFichaPublica());
 };
 
@@ -55,11 +67,17 @@ const updateEvento = (req, res) => {
     if (descripcion) evento.descripcion = descripcion;
     if (fecha) evento.fecha = fecha;
     if (hora) evento.hora = hora;
-    if (entradasDisponibles !== undefined) evento.setEntradasDisponibles(entradasDisponibles);
+    if (entradasDisponibles !== undefined) evento.setEntradasDisponibles(parseInt(entradasDisponibles));
     
     guardarEventos(eventos);
+    if (isHtmlRequest(req)) {
+      return res.redirect('/eventos');
+    }
     res.json(evento.obtenerFichaPublica());
   } else {
+    if (isHtmlRequest(req)) {
+      return res.redirect('/eventos');
+    }
     res.status(404).json({ message: 'Evento no encontrado' });
   }
 };
@@ -71,11 +89,18 @@ const deleteEvento = (req, res) => {
   if (index !== -1) {
     const [eventoEliminado] = eventos.splice(index, 1);
     guardarEventos(eventos);
+    if (isHtmlRequest(req)) {
+      return res.redirect('/eventos');
+    }
     res.json({ message: 'Evento eliminado', evento: eventoEliminado.obtenerFichaPublica() });
   } else {
+    if (isHtmlRequest(req)) {
+      return res.redirect('/eventos');
+    }
     res.status(404).json({ message: 'Evento no encontrado' });
   }
 };
+
 
 module.exports = {
   getEventos,
@@ -83,4 +108,4 @@ module.exports = {
   createEvento,
   updateEvento,
   deleteEvento
-};
+};
