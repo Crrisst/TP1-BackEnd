@@ -9,5 +9,7 @@ router.get('/:id', validateId, getSalaById);
 router.post('/', validateRequiredFields(['nombre', 'descripcion', 'capacidad']), createSala);
 router.put('/:id', validateId, updateSala);
 router.delete('/:id', validateId, deleteSala);
+router.post('/:id/delete', validateId, deleteSala);
 
-module.exports = router;
+module.exports = router;
+

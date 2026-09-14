@@ -5,14 +5,7 @@
     "descripcion": "Presentación de bandas locales",
     "fecha": "2026-10-15",
     "hora": "21:00",
-    "entradasDisponibles": 130
-  },
-  {
-    "id": 2,
-    "nombre": "Obra de Teatro: La Comedia",
-    "descripcion": "Función única de temporada",
-    "fecha": "2026-10-20",
-    "hora": "20:30",
-    "entradasDisponibles": 50
+    "entradasDisponibles": 130,
+    "agotado": false
   }
 ]

@@ -9,5 +9,7 @@ router.get('/:id', validateId, getEventoById);
 router.post('/', validateRequiredFields(['nombre', 'descripcion', 'fecha', 'hora']), createEvento);
 router.put('/:id', validateId, updateEvento);
 router.delete('/:id', validateId, deleteEvento);
+router.post('/:id/delete', validateId, deleteEvento);
 
-module.exports = router;
+module.exports = router;
+
