@@ -1,0 +1,54 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    title Gestión de Eventos
+  body
+    h1 Gestión de Eventos
+
+    h2 Cargar Nuevo Evento
+    form(action="/eventos" method="POST")
+      div
+        label(for="nombre") Nombre:
+        input#nombre(type="text" name="nombre" required)
+      div
+        label(for="descripcion") Descripción:
+        input#descripcion(type="text" name="descripcion" required)
+      div
+        label(for="fecha") Fecha:
+        input#fecha(type="date" name="fecha" required)
+      div
+        label(for="hora") Hora:
+        input#hora(type="time" name="hora" required)
+      div
+        label(for="entradasDisponibles") Entradas Disponibles:
+        input#entradasDisponibles(type="number" name="entradasDisponibles" min="0" required)
+      div
+        button(type="submit") Cargar Evento
+
+    h2 Listado de Eventos
+    if eventos && eventos.length > 0
+      table(border="1")
+        thead
+          tr
+            th ID
+            th Nombre
+            th Descripción
+            th Fecha
+            th Hora
+            th Entradas Disponibles
+            th Acciones
+        tbody
+          each evento in eventos
+            tr
+              td= evento.id
+              td= evento.nombre
+              td= evento.descripcion
+              td= evento.fecha
+              td= evento.hora
+              td= evento.entradasDisponibles
+              td
+                form(action="/eventos/" + evento.id + "/delete" method="POST")
+                  button(type="submit") Eliminar
+    else
+      p No hay eventos registrados.
