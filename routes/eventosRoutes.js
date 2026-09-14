@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const { validateId, validateRequiredFields } = require('../middlewares');
 
 const { getEventos, getEventoById, createEvento, updateEvento, deleteEvento } = require('../controllers/eventosController');
 
 router.get('/', getEventos);
-router.get('/:id', getEventoById);
-router.post('/', createEvento);
-router.put('/:id', updateEvento);
-router.delete('/:id', deleteEvento);
+router.get('/:id', validateId, getEventoById);
+router.post('/', validateRequiredFields(['nombre', 'descripcion', 'fecha', 'hora']), createEvento);
+router.put('/:id', validateId, updateEvento);
+router.delete('/:id', validateId, deleteEvento);
 
-module.exports = router;
+module.exports = router;
