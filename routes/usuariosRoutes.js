@@ -1,24 +1,56 @@
 const express = require('express');
 const router = express.Router();
-const { validateId, validateRequiredFields } = require('../middlewares');
+
+const { 
+  validateId, 
+  validateRequiredFields, 
+  validateNameFormat,
+  validateDniFormat,
+  validateEmailFormat,
+  validateTelefonoFormat
+} = require('../middlewares');
 
 const {
   getUsuarios,
   getUsuarioById,
   createUsuario,
   updateUsuario,
-  deleteUsuario
+  deleteUsuario,
+  showEditUsuarioForm // <--- Importamos la nueva función
 } = require('../controllers/usuarioController');
 
-// Ruta principal para obtener todos los usuarios y crear uno nuevo
+// Rutas Principales
 router.route('/')
   .get(getUsuarios)
-  .post(validateRequiredFields(['nombre', 'email', 'password']), createUsuario);
+  .post(
+    validateRequiredFields(['nombreUsuario', 'nombre', 'apellido', 'email', 'password', 'dni', 'fechaNacimiento', 'telefono']),
+    validateNameFormat,
+    validateEmailFormat,
+    validateDniFormat,
+    validateTelefonoFormat,
+    createUsuario
+  );
 
-// Rutas individuales por ID (obtener, actualizar y eliminar)
+// NUEVAS RUTAS: Para la vista web de Editar
+router.route('/:id/editar')
+  .get(validateId, showEditUsuarioForm)
+  .post(
+    validateId,
+    validateRequiredFields(['nombreUsuario', 'nombre', 'apellido', 'email', 'password', 'dni', 'fechaNacimiento', 'telefono']),
+    validateNameFormat,
+    validateEmailFormat,
+    validateDniFormat,
+    validateTelefonoFormat,
+    updateUsuario
+  );
+
+// Rutas por ID (Para API)
 router.route('/:id')
   .get(validateId, getUsuarioById)
   .put(validateId, updateUsuario)
-  .delete(validateId, deleteUsuario);
+  .delete(validateId, deleteUsuario); 
 
-module.exports = router;
+// Ruta web para eliminar
+router.post('/:id/delete', validateId, deleteUsuario);
+
+module.exports = router;

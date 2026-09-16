@@ -1,0 +1,90 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    title Gestión de Usuarios
+  body
+    nav
+      a(href="/salas")
+        button(type="button") Ir a Gestión de Salas
+      a(href="/eventos")
+        button(type="button") Ir a Gestión de Eventos
+    hr
+
+    if error
+      div(style="background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #f5c6cb;")
+        strong ¡Error de validación! 
+        span= error
+
+    h1 Gestión de Usuarios
+
+    h2 Cargar Nuevo Usuario
+    form(action="/usuarios" method="POST")
+      div
+        label(for="nombreUsuario") Nombre de Usuario:
+        input#nombreUsuario(type="text" name="nombreUsuario" required)
+      div
+        label(for="nombre") Nombre Real:
+        input#nombre(type="text" name="nombre" required)
+      div
+        label(for="apellido") Apellido:
+        input#apellido(type="text" name="apellido" required)
+      div
+        label(for="email") Email:
+        input#email(type="email" name="email" required)
+      div
+        label(for="password") Contraseña:
+        input#password(type="password" name="password" required)
+      div
+        label(for="dni") DNI:
+        input#dni(type="number" name="dni" required)
+      div
+        label(for="fechaNacimiento") Fecha de Nacimiento:
+        input#fechaNacimiento(type="date" name="fechaNacimiento" required)
+      div
+        label(for="telefono") Teléfono:
+        input#telefono(type="number" name="telefono" required)
+      div
+        label(for="rol") Rol:
+        select#rol(name="rol" required)
+          option(value="CLIENTE") Cliente
+          option(value="ADMINISTRADOR") Administrador
+      div
+        button(type="submit") Cargar Usuario
+
+    h2 Listado de Usuarios
+    if usuarios && usuarios.length > 0
+      table(border="1")
+        thead
+          tr
+            th ID
+            th Username
+            th Nombre
+            th Apellido
+            th Email
+            th DNI
+            th F. Nacimiento
+            th Teléfono
+            th Rol
+            th Acciones
+        tbody
+          each usuario in usuarios
+            tr
+              td= usuario.id
+              td= usuario.nombreUsuario
+              td= usuario.nombre
+              td= usuario.apellido
+              td= usuario.email
+              td= usuario.dni
+              td= usuario.fechaNacimiento
+              td= usuario.telefono
+              td= usuario.rol
+              td
+                //- Agrupamos los botones de Modificar y Eliminar
+                div(style="display: flex; gap: 5px;")
+                  a(href="/usuarios/" + usuario.id + "/editar")
+                    button(type="button") Modificar
+                  form(action="/usuarios/" + usuario.id + "/delete" method="POST" style="margin: 0;")
+                    button(type="submit") Eliminar
+    else
+      p No hay usuarios registrados.

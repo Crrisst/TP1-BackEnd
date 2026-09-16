@@ -1,25 +1,26 @@
 [
   {
-    "id": 2,
-    "nombre": "Lucía Fernández",
-    "email": "lucia.admin@email.com",
-    "password": "hashed_password_456",
+    "id": 1,
+    "nombreUsuario": "juanp",
+    "nombre": "Juan",
+    "apellido": "Pérez",
+    "email": "juan.perez@email.com",
+    "dni": "35123456",
+    "fechaNacimiento": "1990-05-14",
+    "telefono": "2214567890",
+    "rol": "Administrador",
     "nivelAcceso": "MODERADOR"
   },
   {
-    "id": 3,
-    "nombre": "Juan Pérez",
-    "email": "juan.perez@email.com",
-    "password": "hashed_password_789",
-    "tipo": "ESTANDAR",
-    "porcentajeDescuento": 0,
-    "historialEntradas": []
-  },
-  {
-    "id": 4,
-    "nombre": "Mariana López",
+    "id": 2,
+    "nombreUsuario": "marilop",
+    "nombre": "Mariana",
+    "apellido": "López",
     "email": "mariana.lopez@email.com",
-    "password": "hashed_password_321",
+    "dni": "36234567",
+    "fechaNacimiento": "1992-08-22",
+    "telefono": "2215678901",
+    "rol": "Cliente",
     "tipo": "PREMIUM",
     "porcentajeDescuento": 0.15,
     "historialEntradas": [
@@ -28,14 +29,93 @@
     ]
   },
   {
-    "id": 5,
-    "nombre": "Roberto Rossi",
+    "id": 3,
+    "nombreUsuario": "rob_vip",
+    "nombre": "Roberto",
+    "apellido": "Rossi",
     "email": "roberto.vip@email.com",
-    "password": "hashed_password_654",
+    "dni": "30345678",
+    "fechaNacimiento": "1985-11-03",
+    "telefono": "2216789012",
+    "rol": "Cliente",
     "tipo": "VIP",
     "porcentajeDescuento": 0.3,
     "historialEntradas": [
       105
     ]
+  },
+  {
+    "id": 4,
+    "nombreUsuario": "diego_admin",
+    "nombre": "Diego",
+    "apellido": "García",
+    "email": "diego.admin@email.com",
+    "dni": "38456789",
+    "fechaNacimiento": "1995-02-15",
+    "telefono": "2217890123",
+    "rol": "Administrador",
+    "nivelAcceso": "SUPERADMIN"
+  },
+  {
+    "id": 5,
+    "nombreUsuario": "carlos_mod",
+    "nombre": "Carlos",
+    "apellido": "Martínez",
+    "email": "carlos.admin@email.com",
+    "dni": "37567890",
+    "fechaNacimiento": "1994-07-30",
+    "telefono": "2218901234",
+    "rol": "Administrador",
+    "nivelAcceso": "MODERADOR"
+  },
+  {
+    "id": 6,
+    "nombreUsuario": "brian_events",
+    "nombre": "Brian",
+    "apellido": "Fernández",
+    "email": "brian.admin@email.com",
+    "dni": "39678901",
+    "fechaNacimiento": "1996-09-10",
+    "telefono": "2219012345",
+    "rol": "Administrador",
+    "nivelAcceso": "GESTOR_EVENTOS"
+  },
+  {
+    "id": 7,
+    "nombreUsuario": "sergio_mod",
+    "nombre": "Sergio",
+    "apellido": "Gómez",
+    "email": "sergio.admin@email.com",
+    "dni": "36789012",
+    "fechaNacimiento": "1993-04-25",
+    "telefono": "2210123456",
+    "rol": "Administrador",
+    "nivelAcceso": "MODERADOR"
+  },
+  {
+    "id": 8,
+    "nombreUsuario": "cristian_super",
+    "nombre": "Cristian",
+    "apellido": "Díaz",
+    "email": "cristian.admin@email.com",
+    "dni": "35890123",
+    "fechaNacimiento": "1991-12-05",
+    "telefono": "2211234567",
+    "rol": "Administrador",
+    "nivelAcceso": "SUPERADMIN"
+  },
+  {
+    "id": 9,
+    "nombreUsuario": "wsrwq",
+    "nombre": "rwqrwq",
+    "apellido": "rwqrq",
+    "email": "rwqrqg@gmail.com",
+    "dni": "421421",
+    "fechaNacimiento": "2026-09-16",
+    "telefono": "4214241",
+    "rol": "Cliente",
+    "tipo": "ESTANDAR",
+    "porcentajeDescuento": 0,
+    "historialEntradas": []
   }
 ]
