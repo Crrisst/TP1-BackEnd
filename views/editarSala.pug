@@ -1,0 +1,22 @@
+doctype html
+html
+  head
+    title Editar Sala
+  body
+    h1 Editar Sala: #{sala.nombre}
+    if error
+      p(style="color: red;")= error
+
+    form(action=`/salas/${sala.id}/update` method="POST")
+      div
+        label(for="nombre") Nombre:
+        input(type="text" name="nombre" id="nombre" value=sala.nombre required)
+      div
+        label(for="descripcion") Descripción:
+        input(type="text" name="descripcion" id="descripcion" value=sala.descripcion required)
+      div
+        label(for="capacidad") Capacidad:
+        input(type="number" name="capacidad" id="capacidad" value=sala.capacidad required min="1")
+      div
+        button(type="submit") Guardar Cambios
+        a(href="/salas") Cancelar

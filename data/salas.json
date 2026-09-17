@@ -3,6 +3,12 @@
     "id": 1789422645439,
     "nombre": "Gran Salon",
     "descripcion": "Salon con mayor capaciodad",
-    "capacidad": 750
+    "capacidad": 751
+  },
+  {
+    "id": 1789660513080,
+    "nombre": "Pepe",
+    "descripcion": "lalala",
+    "capacidad": 1400
   }
 ]

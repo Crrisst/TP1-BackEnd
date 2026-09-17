@@ -127,11 +127,26 @@ const deleteSala = (req, res) => {
   }
 };
 
+// NUEVA: Formulario de edición
+const showEditSalaForm = (req, res) => {
+  const salas = leerSalas();
+  const sala = salas.find(s => s.id === parseInt(req.params.id));
+
+  if (!sala) {
+    return res.redirect('/salas?error=Sala+no+encontrada');
+  }
+
+  res.render('editarSala', {
+    sala: sala.obtenerInformacion(),
+    error: req.query.error
+  });
+};
 
 module.exports = {
   getSalas,
   getSalaById,
   createSala,
   updateSala,
-  deleteSala
-};
+  deleteSala,
+  showEditSalaForm
+};

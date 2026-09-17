@@ -56,7 +56,10 @@ html(lang="es")
               td= evento.hora
               td= evento.entradasDisponibles
               td
-                form(action="/eventos/" + evento.id + "/delete" method="POST")
-                  button(type="submit") Eliminar
+                div(style="display: flex; gap: 5px;")
+                  a(href="/eventos/" + evento.id + "/editar")
+                    button(type="button") Modificar
+                  form(action="/eventos/" + evento.id + "/delete" method="POST")
+                    button(type="submit") Eliminar
     else
       p No hay eventos registrados.

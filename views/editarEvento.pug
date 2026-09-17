@@ -1,0 +1,28 @@
+doctype html
+html
+  head
+    title Editar Evento
+  body
+    h1 Editar Evento: #{evento.nombre}
+    if error
+      p(style="color: red;")= error
+
+    form(action=`/eventos/${evento.id}/update` method="POST")
+      div
+        label(for="nombre") Nombre del Evento:
+        input(type="text" name="nombre" id="nombre" value=evento.nombre required)
+      div
+        label(for="descripcion") Descripción:
+        input(type="text" name="descripcion" value=evento.descripcion required)
+      div
+        label(for="fecha") Fecha:
+        input(type="date" name="fecha" id="fecha" value=evento.fecha required)
+      div
+        label(for="hora") Hora:
+        input(type="time" name="hora" id="hora" value=evento.hora required)
+      div
+        label(for="entradasDisponibles") Entradas Disponibles:
+        input(type="number" name="entradasDisponibles" min="0" id="entradasDisponibles" value=evento.getEntradasDisponibles() required)
+      div
+        button(type="submit") Actualizar Evento
+        a(href="/eventos") Cancelar

@@ -56,6 +56,23 @@ const createEvento = (req, res) => {
   res.status(201).json(nuevoEvento.obtenerFichaPublica());
 };
 
+const showEditEventoForm = (req, res) => {
+  const eventos = leerEventos(); // Tu función de lectura de eventos.json
+  //const salas = leerSalas ? leerSalas() : []; // Si requieres listar las salas en un select
+  const evento = eventos.find(e => e.id === parseInt(req.params.id));
+
+  if (!evento) {
+    return res.redirect('/eventos?error=Evento+no+encontrado');
+  }
+
+  console.log('Evento enviado a Pug:', evento.obtenerInformacion ? evento.obtenerInformacion() : evento);
+  res.render('editarEvento', {
+    evento: typeof evento.obtenerInformacion === 'function' ? evento.obtenerInformacion() : evento,
+    //salas: salas.map(s => typeof s.obtenerInformacion === 'function' ? s.obtenerInformacion() : s),
+    error: req.query.error
+  });
+};
+
 const updateEvento = (req, res) => {
   const eventos = leerEventos();
   const evento = eventos.find(e => e.id === parseInt(req.params.id));
@@ -107,5 +124,6 @@ module.exports = {
   getEventoById,
   createEvento,
   updateEvento,
-  deleteEvento
-};
+  deleteEvento,
+  showEditEventoForm
+};

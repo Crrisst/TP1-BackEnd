@@ -3,9 +3,18 @@
     "id": 1,
     "nombre": "Noche de Rock en Vivo",
     "descripcion": "Presentación de bandas locales",
-    "fecha": "2026-10-15",
-    "hora": "21:00",
-    "entradasDisponibles": 130,
+    "fecha": "2026-10-16",
+    "hora": "21:30",
+    "entradasDisponibles": 1550,
+    "agotado": false
+  },
+  {
+    "id": 1789668545541,
+    "nombre": "Pepe",
+    "descripcion": "El Evento del Año",
+    "fecha": "2026-09-01",
+    "hora": "15:00",
+    "entradasDisponibles": 700,
     "agotado": false
   }
 ]

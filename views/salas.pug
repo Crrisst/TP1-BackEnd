@@ -46,7 +46,13 @@ html(lang="es")
               td= sala.descripcion
               td= sala.capacidad
               td
-                form(action="/salas/" + sala.id + "/delete" method="POST")
-                  button(type="submit") Eliminar
+                //-form(action="/salas/" + sala.id + "/delete" method="POST")
+                 //- button(type="submit") Eliminar
+                  //- Agrupamos los botones de Modificar y Eliminar
+                div(style="display: flex; gap: 5px;")
+                  a(href="/salas/" + sala.id + "/editar")
+                    button(type="button") Modificar
+                  form(action="/salas/" + sala.id + "/delete" method="POST" style="margin: 0;")
+                    button(type="submit") Eliminar
     else
       p No hay salas registradas.

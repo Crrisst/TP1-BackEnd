@@ -117,5 +117,17 @@
     "tipo": "ESTANDAR",
     "porcentajeDescuento": 0,
     "historialEntradas": []
+  },
+  {
+    "id": 10,
+    "nombreUsuario": "DiegoJR",
+    "nombre": "Diego",
+    "apellido": "Rodriguez",
+    "email": "diegorodri@yahoo.com.ar",
+    "dni": "28233683",
+    "fechaNacimiento": "1980-06-29",
+    "telefono": "1149743090",
+    "rol": "Administrador",
+    "nivelAcceso": "MODERADOR"
   }
 ]
