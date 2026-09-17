@@ -1,18 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { validateId, validateRequiredFields } = require('../middlewares');
 
-const { getSalas, getSalaById, createSala, updateSala, deleteSala, 
-    showEditSalaForm } = require('../controllers/salasController');
+const { getSalas, getSalaById, createSala, updateSala, deleteSala } = require('../controllers/salasController');
 
 router.get('/', getSalas);
-router.get('/:id/editar', validateId, showEditSalaForm); // Ruta para ver el formulario
-router.get('/:id', validateId, getSalaById);
-router.post('/', validateRequiredFields(['nombre', 'descripcion', 'capacidad']), createSala);
-router.put('/:id', validateId, updateSala);
-router.post('/:id/update', validateId, updateSala);
-router.delete('/:id', validateId, deleteSala);
-router.post('/:id/delete', validateId, deleteSala);
+router.get('/:id', getSalaById);
+router.post('/', createSala);
+router.put('/:id', updateSala);
+router.delete('/:id', deleteSala);
+router.post('/:id/delete', deleteSala);
 
-module.exports = router; 
-
+module.exports = router;

@@ -5,7 +5,7 @@
     "nombre": "Juan",
     "apellido": "Pérez",
     "email": "juan.perez@email.com",
-    "dni": "35123456",
+    "dni": "351234564242",
     "fechaNacimiento": "1990-05-14",
     "telefono": "2214567890",
     "rol": "Administrador",
@@ -129,5 +129,33 @@
     "telefono": "1149743090",
     "rol": "Administrador",
     "nivelAcceso": "MODERADOR"
+  },
+  {
+    "id": 11,
+    "nombreUsuario": "fdf",
+    "nombre": "fdsf",
+    "apellido": "fds",
+    "email": "fsd@ffsaf.com",
+    "dni": "3232",
+    "fechaNacimiento": "2026-09-02",
+    "telefono": "423423",
+    "rol": "Cliente",
+    "tipo": "ESTANDAR",
+    "porcentajeDescuento": 0,
+    "historialEntradas": []
+  },
+  {
+    "id": 12,
+    "nombreUsuario": "312312",
+    "nombre": "32131",
+    "apellido": "32132",
+    "email": "3123@rwqr.com",
+    "dni": "432544242",
+    "fechaNacimiento": "2026-09-03",
+    "telefono": "424342",
+    "rol": "Cliente",
+    "tipo": "ESTANDAR",
+    "porcentajeDescuento": 0,
+    "historialEntradas": []
   }
 ]
