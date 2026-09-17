@@ -7,7 +7,7 @@ html
     if error
       p(style="color: red;")= error
 
-    form(action=`/eventos/${evento.id}/update` method="POST")
+    form(action=`/eventos/${evento.id}/editar` method="POST")
       div
         label(for="nombre") Nombre del Evento:
         input(type="text" name="nombre" id="nombre" value=evento.nombre required)
@@ -22,7 +22,7 @@ html
         input(type="time" name="hora" id="hora" value=evento.hora required)
       div
         label(for="entradasDisponibles") Entradas Disponibles:
-        input(type="number" name="entradasDisponibles" min="0" id="entradasDisponibles" value=evento.getEntradasDisponibles() required)
+        input(type="number" name="entradasDisponibles" min="0" id="entradasDisponibles" value=evento.entradasDisponibles required)
       div
         button(type="submit") Actualizar Evento
         a(href="/eventos") Cancelar

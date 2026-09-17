@@ -7,7 +7,7 @@ html
     if error
       p(style="color: red;")= error
 
-    form(action=`/salas/${sala.id}/update` method="POST")
+    form(action=`/salas/${sala.id}/editar` method="POST")
       div
         label(for="nombre") Nombre:
         input(type="text" name="nombre" id="nombre" value=sala.nombre required)
