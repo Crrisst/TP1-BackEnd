@@ -16,5 +16,14 @@
     "hora": "15:00",
     "entradasDisponibles": 700,
     "agotado": false
+  },
+  {
+    "id": 1789917793745,
+    "nombre": "Fiesta de bandas",
+    "descripcion": "Plaza Garin",
+    "fecha": "2026-09-30",
+    "hora": "18:00",
+    "entradasDisponibles": 450,
+    "agotado": false
   }
 ]

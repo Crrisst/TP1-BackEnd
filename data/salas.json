@@ -3,12 +3,18 @@
     "id": 1789422645439,
     "nombre": "Gran Salon",
     "descripcion": "Salon con mayor capaciodad",
-    "capacidad": 751
+    "capacidad": 750
   },
   {
     "id": 1789660513080,
     "nombre": "Pepe",
     "descripcion": "lalala",
     "capacidad": 1400
+  },
+  {
+    "id": 1789917734066,
+    "nombre": "Sala Seminari",
+    "descripcion": "Teatro Escobar",
+    "capacidad": 1500
   }
 ]

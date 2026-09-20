@@ -40,7 +40,7 @@ class Usuario {
   setTelefono(telefono) { this.#telefono = telefono; }
 
   validarPassword(passwordIngresada) {
-    return this.#password === passwordIngresada; //[cite: 29]
+    return this.#password === passwordIngresada; 
   }
 
   obtenerPerfil() {
