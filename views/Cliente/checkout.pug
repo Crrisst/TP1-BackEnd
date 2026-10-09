@@ -1,0 +1,32 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    title Pasarela de Pago - Simulación
+  body(style="font-family: sans-serif; padding: 30px; max-width: 600px; margin: auto; background-color: #f4f6f9;")
+    div(style="background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
+      h2(style="margin-top: 0; color: #2c3e50;") 💳 Simulación de Pago y Checkout
+      div(style="background: #e0f2fe; color: #0369a1; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-weight: bold;") Total a pagar: $#{total}
+      form(action="/cliente/carrito/procesar-pago" method="POST")
+        div(style="margin-bottom: 15px;")
+          label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Medio de Pago:
+          select(name="medioPago" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px;")
+            option(value="Tarjeta de Crédito") Tarjeta de Crédito
+            option(value="Tarjeta de Débito") Tarjeta de Débito
+            option(value="Mercado Pago") Mercado Pago
+        div(style="margin-bottom: 15px;")
+          label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Titular:
+          input(type="text" name="titular" required placeholder="Nombre y Apellido" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+        div(style="margin-bottom: 15px;")
+          label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Número de Tarjeta:
+          input(type="text" name="numeroTarjeta" required maxlength="16" placeholder="4532XXXXXXXXXXXX" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+        div(style="display: flex; gap: 15px; margin-bottom: 20px;")
+          div(style="flex: 1;")
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Vencimiento:
+            input(type="text" name="vencimiento" required placeholder="MM/AA" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+          div(style="flex: 1;")
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") CVV:
+            input(type="password" name="cvv" required maxlength="4" placeholder="123" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+        div(style="display: flex; justify-content: space-between; align-items: center;")
+          a(href="/cliente/carrito" style="color: #666; text-decoration: none; font-weight: bold;") ⬅️ Cancelar
+          button(type="submit" style="background-color: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;") ✅ Confirmar Pago

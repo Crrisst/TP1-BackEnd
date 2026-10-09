@@ -3,122 +3,30 @@ html(lang="es")
   head
     meta(charset="UTF-8")
     title Menú Principal - Cliente
-  body(style="font-family: sans-serif; padding: 30px; max-width: 1100px; margin: auto; background-color: #f4f6f9;")
+  body(style="font-family: sans-serif; padding: 30px; max-width: 900px; margin: auto; background-color: #f4f6f9;")
     
-    //- Encabezado de bienvenida
-    div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
+    div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center;")
       div
-        p(style="margin: 0; color: #555;") Bienvenido de nuevo, 
+        p(style="margin: 0; color: #555; font-size: 16px;") Bienvenido de nuevo, 
           strong(style="color: #333;") #{usuarioLogueado.nombreUsuario}
         if usuarioCompleto
           p(style="margin: 5px 0 0 0; font-size: 14px; color: #777;") Membresía: 
             span(style="background: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-weight: bold;") #{usuarioCompleto.tipoCliente}
-            |  | Descuento Aplicable: 
-            strong #{usuarioCompleto.porcentajeDescuento * 100}%
-      a(href="/auth/login" style="color: #dc3545; text-decoration: none; font-weight: bold; font-size: 14px;") 🚪 Cerrar Sesión
-
-    h1(style="color: #2c3e50;") Panel Principal del Cliente
-
-    //- Accesos rápidos
-    div(style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;")
-      a(href="/salas" style="background-color: #007bff; color: white; padding: 15px; text-align: center; text-decoration: none; border-radius: 6px; font-weight: bold;") 🏢 Salas
-      a(href="/eventos" style="background-color: #17a2b8; color: white; padding: 15px; text-align: center; text-decoration: none; border-radius: 6px; font-weight: bold;") 🎟️ Eventos
-      a(href="/carrito" style="background-color: #ffc107; color: #333; padding: 15px; text-align: center; text-decoration: none; border-radius: 6px; font-weight: bold;") 🛒 Carrito
-      a(href="/compras" style="background-color: #28a745; color: white; padding: 15px; text-align: center; text-decoration: none; border-radius: 6px; font-weight: bold;") 📦 Compras
-
-    div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;")
       
-      //- Columna Izquierda: Historial de Compras (Solo ver / imprimir, sin opción de cancelar)
-      div(style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
-        h3(style="margin-top: 0; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px;") 📜 Tu Historial de Compras
-        if misCompras && misCompras.length > 0
-          div(style="display: flex; flex-direction: column; gap: 12px;")
-            each compra in misCompras
-              div(style="background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef;")
-                p(style="margin: 3px 0;") <strong>Ítem:</strong> #{compra.nombre || 'Compra general'}
-                p(style="margin: 3px 0;") <strong>Cantidad:</strong> #{compra.cantidad || 1} | <strong>Total:</strong> $#{compra.total || 0}
-                if compra.evento
-                  p(style="margin: 3px 0; font-size: 13px; color: #555;") 🎭 <strong>Evento:</strong> #{compra.evento.nombre}
-                div(style="margin-top: 10px; display: flex; gap: 8px;")
-                  button(onclick=`abrirModal('modal-compra-${compra._id}')`, style="background-color: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;") 🎫 Ver Comprobante
-                  button(onclick="window.print()", style="background-color: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;") 🖨️ Imprimir
+      div
+        a(href="/auth/logout" style="background: #dc3545; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 14px;") 🚪 Cerrar Sesión
 
-              //- Modal del comprobante histórico
-              div(id=`modal-compra-${compra._id}` style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:1000;")
-                div(style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; border: 3px dashed #17a2b8;")
-                  h3(style="margin-top:0; color:#17a2b8;") 🧾 Comprobante de Compra
-                  p <strong>ID Compra:</strong> #{compra._id}
-                  p <strong>Total Pagado:</strong> $#{compra.total || 0}
-                  button(onclick=`cerrarModal('modal-compra-${compra._id}')`, style="margin-top:10px; background:#333; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; width:100%;") Cerrar
-        else
-          p(style="color: #666; font-style: italic;") No hay compras registradas en el historial.
+    h1(style="color: #2c3e50; text-align: center; margin-bottom: 40px;") Panel Principal
 
-      //- Columna Derecha: Entradas Activas (Con opción de ver, imprimir y cancelar)
-      div(style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
-        h3(style="margin-top: 0; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px;") 🌟 Entradas Activas (Con opción de cancelar)
-        if misEntradasCompradas && misEntradasCompradas.length > 0
-          div(style="display: flex; flex-direction: column; gap: 15px;")
-            each entrada in misEntradasCompradas
-              div(id=`ticket-${entrada._id}` style="background: #ffffff; border: 2px dashed #007bff; border-radius: 10px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);")
-                div(style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 6px; margin-bottom: 8px;")
-                  span(style="background: #007bff; color: white; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 4px;") Entrada Digital 🎟️
-                  span(style="font-size: 12px; color: #28a745; font-weight: bold;") Ticket: #{entrada.codigoBoleto || 'TICK-' + entrada._id.toString().slice(-6).toUpperCase()}
-
-                if entrada.evento
-                  h4(style="margin: 0 0 6px 0; color: #1a202c; font-size: 15px;") #{entrada.evento.nombre}
-                  p(style="margin: 0 0 4px 0; font-size: 13px; color: #4a5568;") 📅 <strong>Fecha:</strong> #{new Date(entrada.evento.fecha).toLocaleDateString()}
-                  if entrada.evento.sala
-                    p(style="margin: 0 0 8px 0; font-size: 13px; color: #2d3748;") 🏢 <strong>Sala:</strong> #{entrada.evento.sala.nombre}
-
-                p(style="margin: 0 0 10px 0; font-size: 12px; color: #555;") 💺 <strong>Sector:</strong> #{entrada.sector || 'General'} | <strong>Fila:</strong> #{entrada.fila || '1'} | <strong>Asiento:</strong> #{entrada.asiento || '1'}
-
-                div(style="display: flex; gap: 6px; border-top: 1px solid #f1f5f9; padding-top: 8px; flex-wrap: wrap;")
-                  button(onclick=`abrirModal('modal-entrada-${entrada._id}')`, style="background-color: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;") 🎫 Ver Entrada
-                  button(onclick="window.print()", style="background-color: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;") 🖨️ Imprimir
-                  button(onclick=`cancelarEntrada('${entrada._id}')`, style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;") ❌ Cancelar
-
-              //- Modal Entrada Activa
-              div(id=`modal-entrada-${entrada._id}` style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:1000;")
-                div(style="background:white; padding:30px; border-radius:12px; width:450px; text-align:left; border: 3px dashed #007bff;")
-                  h2(style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 8px;") 🎟️ Boleto Digital Oficial
-                  p <strong>Código:</strong> #{entrada.codigoBoleto || 'TICK-' + entrada._id.toString().slice(-6).toUpperCase()}
-                  p <strong>Titular:</strong> #{usuarioLogueado.nombreUsuario}
-                  p <strong>Ubicación:</strong> Sector #{entrada.sector || 'General'} - Fila #{entrada.fila || '1'} - Asiento #{entrada.asiento || '1'}
-                  if entrada.evento
-                    hr(style="border:0; border-top:1px dashed #ccc;")
-                    p <strong>Evento:</strong> #{entrada.evento.nombre}
-                    p <strong>Fecha:</strong> #{new Date(entrada.evento.fecha).toLocaleDateString()}
-                  button(onclick=`cerrarModal('modal-entrada-${entrada._id}')`, style="margin-top:15px; background:#333; color:white; border:none; padding:8px 15px; border-radius:4px; cursor:pointer; width:100%; font-weight:bold;") Cerrar Boleto
-        else
-          p(style="color: #666; font-style: italic;") No tienes entradas activas.
-
-    script.
-      function abrirModal(id) {
-        document.getElementById(id).style.display = 'flex';
-      }
-      function cerrarModal(id) {
-        document.getElementById(id).style.display = 'none';
-      }
-      async function cancelarEntrada(id) {
-        if (confirm('¿Está seguro que quiere cancelar? Su dinero será reintegrado en 24 hs.')) {
-          try {
-            const respuesta = await fetch('/cliente/cancelar-entrada/' + id, { method: 'POST' });
-            const resultado = await respuesta.json();
-            
-            if (resultado.success) {
-              alert('Entrada cancelada correctamente. Su dinero será reintegrado en 24 hs.');
-              const elementoTicket = document.getElementById(`ticket-${id}`);
-              if (elementoTicket) {
-                elementoTicket.remove();
-              } else {
-                window.location.reload();
-              }
-            } else {
-              alert(resultado.message || 'No se pudo procesar la cancelación en la base de datos.');
-            }
-          } catch (e) {
-            console.error(e);
-            alert('Error de conexión con el servidor.');
-          }
-        }
-      }
+    div(style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;")
+      a(href="/cliente/comprar" style="background-color: #007bff; color: white; padding: 40px 20px; text-align: center; text-decoration: none; border-radius: 12px; font-size: 18px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center;") 
+        div(style="font-size: 40px; margin-bottom: 15px;") 🎟️
+        | Ver Cartelera
+      
+      a(href="/cliente/carrito" style="background-color: #ffc107; color: #333; padding: 40px 20px; text-align: center; text-decoration: none; border-radius: 12px; font-size: 18px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center;") 
+        div(style="font-size: 40px; margin-bottom: 15px;") 🛒
+        | Mi Carrito
+        
+      a(href="/cliente/mis-compras" style="background-color: #28a745; color: white; padding: 40px 20px; text-align: center; text-decoration: none; border-radius: 12px; font-size: 18px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center;") 
+        div(style="font-size: 40px; margin-bottom: 15px;") 📦
+        | Mis Entradas

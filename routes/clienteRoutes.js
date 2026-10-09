@@ -3,13 +3,11 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 
-// Importamos los modelos principales que sí existen en tu proyecto
 const Usuario = require('../models/Usuario');
 const Entrada = require('../models/Entrada');
 const Evento = require('../models/Evento');
-const Sala = require('../models/Sala');
+const Transaccion = require('../models/Transaccion');
 
-// Definimos de forma segura el esquema para registrar las cancelaciones (auditoría para administradores)
 const cancelacionSchema = new mongoose.Schema({
   cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' },
   nombreCliente: String,
@@ -28,55 +26,51 @@ const verificarClienteLogin = (req, res, next) => {
 
 router.use(verificarClienteLogin);
 
-// Ruta principal del menú del cliente
+// Menú principal limpio
 router.get('/menu', async (req, res) => {
   try {
     const usuarioCompleto = await Usuario.findById(req.session.usuario.id) || 
                             await Usuario.findOne({ nombreUsuario: req.session.usuario.nombreUsuario });
-
-    if (!usuarioCompleto) {
-      return res.redirect('/auth/login');
-    }
-    
-    // Buscamos las entradas activas del cliente con sus relaciones
-    const misEntradasCompradas = await Entrada.find({ cliente: usuarioCompleto._id })
-      .populate({
-        path: 'evento',
-        populate: { path: 'sala' }
-      });
+    if (!usuarioCompleto) return res.redirect('/auth/login');
 
     res.render('Cliente/menu', {
       usuarioLogueado: req.session.usuario,
-      usuarioCompleto,
-      misEntradasCompradas,
-      misCompras: [], // Mantenemos el historial vacío de forma segura para evitar errores de módulos faltantes
-      esNuevoRegistro: req.query.bienvenida === 'true'
+      usuarioCompleto
     });
   } catch (error) {
     console.error('Error al cargar el menú del cliente:', error);
-    res.render('Cliente/menu', {
-      usuarioLogueado: req.session.usuario,
-      usuarioCompleto: null,
-      misEntradasCompradas: [],
-      misCompras: [],
-      esNuevoRegistro: false
-    });
+    res.status(500).send('Error interno.');
   }
 });
 
-// Ruta para cancelar la entrada, eliminarla de la vista y guardarla en la lista de auditoría del administrador
+// Mis compras y entradas activas
+router.get('/mis-compras', async (req, res) => {
+  try {
+    const usuarioCompleto = await Usuario.findById(req.session.usuario.id) || 
+                            await Usuario.findOne({ nombreUsuario: req.session.usuario.nombreUsuario });
+    
+    const misEntradasCompradas = await Entrada.find({ cliente: usuarioCompleto._id }).populate('evento');
+    const misCompras = await Transaccion.find({ cliente: usuarioCompleto._id }).sort({ fechaCompra: -1 });
+
+    res.render('Cliente/compras', {
+      usuarioLogueado: req.session.usuario,
+      misEntradasCompradas,
+      misCompras
+    });
+  } catch (error) {
+    console.error('Error al cargar mis compras:', error);
+    res.status(500).send('Error interno.');
+  }
+});
+
+// Cancelar entrada
 router.post('/cancelar-entrada/:id', async (req, res) => {
   try {
     const entradaId = req.params.id;
-    
-    // Buscamos la entrada antes de borrarla para registrar la auditoría
     const entradaARecuperar = await Entrada.findById(entradaId).populate('evento');
 
-    if (!entradaARecuperar) {
-      return res.status(404).json({ success: false, message: 'No se encontró la entrada en la base de datos.' });
-    }
+    if (!entradaARecuperar) return res.status(404).json({ success: false, message: 'No se encontró la entrada.' });
 
-    // 1. Guardamos el registro de la cancelación para que los administradores puedan auditarlo
     await CancelacionLog.create({
       cliente: entradaARecuperar.cliente,
       nombreCliente: req.session.usuario.nombreUsuario,
@@ -85,13 +79,29 @@ router.post('/cancelar-entrada/:id', async (req, res) => {
       fechaCancelacion: new Date()
     });
 
-    // 2. Eliminamos definitivamente la entrada activa de MongoDB
     await Entrada.findByIdAndDelete(entradaId);
-
-    res.json({ success: true, message: 'Entrada cancelada correctamente y registrada para auditoría.' });
+    res.json({ success: true, message: 'Entrada cancelada correctamente.' });
   } catch (error) {
-    console.error('Error al cancelar la entrada:', error);
-    res.status(500).json({ success: false, message: 'Error interno al procesar la cancelación.' });
+    console.error('Error al cancelar:', error);
+    res.status(500).json({ success: false, message: 'Error interno.' });
+  }
+});
+
+// Cartelera con contador del carrito
+router.get('/comprar', async (req, res) => {
+  try {
+    const eventosDisponibles = await Evento.find({}); 
+    const carrito = req.session.carrito || [];
+    const totalItemsCarrito = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+
+    res.render('Cliente/comprar', {
+      usuarioLogueado: req.session.usuario,
+      eventos: eventosDisponibles,
+      totalItemsCarrito
+    });
+  } catch (error) {
+    console.error('Error al cargar la cartelera:', error);
+    res.status(500).send('Error interno al cargar los eventos.');
   }
 });
 
