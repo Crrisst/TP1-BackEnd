@@ -2,8 +2,6 @@
 const express = require('express');
 const router = express.Router();
 const Usuario = require('../models/Usuario');
-const Entrada = require('../models/Entrada');
-const Evento = require('../models/Evento');
 const Transaccion = require('../models/Transaccion');
 
 const verificarAdmin = (req, res, next) => {
@@ -15,85 +13,156 @@ const verificarAdmin = (req, res, next) => {
 
 router.use(verificarAdmin);
 
+// 🎛️ Panel de Control (Dashboard) del Administrador
 router.get('/dashboard', async (req, res) => {
   try {
-    const totalUsuarios = await Usuario.countDocuments();
-    const totalEventos = await Evento.countDocuments();
-    const totalEntradas = await Entrada.countDocuments();
-    const transacciones = await Transaccion.find();
-    const recaudacionTotal = transacciones.reduce((acc, t) => acc + (t.total || 0), 0);
-
     res.render('Admin/dashboard', {
-      usuarioLogueado: req.session.usuario,
-      stats: {
-        totalUsuarios,
-        totalEventos,
-        totalEntradas,
-        recaudacionTotal
-      }
+      usuarioLogueado: req.session.usuario
     });
   } catch (error) {
-    console.error('Error al cargar dashboard:', error);
-    res.status(500).send('Error interno en dashboard.');
+    console.error('Error al cargar el dashboard:', error);
+    res.status(500).send('Error interno');
   }
 });
 
-router.get('/usuarios', async (req, res) => {
-  try {
-    const usuarios = await Usuario.find();
-    res.render('Admin/usuarios', {
-      usuarioLogueado: req.session.usuario,
-      usuarios,
-      error: req.query.error
-    });
-  } catch (error) {
-    console.error('Error al listar usuarios:', error);
-    res.status(500).send('Error interno en usuarios.');
-  }
-});
-
-router.get('/cancelaciones', async (req, res) => {
-  try {
-    const busqueda = req.query.usuario || '';
-    const CancelacionLog = mongoose.models.CancelacionLog || mongoose.model('CancelacionLog');
-    
-    let filtro = {};
-    if (busqueda.trim() !== '') {
-      filtro.nombreCliente = { $regex: busqueda, $options: 'i' };
-    }
-
-    const cancelaciones = await CancelacionLog.find(filtro).sort({ fechaCancelacion: -1 });
-
-    res.render('Admin/cancelaciones', {
-      usuarioLogueado: req.session.usuario,
-      cancelaciones,
-      busqueda
-    });
-  } catch (error) {
-    res.render('Admin/cancelaciones', { usuarioLogueado: req.session.usuario, cancelaciones: [], busqueda: '' });
-  }
-});
-
+// Panel de transacciones / auditoría
 router.get('/transacciones', async (req, res) => {
   try {
-    const busquedaCliente = req.query.cliente || '';
-    let filtro = {};
-    if (busquedaCliente.trim() !== '') {
-      filtro.nombreCliente = { $regex: busquedaCliente, $options: 'i' };
-    }
-
-    const listaTransacciones = await Transaccion.find(filtro).sort({ fechaCompra: -1 });
-    const recaudacionTotal = listaTransacciones.reduce((acc, t) => acc + (t.total || 0), 0);
-
+    const transacciones = await Transaccion.find({}).sort({ fechaCompra: -1 });
     res.render('Admin/transacciones', {
       usuarioLogueado: req.session.usuario,
-      transacciones: listaTransacciones,
-      recaudacionTotal,
-      busquedaCliente
+      transacciones
     });
   } catch (error) {
     console.error('Error al cargar transacciones:', error);
-    res.status(500).send('Error interno al cargar la auditoría.');
+    res.status(500).send('Error interno');
+  }
+});
+
+// Listado de usuarios
+router.get('/usuarios', async (req, res) => {
+  try {
+    const usuarios = await Usuario.find({});
+    res.render('Admin/usuarios', {
+      usuarioLogueado: req.session.usuario,
+      usuarios
+    });
+  } catch (error) {
+    console.error('Error al cargar usuarios:', error);
+    res.status(500).send('Error interno');
+  }
+});
+
+// 📋 Vista de Cancelaciones
+router.get('/cancelaciones', async (req, res) => {
+  try {
+    const CancelacionLog = req.app.models?.CancelacionLog || require('mongoose').models.CancelacionLog;
+    const cancelaciones = CancelacionLog ? await CancelacionLog.find({}).sort({ fechaCancelacion: -1 }) : [];
+
+    res.render('Admin/cancelaciones', {
+      usuarioLogueado: req.session.usuario,
+      cancelaciones
+    });
+  } catch (error) {
+    console.error('Error al cargar cancelaciones:', error);
+    res.status(500).send('Error interno');
+  }
+});
+
+// Formulario para crear personal/usuario
+router.get('/crear-personal', (req, res) => {
+  res.render('Admin/crear-personal', {
+    usuarioLogueado: req.session.usuario
+  });
+});
+
+// Procesar creación de personal / usuario con validaciones
+router.post('/crear-personal', async (req, res) => {
+  try {
+    const { 
+      nombreUsuario, 
+      nombre, 
+      apellido, 
+      email, 
+      password, 
+      dni, 
+      fechaNacimiento, 
+      telefono, 
+      rol, 
+      tipoCliente, 
+      porcentajeDescuento 
+    } = req.body;
+
+    await Usuario.create({
+      nombreUsuario,
+      nombre,
+      apellido,
+      email,
+      password,
+      dni,
+      fechaNacimiento,
+      telefono,
+      rol: rol || 'Administrador',
+      tipoCliente: tipoCliente || 'ESTANDAR',
+      porcentajeDescuento: porcentajeDescuento || 0
+    });
+
+    res.redirect('/admin/usuarios');
+  } catch (error) {
+    console.error('Error al crear usuario:', error);
+    res.status(500).send('Error interno al crear el usuario (Verifique que los datos sean válidos): ' + error.message);
+  }
+});
+
+// Formulario de edición de usuario
+router.get('/usuarios/editar/:id', async (req, res) => {
+  try {
+    const usuarioAEditar = await Usuario.findById(req.params.id);
+    if (!usuarioAEditar) return res.status(404).send('Usuario no encontrado');
+    
+    res.render('Admin/editarUsuario', {
+      usuarioLogueado: req.session.usuario,
+      usuarioAEditar
+    });
+  } catch (error) {
+    console.error('Error al cargar edición de usuario:', error);
+    res.status(500).send('Error interno');
+  }
+});
+
+// Procesar actualización de usuario con { runValidators: true }
+router.post('/usuarios/editar/:id', async (req, res) => {
+  try {
+    const { 
+      nombreUsuario, 
+      nombre, 
+      apellido, 
+      email, 
+      dni, 
+      fechaNacimiento, 
+      telefono, 
+      rol, 
+      tipoCliente, 
+      porcentajeDescuento 
+    } = req.body;
+
+    await Usuario.findByIdAndUpdate(req.params.id, {
+      nombreUsuario,
+      nombre,
+      apellido,
+      email,
+      dni,
+      fechaNacimiento,
+      telefono,
+      rol,
+      tipoCliente,
+      porcentajeDescuento
+    }, { runValidators: true }); // 👈 Importante para validar esquemas en actualización
+
+    res.redirect('/admin/usuarios');
+  } catch (error) {
+    console.error('Error al actualizar usuario:', error);
+    res.status(500).send('Error interno al actualizar (Verifique las validaciones de campos): ' + error.message);
   }
 });
 

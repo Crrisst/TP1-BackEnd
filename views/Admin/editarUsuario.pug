@@ -2,65 +2,84 @@ doctype html
 html(lang="es")
   head
     meta(charset="UTF-8")
-    title Editar Usuario - Administración
-  body(style="font-family: sans-serif; padding: 30px; max-width: 650px; margin: auto; background-color: #f4f6f9;")
-    
-    div(style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
+    title Editar Usuario
+  body(style="font-family: sans-serif; padding: 30px; max-width: 600px; margin: auto; background-color: #f4f6f9;")
+    div(style="background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
+      h2(style="margin-top: 0; color: #2c3e50;") ✏️ Editar Usuario
       
-      div(style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 20px;")
-        h2(style="margin: 0; color: #2c3e50; font-size: 20px;") ✏️ Editar Usuario
-        a(href="/admin/usuarios" style="background: #6c757d; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: bold;") ⬅️ Volver al Listado
-
-      if error
-        div(style="background-color: #f8d7da; color: #721c24; padding: 12px; margin-bottom: 20px; border-radius: 6px; font-size: 14px;")
-          = error
-
-      //- El action usa el ID dinámico del usuario
-      form(action=`/admin/usuarios/editar/${usuario._id}` method="POST" style="display: flex; flex-direction: column; gap: 15px;")
-        div
-          label(for="nombreUsuario" style="display: block; font-size: 13px; font-weight: bold; color: #4a5568; margin-bottom: 5px;") Nombre de Usuario:
-          input#nombreUsuario(type="text" name="nombreUsuario" value=usuario.nombreUsuario required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; font-size: 14px;")
+      form(action=`/admin/usuarios/editar/${usuarioAEditar._id}` method="POST")
+        div(style="margin-bottom: 15px;")
+          label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Nombre de Usuario:
+          input(type="text" name="nombreUsuario" value=usuarioAEditar.nombreUsuario required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
         
-        div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;")
-          <div>
-            label(for="nombre" style="display: block; font-size: 13px; font-weight: bold; color: #4a5568; margin-bottom: 5px;") Nombre:
-            input#nombre(type="text" name="nombre" value=usuario.nombre required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; font-size: 14px;")
-          </div>
-          <div>
-            label(for="apellido" style="display: block; font-size: 13px; font-weight: bold; color: #4a5568; margin-bottom: 5px;") Apellido:
-            input#apellido(type="text" name="apellido" value=usuario.apellido required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; font-size: 14px;")
-          </div>
-        
-        div
-          label(for="email" style="display: block; font-size: 13px; font-weight: bold; color: #4a5568; margin-bottom: 5px;") Email:
-          input#email(type="email" name="email" value=usuario.email required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; font-size: 14px;")
+        div(style="display: flex; gap: 10px; margin-bottom: 15px;")
+          div(style="flex: 1;")
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Nombre:
+            input(type="text" name="nombre" value=usuarioAEditar.nombre required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+" title="Solo se permiten letras y espacios, sin números" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+          div(style="flex: 1;")
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Apellido:
+            input(type="text" name="apellido" value=usuarioAEditar.apellido required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+" title="Solo se permiten letras y espacios, sin números" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
-        div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;")
-          <div>
-            label(for="dni" style="display: block; font-size: 13px; font-weight: bold; color: #4a5568; margin-bottom: 5px;") DNI:
-            input#dni(type="text" name="dni" value=usuario.dni required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; font-size: 14px;")
-          </div>
-          <div>
-            label(for="telefono" style="display: block; font-size: 13px; font-weight: bold; color: #4a5568; margin-bottom: 5px;") Teléfono:
-            input#telefono(type="text" name="telefono" value=usuario.telefono required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; font-size: 14px;")
-          </div>
+        div(style="margin-bottom: 15px;")
+          label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Correo Electrónico (Email real):
+          input(type="email" name="email" value=usuarioAEditar.email required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
-        div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;")
-          <div>
-            label(for="rol" style="display: block; font-size: 13px; font-weight: bold; color: #4a5568; margin-bottom: 5px;") Rol del Usuario:
-            select#rol(name="rol" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; font-size: 14px; background: white;")
-              option(value="Cliente" selected=usuario.rol==='Cliente') Cliente
-              option(value="Administrador" selected=usuario.rol==='Administrador') Administrador
-              option(value="Supervisor" selected=usuario.rol==='Supervisor') Supervisor
-              option(value="Lector" selected=usuario.rol==='Lector') Lector
-          </div>
-          <div>
-            label(for="tipoCliente" style="display: block; font-size: 13px; font-weight: bold; color: #4a5568; margin-bottom: 5px;") Tipo de Cliente:
-            select#tipoCliente(name="tipoCliente" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; font-size: 14px; background: white;")
-              option(value="ESTANDAR" selected=usuario.tipoCliente==='ESTANDAR') Estándar
-              option(value="PREMIUM" selected=usuario.tipoCliente==='PREMIUM') Premium
-              option(value="VIP" selected=usuario.tipoCliente==='VIP') VIP
-          </div>
+        div(style="display: flex; gap: 10px; margin-bottom: 15px;")
+          div(style="flex: 1;")
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") DNI (7 u 8 dígitos, solo números):
+            input(type="text" name="dni" value=usuarioAEditar.dni required pattern="\\d{7,8}" title="El DNI debe tener exactamente 7 u 8 números sin letras" minlength="7" maxlength="8" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+          div(style="flex: 1;")
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Teléfono (máx. 10 números):
+            input(type="text" name="telefono" value=usuarioAEditar.telefono required pattern="\\d{1,10}" title="Solo números, máximo 10 dígitos" maxlength="10" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
-        div(style="margin-top: 10px;")
-          button(type="submit" style="width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer;") Guardar Cambios
+        div(style="margin-bottom: 15px;")
+          label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Fecha de Nacimiento:
+          - const fechaFormateada = usuarioAEditar.fechaNacimiento ? new Date(usuarioAEditar.fechaNacimiento).toISOString().split('T')[0] : ''
+          input(type="date" name="fechaNacimiento" value=fechaFormateada required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+
+        div(style="display: flex; gap: 10px; margin-bottom: 20px;")
+          div(style="flex: 1;")
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Rol del Sistema:
+            select(name="rol" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px;")
+              option(value="Cliente" selected=(usuarioAEditar.rol === 'Cliente')) Cliente
+              option(value="Administrador" selected=(usuarioAEditar.rol === 'Administrador')) Administrador
+              option(value="Supervisor" selected=(usuarioAEditar.rol === 'Supervisor')) Supervisor
+              option(value="Lector" selected=(usuarioAEditar.rol === 'Lector')) Lector
+          div(style="flex: 1;")
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Tipo de Cliente:
+            select(name="tipoCliente" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px;")
+              option(value="ESTANDAR" selected=(usuarioAEditar.tipoCliente === 'ESTANDAR')) ESTANDAR
+              option(value="PREMIUM" selected=(usuarioAEditar.tipoCliente === 'PREMIUM')) PREMIUM
+              option(value="VIP" selected=(usuarioAEditar.tipoCliente === 'VIP')) VIP
+              option(value="Regular" selected=(usuarioAEditar.tipoCliente === 'Regular')) Regular
+
+        div(style="display: flex; justify-content: space-between; align-items: center;")
+          a(href="/admin/usuarios" style="color: #666; text-decoration: none; font-weight: bold;") ⬅️ Volver
+          button(type="submit" style="background-color: #0284c7; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;") 💾 Guardar Cambios
+
+      script.
+        const bloquearNumeros = (e) => {
+          const char = String.fromCharCode(e.keyCode || e.which);
+          if (/[0-9]/.test(char)) {
+            e.preventDefault();
+          }
+        };
+        document.querySelectorAll('input[name="nombre"], input[name="apellido"]').forEach(input => {
+          input.addEventListener('keypress', bloquearNumeros);
+          input.addEventListener('input', function() {
+            this.value = this.value.replace(/[0-9]/g, '');
+          });
+        });
+
+        const bloquearLetras = (e) => {
+          const char = String.fromCharCode(e.keyCode || e.which);
+          if (!/[0-9]/.test(char)) {
+            e.preventDefault();
+          }
+        };
+        document.querySelectorAll('input[name="dni"], input[name="telefono"]').forEach(input => {
+          input.addEventListener('keypress', bloquearLetras);
+          input.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+          });
+        });
