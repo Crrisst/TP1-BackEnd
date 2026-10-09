@@ -1,32 +1,20 @@
-class Sala {
-  #capacidad;
+const mongoose = require('mongoose');
 
-  constructor(id, nombre, descripcion, capacidad) {
-    this.id = id;
-    this.nombre = nombre;
-    this.descripcion = descripcion;
-    this.#capacidad = capacidad;
-  }
+const salaSchema = new mongoose.Schema({
+  nombre: { type: String, required: true },
+  descripcion: { type: String, required: true },
+  capacidad: { type: Number, required: true, min: [1, 'La capacidad de la sala debe ser mayor a 0.'] },
+  ubicacion: { type: String } // <-- Agregamos este campo que faltaba
+}, { timestamps: true });
 
-  getCapacidad() {
-    return this.#capacidad;
-  }
+salaSchema.methods.obtenerInformacion = function() {
+  return {
+    id: this._id,
+    nombre: this.nombre,
+    descripcion: this.descripcion,
+    capacidad: this.capacidad,
+    ubicacion: this.ubicacion // <-- Y lo incluimos aquí también
+  };
+};
 
-  setCapacidad(nuevaCapacidad) {
-    if (nuevaCapacidad <= 0) {
-      throw new Error('La capacidad de la sala debe ser mayor a 0.');
-    }
-    this.#capacidad = nuevaCapacidad;
-  }
-
-  obtenerInformacion() {
-    return {
-      id: this.id,
-      nombre: this.nombre,
-      descripcion: this.descripcion,
-      capacidad: this.#capacidad
-    };
-  }
-}
-
-module.exports = Sala;
+module.exports = mongoose.model('Sala', salaSchema);

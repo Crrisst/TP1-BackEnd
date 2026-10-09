@@ -1,141 +1,101 @@
-const fs = require('fs');
-const path = require('path');
 const Evento = require('../models/Evento');
-
-const rutaArchivo = path.join(__dirname, '../data/eventos.json');
-
-const leerEventos = () => {
-  if (!fs.existsSync(rutaArchivo)) return [];
-  const data = fs.readFileSync(rutaArchivo, 'utf8');
-  if (!data) return [];
-  const objetos = JSON.parse(data);
-  return objetos.map(e => new Evento(e.id, e.nombre, e.descripcion, e.fecha, e.hora, e.entradasDisponibles || 0));
-};
-
-const guardarEventos = (listaEventos) => {
-  const datosParaGuardar = listaEventos.map(e => e.obtenerFichaPublica());
-  fs.writeFileSync(rutaArchivo, JSON.stringify(datosParaGuardar, null, 2), 'utf8');
-};
 
 const isHtmlRequest = (req) => {
   return (req.headers.accept && req.headers.accept.includes('text/html')) ||
          (req.headers['content-type'] && req.headers['content-type'].includes('application/x-www-form-urlencoded'));
 };
 
-const getEventos = (req, res) => {
-  const eventos = leerEventos().map(e => e.obtenerFichaPublica());
-  if (isHtmlRequest(req)) {
-    return res.render('eventos', { eventos });
-  }
-  res.json(eventos);
-};
-
-const getEventoById = (req, res) => {
-  const eventos = leerEventos();
-  const evento = eventos.find(e => e.id === parseInt(req.params.id));
-  
-  if (evento) {
-    res.json(evento.obtenerFichaPublica());
-  } else {
-    res.status(404).json({ message: 'Evento no encontrado' });
-  }
-};
-
-const createEvento = (req, res) => {
-  const eventos = leerEventos();
-  const { nombre, descripcion, fecha, hora, entradasDisponibles } = req.body;
-
-  const entradas = Number(entradasDisponibles);
-
-  // Validación de entradas disponibles
-  if (
-    entradasDisponibles === undefined ||
-    entradasDisponibles === null ||
-    entradasDisponibles === "" ||
-    !Number.isInteger(entradas) ||
-    entradas < 0
-  ) {
-        return res.status(400).json({
-        message: "Las entradas disponibles deben ser un numero entero mayor o igual a cero."
-      });
-    }   
-  
-  
-  const nuevoEvento = new Evento(Date.now(), nombre, descripcion, fecha, hora, entradas);
-  eventos.push(nuevoEvento);
-  guardarEventos(eventos);
-  
-  if (isHtmlRequest(req)) {
-    return res.redirect('/eventos');
-  }
-  res.status(201).json(nuevoEvento.obtenerFichaPublica());
-};
-
-
-const showEditEventoForm = (req, res) => {
-
-  const eventos = leerEventos();
-
-  const evento = eventos.find(
-    e => e.id === parseInt(req.params.id)
-  );
-
-  if (!evento) {
-    return res.redirect('/eventos?error=Evento+no+encontrado');
-  }
-
-  res.render('editarEvento', {
-    evento: evento.obtenerFichaPublica(),
-    error: req.query.error
-  });
-
-};
-
-const updateEvento = (req, res) => {
-  const eventos = leerEventos();
-  const evento = eventos.find(e => e.id === parseInt(req.params.id));
-  
-  if (evento) {
-    const { nombre, descripcion, fecha, hora, entradasDisponibles } = req.body;
-    
-    if (nombre) evento.nombre = nombre;
-    if (descripcion) evento.descripcion = descripcion;
-    if (fecha) evento.fecha = fecha;
-    if (hora) evento.hora = hora;
-    if (entradasDisponibles !== undefined) evento.setEntradasDisponibles(parseInt(entradasDisponibles));
-    
-    guardarEventos(eventos);
+const getEventos = async (req, res) => {
+  try {
+    const eventos = await Evento.find().populate('sala');
     if (isHtmlRequest(req)) {
-      return res.redirect('/eventos');
+      return res.render('eventos', { eventos, usuarioLogueado: req.session.usuario });
     }
-    res.json(evento.obtenerFichaPublica());
-  } else {
-    if (isHtmlRequest(req)) {
-      return res.redirect('/eventos');
-    }
-    res.status(404).json({ message: 'Evento no encontrado' });
+    res.json(eventos);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener eventos' });
   }
 };
 
-const deleteEvento = (req, res) => {
-  const eventos = leerEventos();
-  const index = eventos.findIndex(e => e.id === parseInt(req.params.id));
-  
-  if (index !== -1) {
-    const [eventoEliminado] = eventos.splice(index, 1);
-    guardarEventos(eventos);
-    if (isHtmlRequest(req)) {
-      return res.redirect('/eventos');
-    }
-    res.json({ message: 'Evento eliminado', evento: eventoEliminado.obtenerFichaPublica() });
-  } else {
-    if (isHtmlRequest(req)) {
-      return res.redirect('/eventos');
-    }
-    res.status(404).json({ message: 'Evento no encontrado' });
+const getEventoById = async (req, res) => {
+  try {
+    const evento = await Evento.findById(req.params.id).populate('sala');
+    if (!evento) return res.status(404).json({ message: 'Evento no encontrado' });
+    res.json(evento);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al buscar el evento' });
   }
 };
 
+const createEvento = async (req, res) => {
+  try {
+    const { titulo, descripcion, fecha, hora, entradasDisponibles, sala } = req.body;
+    const nuevoEvento = new Evento({
+      titulo,
+      descripcion,
+      fecha,
+      hora,
+      entradasDisponibles: parseInt(entradasDisponibles) || 0,
+      sala: sala || null
+    });
+
+    await nuevoEvento.save();
+    if (isHtmlRequest(req)) return res.redirect('/eventos');
+    res.status(201).json(nuevoEvento);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al crear evento' });
+  }
+};
+
+const updateEvento = async (req, res) => {
+  try {
+    const { titulo, descripcion, fecha, hora, entradasDisponibles, sala } = req.body;
+    const updateData = {};
+    if (titulo) updateData.titulo = titulo;
+    if (descripcion) updateData.descripcion = descripcion;
+    if (fecha) updateData.fecha = fecha;
+    if (hora) updateData.hora = hora;
+    if (entradasDisponibles !== undefined) updateData.entradasDisponibles = parseInt(entradasDisponibles);
+    if (sala) updateData.sala = sala;
+
+    const eventoActualizado = await Evento.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    if (!eventoActualizado) {
+      if (isHtmlRequest(req)) return res.redirect('/eventos?error=No+encontrado');
+      return res.status(404).json({ message: 'Evento no encontrado' });
+    }
+
+    if (isHtmlRequest(req)) return res.redirect('/eventos');
+    res.json(eventoActualizado);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al actualizar evento' });
+  }
+};
+
+const deleteEvento = async (req, res) => {
+  try {
+    const eventoEliminado = await Evento.findByIdAndDelete(req.params.id);
+    if (!eventoEliminado) {
+      if (isHtmlRequest(req)) return res.redirect('/eventos?error=No+encontrado');
+      return res.status(404).json({ message: 'Evento no encontrado' });
+    }
+
+    if (isHtmlRequest(req)) return res.redirect('/eventos');
+    res.json({ message: 'Evento eliminado', evento: eventoEliminado });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al eliminar evento' });
+  }
+};
+
+const showEditEventoForm = async (req, res) => {
+  try {
+    const evento = await Evento.findById(req.params.id);
+    if (!evento) return res.redirect('/eventos?error=No+encontrado');
+
+    res.render('editarEvento', { evento, usuarioLogueado: req.session.usuario, error: req.query.error });
+  } catch (error) {
+    res.redirect('/eventos?error=Error');
+  }
+};
 
 module.exports = {
   getEventos,

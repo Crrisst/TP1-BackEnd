@@ -1,0 +1,42 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    title Panel de Auditoría - Cancelaciones
+  body(style="font-family: sans-serif; padding: 30px; max-width: 1000px; margin: auto; background-color: #f4f6f9;")
+    
+    div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
+      h2(style="margin: 0; color: #2c3e50;") 🛡️ Panel de Auditoría: Entradas Canceladas
+      a(href="/admin/dashboard" style="background: #007bff; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 14px; font-weight: bold;") ⬅️ Volver al Panel
+
+    div(style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
+      p(style="color: #666; font-size: 14px; margin-bottom: 15px;") Utiliza el buscador para consultar el historial de cancelaciones de un usuario específico o revisa el registro general.
+
+      //- Formulario de búsqueda por usuario
+      form(action="/admin/cancelaciones", method="GET" style="display: flex; gap: 10px; margin-bottom: 20px;")
+        input(type="text" name="usuario" placeholder="Buscar por nombre de usuario..." value=(busquedaUsuario || '') style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;")
+        button(type="submit" style="background: #17a2b8; color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer;") 🔍 Buscar
+        if busquedaUsuario && busquedaUsuario.trim() !== ''
+          a(href="/admin/cancelaciones" style="background: #6c757d; color: white; padding: 10px 15px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 14px; display: flex; align-items: center;") ❌ Limpiar
+
+      if cancelaciones && cancelaciones.length > 0
+        table(style="width: 100%; border-collapse: collapse; margin-top: 15px;")
+          <thead>
+            <tr style="background-color: #e2e8f0; text-align: left; font-size: 14px; color: #333;">
+              <th style="padding: 10px; border: 1px solid #cbd5e1;">Cliente</th>
+              <th style="padding: 10px; border: 1px solid #cbd5e1;">Evento Afectado</th>
+              <th style="padding: 10px; border: 1px solid #cbd5e1;">Código de Ticket</th>
+              <th style="padding: 10px; border: 1px solid #cbd5e1;">Fecha de Cancelación</th>
+            </tr>
+          </thead>
+          <tbody>
+            each log in cancelaciones
+              <tr style="font-size: 13px; color: #475569;">
+                <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold; color: #1e293b;">#{log.nombreCliente}</td>
+                <td style="padding: 10px; border: 1px solid #e2e8f0;">#{log.eventoNombre}</td>
+                <td style="padding: 10px; border: 1px solid #e2e8f0; font-family: monospace; color: #d97706;">#{log.codigoBoleto}</td>
+                <td style="padding: 10px; border: 1px solid #e2e8f0;">#{new Date(log.fechaCancelacion).toLocaleString()}</td>
+              </tr>
+          </tbody>
+      else
+        p(style="color: #666; font-style: italic; text-align: center; margin-top: 20px;") No se encontraron registros de cancelaciones para los criterios de búsqueda.

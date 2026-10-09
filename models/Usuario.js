@@ -1,60 +1,28 @@
-class Usuario {
-  #id;
-  #nombreUsuario;
-  #nombre;
-  #apellido;
-  #email;
-  #password;
-  #dni;
-  #fechaNacimiento;
-  #telefono;
+// src/models/Usuario.js
+const mongoose = require('mongoose');
 
-  constructor(id, nombreUsuario, nombre, apellido, email, password, dni = null, fechaNacimiento = null, telefono = null) {
-    this.#id = id;
-    this.#nombreUsuario = nombreUsuario;
-    this.#nombre = nombre;
-    this.#apellido = apellido;
-    this.#email = email;
-    this.#password = password;
-    this.#dni = dni;
-    this.#fechaNacimiento = fechaNacimiento;
-    this.#telefono = telefono;
-  }
+const usuarioSchema = new mongoose.Schema({
+  nombreUsuario: { type: String, required: true, unique: true },
+  nombre: { type: String, required: true },
+  apellido: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  dni: { type: String, required: true },
+  fechaNacimiento: { type: Date, required: true },
+  telefono: { type: String, required: true },
+  rol: { 
+    type: String, 
+    enum: ['Cliente', 'Administrador', 'Supervisor', 'Lector'], 
+    default: 'Cliente' 
+  },
+  tipoCliente: { 
+    type: String, 
+    enum: ['ESTANDAR', 'PREMIUM', 'VIP', 'Regular'], 
+    default: 'ESTANDAR' 
+  },
+  porcentajeDescuento: { type: Number, default: 0 }
+}, {
+  timestamps: true
+});
 
-  getId() { return this.#id; }
-  getNombreUsuario() { return this.#nombreUsuario; }
-  getNombre() { return this.#nombre; }
-  getApellido() { return this.#apellido; }
-  getEmail() { return this.#email; }
-  getDni() { return this.#dni; }
-  getFechaNacimiento() { return this.#fechaNacimiento; }
-  getTelefono() { return this.#telefono; }
-
-  setNombreUsuario(nombreUsuario) { this.#nombreUsuario = nombreUsuario; }
-  setNombre(nombre) { this.#nombre = nombre; }
-  setApellido(apellido) { this.#apellido = apellido; }
-  setEmail(email) { this.#email = email; }
-  setPassword(password) { this.#password = password; }
-  setDni(dni) { this.#dni = dni; }
-  setFechaNacimiento(fechaNacimiento) { this.#fechaNacimiento = fechaNacimiento; }
-  setTelefono(telefono) { this.#telefono = telefono; }
-
-  validarPassword(passwordIngresada) {
-    return this.#password === passwordIngresada; 
-  }
-
-  obtenerPerfil() {
-    return {
-      id: this.#id,
-      nombreUsuario: this.#nombreUsuario,
-      nombre: this.#nombre,
-      apellido: this.#apellido,
-      email: this.#email,
-      dni: this.#dni,
-      fechaNacimiento: this.#fechaNacimiento,
-      telefono: this.#telefono
-    };
-  }
-}
-
-module.exports = Usuario;
+module.exports = mongoose.model('Usuario', usuarioSchema);

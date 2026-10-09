@@ -1,0 +1,51 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    title Gestión de Usuarios - Administración
+  body(style="font-family: sans-serif; padding: 30px; max-width: 1100px; margin: auto; background-color: #f4f6f9;")
+    
+    div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
+      h2(style="margin: 0; color: #2c3e50;") 👥 Gestión de Usuarios y Personal
+      a(href="/admin/dashboard" style="background: #007bff; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 14px; font-weight: bold;") ⬅️ Volver al Panel
+
+    div(style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
+      if exito
+        div(style="background-color: #d4edda; color: #155724; padding: 12px; margin-bottom: 20px; border-radius: 6px; font-size: 14px;")
+          = exito
+
+      if usuarios && usuarios.length > 0
+        table(style="width: 100%; border-collapse: collapse; margin-top: 10px;")
+          <thead>
+            <tr style="background-color: #e2e8f0; text-align: left; font-size: 14px; color: #333;">
+              <th style="padding: 12px; border: 1px solid #cbd5e1;">Usuario</th>
+              <th style="padding: 12px; border: 1px solid #cbd5e1;">Nombre Completo</th>
+              <th style="padding: 12px; border: 1px solid #cbd5e1;">Email</th>
+              <th style="padding: 12px; border: 1px solid #cbd5e1;">Rol</th>
+              <th style="padding: 12px; border: 1px solid #cbd5e1;">Tipo / Detalles</th>
+              <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center; width: 190px;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            each user in usuarios
+              <tr style="font-size: 13px; color: #475569;">
+                <td style="padding: 12px; border: 1px solid #e2e8f0; font-weight: bold; color: #1e293b;">#{user.nombreUsuario}</td>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;">#{user.nombre} #{user.apellido}</td>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;">#{user.email}</td>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;">
+                  span(style=`padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; background: ${user.rol === 'Administrador' ? '#fee2e2; color: #dc2626;' : '#e0f2fe; color: #0284c7;'};`) #{user.rol}
+                </td>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;">#{user.rol === 'Cliente' ? (user.tipoCliente || 'ESTANDAR') : 'Personal Interno'}</td>
+                <td style="padding: 12px; border: 1px solid #e2e8f0; text-align: center; white-space: nowrap;">
+                  div(style="display: flex; justify-content: center; align-items: center; gap: 6px;")
+                    a(href=`/admin/usuarios/editar/${user._id}` style="background-color: #ffc107; color: #212529; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; display: inline-block; text-align: center;") ✏️ Editar
+                    if user.rol !== 'Administrador' && user.nombreUsuario !== 'admin'
+                      form(action=`/admin/usuarios/eliminar/${user._id}` method="POST" style="margin: 0; display: inline-block;")
+                        button(type="submit" style="background-color: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;" onclick="return confirm('¿Estás seguro de eliminar este usuario?');") 🗑️ Eliminar
+                    else
+                      button(disabled style="background-color: #e2e8f0; color: #94a3b8; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: not-allowed;") 🔒 Protegido
+                </td>
+              </tr>
+          </tbody>
+      else
+        p(style="color: #666; font-style: italic; text-align: center; margin-top: 20px;") No hay usuarios registrados en el sistema.

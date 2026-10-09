@@ -1,83 +1,64 @@
-const fs = require('fs');
-const path = require('path');
+const Entrada = require('../models/Entrada');
 
-// Carga segura del modelo Entrada
-const modeloImportado = require('../models/Entrada');
-const Entrada = typeof modeloImportado === 'function' ? modeloImportado : modeloImportado.Entrada;
+const getEntradas = async (req, res) => {
+  try {
+    // Si es un cliente, podemos filtrar sus compras/entradas por su ID de sesión
+    const filtro = req.session.usuario && req.session.usuario.rol === 'Cliente' 
+      ? { cliente: req.session.usuario.id } 
+      : {};
 
-const rutaArchivo = path.join(__dirname, '../data/entradas.json');
-
-const leerEntradas = () => {
-  if (!fs.existsSync(rutaArchivo)) return [];
-  const data = fs.readFileSync(rutaArchivo, 'utf8');
-  if (!data) return [];
-  const objetos = JSON.parse(data);
-  return objetos.map(e => new Entrada(e.id, e.nombre, e.descripcion, e.precio, e.cantidad));
-};
-
-const guardarEntradas = (listaEntradas) => {
-  const datosParaGuardar = listaEntradas.map(e => e.obtenerDetalle());
-  fs.writeFileSync(rutaArchivo, JSON.stringify(datosParaGuardar, null, 2), 'utf8');
-};
-
-const getEntradas = (req, res) => {
-  const entradas = leerEntradas();
-  res.json(entradas.map(e => e.obtenerDetalle()));
-};
-
-const getEntradaById = (req, res) => {
-  const entradas = leerEntradas();
-  const entrada = entradas.find(e => e.id === parseInt(req.params.id));
-  
-  if (!entrada) {
-    return res.status(404).json({ message: 'Entrada no encontrada' });
+    const entradas = await Entrada.find(filtro).populate('evento cliente');
+    res.json(entradas);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener entradas' });
   }
-  
-  res.json(entrada.obtenerDetalle());
 };
 
-const createEntrada = (req, res) => {
-  const entradas = leerEntradas();
-  const { nombre, descripcion, precio, cantidad } = req.body;
-
-  const nuevaEntrada = new Entrada(Date.now(), nombre, descripcion, precio, cantidad);
-  entradas.push(nuevaEntrada);
-  guardarEntradas(entradas);
-
-  res.status(201).json(nuevaEntrada.obtenerDetalle());
-};
-
-const updateEntrada = (req, res) => {
-  const entradas = leerEntradas();
-  const entrada = entradas.find(e => e.id === parseInt(req.params.id));
-
-  if (!entrada) {
-    return res.status(404).json({ message: 'Entrada no encontrada' });
+const getEntradaById = async (req, res) => {
+  try {
+    const entrada = await Entrada.findById(req.params.id).populate('evento cliente');
+    if (!entrada) return res.status(404).json({ message: 'Entrada no encontrada' });
+    res.json(entrada);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al buscar entrada' });
   }
-
-  const { nombre, descripcion, precio, cantidad } = req.body;
-
-  if (nombre) entrada.nombre = nombre;
-  if (descripcion) entrada.descripcion = descripcion;
-  if (precio !== undefined) entrada.setPrecio(precio);
-  if (cantidad !== undefined) entrada.actualizarCantidad(cantidad);
-
-  guardarEntradas(entradas);
-  res.json(entrada.obtenerDetalle());
 };
 
-const deleteEntrada = (req, res) => {
-  const entradas = leerEntradas();
-  const index = entradas.findIndex(e => e.id === parseInt(req.params.id));
+const createEntrada = async (req, res) => {
+  try {
+    const { evento, cantidad, total } = req.body;
+    const nuevaEntrada = new Entrada({
+      cliente: req.session.usuario ? req.session.usuario.id : req.body.cliente,
+      evento,
+      cantidad: parseInt(cantidad) || 1,
+      total: parseFloat(total) || 0
+    });
 
-  if (index === -1) {
-    return res.status(404).json({ message: 'Entrada no encontrada' });
+    await nuevaEntrada.save();
+    res.status(201).json(nuevaEntrada);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al registrar la compra' });
   }
+};
 
-  const [entradaEliminada] = entradas.splice(index, 1);
-  guardarEntradas(entradas);
+const updateEntrada = async (req, res) => {
+  try {
+    const entradaActualizada = await Entrada.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!entradaActualizada) return res.status(404).json({ message: 'Entrada no encontrada' });
+    res.json(entradaActualizada);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al actualizar entrada' });
+  }
+};
 
-  res.json(entradaEliminada.obtenerDetalle());
+const deleteEntrada = async (req, res) => {
+  try {
+    const entradaEliminada = await Entrada.findByIdAndDelete(req.params.id);
+    if (!entradaEliminada) return res.status(404).json({ message: 'Entrada no encontrada' });
+    res.json({ message: 'Entrada eliminada', entrada: entradaEliminada });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al eliminar entrada' });
+  }
 };
 
 module.exports = {
