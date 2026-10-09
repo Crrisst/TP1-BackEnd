@@ -33,7 +33,7 @@ app.use(session({
 
 // Importación de Rutas
 const authRoutes = require('./routes/authRoutes');
-const adminRoutes = require('./routes/adminRoutes');
+const adminRoutes = require('./routes/adminRoutes'); // 👈 Apunta correctamente al archivo en la raíz de routes/
 const clienteRoutes = require('./routes/clienteRoutes');
 const carritoRoutes = require('./routes/carritoRoutes');
 
