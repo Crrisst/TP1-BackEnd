@@ -1,3 +1,5 @@
+const { ZONAS } = require('../models/Sala');
+const { disponibilidadZonas, reservarZona, liberarZona } = require('../models/Evento');
 const express = require('express');
 const router = express.Router();
 const Evento = require('../models/Evento');
@@ -36,13 +38,15 @@ router.get('/carrito', (req, res) => {
 // Agregar ítems con control estricto de stock acumulado
 router.post('/carrito/agregar', async (req, res) => {
   try {
-    const { eventoId, cantidad, tipoEntrada } = req.body;
+    const { eventoId, cantidad } = req.body;
+    const tipoEntrada = req.body.tipoEntrada || 'General';
+    if (!ZONAS.includes(tipoEntrada)) return res.status(400).json({ success: false, message: 'Sector inválido.' });
     const evento = await Evento.findById(eventoId);
     if (!evento) return res.status(404).json({ success: false, message: 'Evento no encontrado' });
 
-    const cantNum = parseInt(cantidad) || 1;
+    const cantNum = Number(cantidad);
 
-    if (cantNum <= 0) {
+    if (!Number.isSafeInteger(cantNum) || cantNum <= 0) {
       return res.status(400).json({ success: false, message: 'La cantidad ingresada debe ser al menos 1.' });
     }
 
@@ -53,6 +57,13 @@ router.post('/carrito/agregar', async (req, res) => {
       .reduce((acc, item) => acc + item.cantidad, 0);
 
     const totalDeseado = cantidadYaEnCarrito + cantNum;
+    const { disponibles } = await disponibilidadZonas(eventoId);
+    const cantidadZona = req.session.carrito.filter(item => item.eventoId === eventoId && item.tipoEntrada === tipoEntrada)
+      .reduce((sum, item) => sum + item.cantidad, 0);
+    if (cantidadZona + cantNum > disponibles[tipoEntrada]) {
+      return res.status(400).json({ success: false, message: `Cupo insuficiente en ${tipoEntrada}. Disponible para agregar: ${Math.max(0, disponibles[tipoEntrada] - cantidadZona)}.` });
+    }
+
 
     if (totalDeseado > evento.entradasDisponibles) {
       const disponiblesRestantes = evento.entradasDisponibles - cantidadYaEnCarrito;
@@ -87,7 +98,7 @@ router.post('/carrito/agregar', async (req, res) => {
 
     const totalItems = req.session.carrito.reduce((acc, item) => acc + item.cantidad, 0);
 
-    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+    if (req.xhr || req.headers.accept?.includes('json')) {
       return res.json({ success: true, totalItems });
     }
 
@@ -125,15 +136,16 @@ router.get('/carrito/checkout', (req, res) => {
 });
 
 router.post('/carrito/procesar-pago', async (req, res) => {
+  const reservas = [];
+  const entradasCreadas = [];
+  let completado = false;
   try {
     const carrito = req.session.carrito || [];
     if (carrito.length === 0) return res.redirect('/cliente/carrito');
 
     for (const item of carrito) {
-      const eventoActual = await Evento.findById(item.eventoId);
-      if (!eventoActual || eventoActual.entradasDisponibles < item.cantidad) {
-        return res.status(400).send(`Error: El evento "${item.nombreEvento}" no tiene suficiente stock disponible.`);
-      }
+      await reservarZona(item.eventoId, item.tipoEntrada, item.cantidad);
+      reservas.push(item);
     }
 
     const { medioPago, numeroTarjeta } = req.body;
@@ -149,7 +161,7 @@ router.post('/carrito/procesar-pago', async (req, res) => {
 
     for (const item of carrito) {
       const codigoBoleto = 'TICK-' + Math.floor(100000 + Math.random() * 900000);
-      await Entrada.create({
+      const entrada = await Entrada.create({
         cliente: usuarioId,
         evento: item.eventoId,
         nombre: `${item.tipoEntrada} - ${item.nombreEvento}`,
@@ -163,9 +175,7 @@ router.post('/carrito/procesar-pago', async (req, res) => {
         codigoBoleto: codigoBoleto
       });
 
-      await Evento.findByIdAndUpdate(item.eventoId, {
-        $inc: { entradasDisponibles: -item.cantidad }
-      });
+      entradasCreadas.push(entrada._id);
     }
 
     const nuevaTransaccion = await Transaccion.create({
@@ -181,6 +191,7 @@ router.post('/carrito/procesar-pago', async (req, res) => {
       fechaCompra: new Date()
     });
 
+    completado = true;
     req.session.carrito = [];
 
     res.render('Cliente/comprobante', {
@@ -188,8 +199,12 @@ router.post('/carrito/procesar-pago', async (req, res) => {
       transaccion: nuevaTransaccion
     });
   } catch (error) {
+    if (!completado) {
+      if (entradasCreadas.length) await Entrada.deleteMany({ _id: { $in: entradasCreadas } });
+      for (const item of reservas) await liberarZona(item.eventoId, item.tipoEntrada, item.cantidad);
+    }
     console.error('Error al procesar pago:', error);
-    res.status(500).send('Error al procesar el pago: ' + error.message);
+    res.status(error.status || 500).send('Error al procesar el pago: ' + error.message);
   }
 });
 

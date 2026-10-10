@@ -1,22 +1,33 @@
 doctype html
-html
+html(lang="es")
   head
-    title Editar Sala
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    title Editar Sala - Administración
+    style
+      include salas.css
   body
-    h1 Editar Sala: #{sala.nombre}
-    if error
-      p(style="color: red;")= error
+    header.card.header
+      h1 ✏️ Editar Sala
+      a.button(href="/salas") ⬅️ Volver a Salas
 
-    form(action=`/salas/${sala.id}/editar` method="POST")
-      div
-        label(for="nombre") Nombre:
-        input(type="text" name="nombre" id="nombre" value=sala.nombre required)
-      div
-        label(for="descripcion") Descripción:
-        input(type="text" name="descripcion" id="descripcion" value=sala.descripcion required)
-      div
-        label(for="capacidad") Capacidad:
-        input(type="number" name="capacidad" id="capacidad" value=sala.capacidad required min="1")
-      div
-        button(type="submit") Guardar Cambios
-        a(href="/salas") Cancelar
+    main.card
+      h2= sala.nombre
+      if error
+        .alert(role="alert")= error
+      form(action=`/salas/${sala.id}/editar` method="POST")
+        .fields
+          .field
+            label(for="nombre") Nombre
+            input#nombre(type="text" name="nombre" value=sala.nombre required)
+          each zona in ['General', 'Platea', 'VIP']
+            .field
+              label(for=`capacidad-${zona}`) Capacidad sector #{zona.toLowerCase()}
+              input(id=`capacidad-${zona}` type="number" name=`zonas[${zona}]` min="0" step="1" required value=sala.zonas[zona])
+          .field.wide
+            label(for="descripcion") Descripción
+            textarea#descripcion(name="descripcion" rows="3")= sala.descripcion
+        p La capacidad total se calcula sumando las tres zonas.
+        .actions
+          button.button(type="submit") Guardar Cambios
+          a.button.secondary(href="/salas") Cancelar

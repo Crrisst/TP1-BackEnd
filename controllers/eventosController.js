@@ -1,3 +1,5 @@
+const Sala = require('../models/Sala');
+const { validarCupoEvento } = require('../models/Evento');
 const Evento = require('../models/Evento');
 
 const isHtmlRequest = (req) => {
@@ -9,7 +11,7 @@ const getEventos = async (req, res) => {
   try {
     const eventos = await Evento.find().populate('sala');
     if (isHtmlRequest(req)) {
-      return res.render('eventos', { eventos, error: req.query.error });
+      return res.render('eventos', { eventos, salas: await Sala.find(), error: req.query.error });
     }
     res.json(eventos);
   } catch (error) {
@@ -40,6 +42,7 @@ const createEvento = async (req, res) => {
       return res.status(400).json({ message: 'Las entradas disponibles deben ser un número >= 0.' });
     }
 
+    await validarCupoEvento(sala, entradas);
     const nuevoEvento = new Evento({
       nombre,
       descripcion,
@@ -58,7 +61,7 @@ const createEvento = async (req, res) => {
     res.status(201).json(nuevoEvento);
   } catch (error) {
     console.error('Error al crear evento:', error);
-    res.status(500).json({ message: 'Error interno al crear el evento' });
+    res.status(error.status || 500).json({ message: error.status ? error.message : 'Error interno al crear el evento' });
   }
 };
 
@@ -68,7 +71,7 @@ const showEditEventoForm = async (req, res) => {
     if (!evento) {
       return res.redirect('/eventos?error=Evento+no+encontrado');
     }
-    res.render('editarEvento', { evento, error: req.query.error });
+    res.render('editarEvento', { evento, salas: await Sala.find(), error: req.query.error });
   } catch (error) {
     res.redirect('/eventos?error=Error+al+cargar+el+evento');
   }
@@ -87,7 +90,11 @@ const updateEvento = async (req, res) => {
     if (entradasDisponibles !== undefined) updateData.entradasDisponibles = Number(entradasDisponibles);
     if (sala) updateData.sala = sala;
 
-    const eventoActualizado = await Evento.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    const actual = await Evento.findById(req.params.id);
+    if (!actual) return res.status(404).json({ message: 'Evento no encontrado' });
+    await validarCupoEvento(sala || actual.sala, updateData.entradasDisponibles ?? actual.entradasDisponibles, actual._id);
+
+    const eventoActualizado = await Evento.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
 
     if (!eventoActualizado) {
       if (isHtmlRequest(req)) return res.redirect('/eventos?error=Evento+no+encontrado');
@@ -100,7 +107,7 @@ const updateEvento = async (req, res) => {
     res.json(eventoActualizado);
   } catch (error) {
     console.error('Error al actualizar evento:', error);
-    res.status(500).json({ message: 'Error al actualizar el evento' });
+    res.status(error.status || 500).json({ message: error.status ? error.message : 'Error al actualizar el evento' });
   }
 };
 

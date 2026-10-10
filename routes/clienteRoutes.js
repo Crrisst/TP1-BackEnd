@@ -1,3 +1,5 @@
+const { disponibilidadZonas } = require('../models/Evento');
+const { cancelarEntradaZona } = require('../models/Entrada');
 const express = require('express');
 const router = express.Router();
 
@@ -18,7 +20,7 @@ router.use(verificarClienteLogin);
 
 router.get('/menu', async (req, res) => {
   try {
-    const usuarioCompleto = await Usuario.findById(req.session.usuario.id) || 
+    const usuarioCompleto = await Usuario.findById(req.session.usuario.id) ||
                             await Usuario.findOne({ nombreUsuario: req.session.usuario.nombreUsuario });
     if (!usuarioCompleto) return res.redirect('/auth/login');
 
@@ -92,9 +94,9 @@ router.post('/procesar-membresia', async (req, res) => {
 
 router.get('/mis-compras', async (req, res) => {
   try {
-    const usuarioCompleto = await Usuario.findById(req.session.usuario.id) || 
+    const usuarioCompleto = await Usuario.findById(req.session.usuario.id) ||
                             await Usuario.findOne({ nombreUsuario: req.session.usuario.nombreUsuario });
-    
+
     const misEntradasCompradas = await Entrada.find({ cliente: usuarioCompleto._id }).populate('evento');
     const misCompras = await Transaccion.find({ cliente: usuarioCompleto._id }).sort({ fechaCompra: -1 });
 
@@ -115,6 +117,8 @@ router.post('/cancelar-entrada/:id', async (req, res) => {
     const entradaARecuperar = await Entrada.findById(entradaId).populate('evento');
 
     if (!entradaARecuperar) return res.status(404).json({ success: false, message: 'No se encontró la entrada.' });
+    if (String(entradaARecuperar.cliente) !== String(req.session.usuario.id)) return res.status(403).json({ success: false, message: 'La entrada no pertenece al usuario.' });
+    await cancelarEntradaZona(entradaId, req.session.usuario.id);
 
     await CancelacionLog.create({
       cliente: entradaARecuperar.cliente,
@@ -125,14 +129,6 @@ router.post('/cancelar-entrada/:id', async (req, res) => {
       fechaCancelacion: new Date()
     });
 
-    if (entradaARecuperar.evento) {
-      await Evento.findByIdAndUpdate(entradaARecuperar.evento._id, {
-        $inc: { entradasDisponibles: entradaARecuperar.cantidad || 1 }
-      });
-    }
-
-    await Entrada.findByIdAndDelete(entradaId);
-
     res.json({ success: true, message: 'Entrada cancelada correctamente.' });
   } catch (error) {
     console.error('Error al cancelar:', error);
@@ -142,7 +138,11 @@ router.post('/cancelar-entrada/:id', async (req, res) => {
 
 router.get('/comprar', async (req, res) => {
   try {
-    const eventosDisponibles = await Evento.find({}); 
+    const lista = await Evento.find({});
+    const eventosDisponibles = await Promise.all(lista.map(async evento => {
+      const { disponibles } = await disponibilidadZonas(evento._id);
+      return { ...evento.toObject(), zonasDisponibles: disponibles };
+    }));
     const carrito = req.session.carrito || [];
     const totalItemsCarrito = carrito.reduce((acc, item) => acc + item.cantidad, 0);
 

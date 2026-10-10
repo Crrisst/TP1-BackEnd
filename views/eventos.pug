@@ -29,6 +29,12 @@ html(lang="es")
         label(for="hora") Hora:
         input#hora(type="time" name="hora" required)
       div
+        label(for="sala") Sala:
+        select#sala(name="sala")
+          option(value="") Seleccionar sala
+          each sala in salas
+            option(value=sala._id) #{sala.nombre} (#{sala.capacidad} personas)
+      div
         label(for="entradasDisponibles") Entradas Disponibles:
         input#entradasDisponibles(type="number" name="entradasDisponibles" min="0" required)
       div

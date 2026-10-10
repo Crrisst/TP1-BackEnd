@@ -1,7 +1,7 @@
 global.crypto = require('crypto');
 
 const express = require('express');
-const mongoose = require('mongoose');
+const { conectarBaseDeDatos } = require('./seed');
 const session = require('express-session');
 const path = require('path');
 
@@ -17,10 +17,6 @@ const entradasRoutes = require('./routes/entradasRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-mongoose.connect('mongodb://localhost:27017/TP2')
-  .then(() => console.log('📦 Conectado correctamente a MongoDB'))
-  .catch(err => console.error('❌ Error de conexión a MongoDB:', err));
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
@@ -43,6 +39,7 @@ app.use('/cliente', clienteRoutes);
 app.use('/cliente', carritoRoutes);
 app.use('/eventos', eventosRoutes);
 app.use('/salas', salasRoutes);
+app.use('/api/rooms', salasRoutes.apiRouter);
 app.use('/api/entradas', entradasRoutes);
 
 app.get('/', (req, res) => {
@@ -52,6 +49,18 @@ app.get('/', (req, res) => {
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-});
+async function iniciarServidor() {
+  await conectarBaseDeDatos();
+  return app.listen(PORT, () => {
+    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+  });
+}
+
+module.exports = { app, iniciarServidor };
+
+if (require.main === module) {
+  iniciarServidor().catch(error => {
+    console.error('Error al iniciar el servidor:', error.message);
+    process.exitCode = 1;
+  });
+}

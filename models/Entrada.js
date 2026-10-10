@@ -1,5 +1,6 @@
 // models/Entrada.js
 const mongoose = require('mongoose');
+const { ZONAS } = require('./Sala');
 
 const entradaSchema = new mongoose.Schema({
   cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', required: true },
@@ -33,5 +34,24 @@ entradaSchema.methods.obtenerDetalle = function() {
     codigoBoleto: this.codigoBoleto
   };
 };
+
+async function cancelarEntradaZona(entradaId, clienteId) {
+  const entrada = await mongoose.model('Entrada').findOne({ _id: entradaId, cliente: clienteId });
+  if (!entrada) throw Object.assign(new Error('Entrada no encontrada para este usuario.'), { status: 404 });
+  if (entrada.evento) await mongoose.model('Evento').prepararStockZonas(entrada.evento);
+  const eliminada = await mongoose.model('Entrada').findOneAndDelete({ _id: entradaId, cliente: clienteId });
+  if (!eliminada) throw Object.assign(new Error('La entrada ya fue cancelada.'), { status: 409 });
+  try {
+    const sector = eliminada.sector === 'Platea Preferencial' ? 'Platea' : eliminada.sector;
+    await mongoose.model('Evento').liberarZona(eliminada.evento, ZONAS.includes(sector) ? sector : 'General', eliminada.cantidad);
+  } catch (error) {
+    await mongoose.model('Entrada').create(eliminada.toObject());
+    throw error;
+  }
+  return eliminada;
+}
+
+
+entradaSchema.statics.cancelarEntradaZona = cancelarEntradaZona;
 
 module.exports = mongoose.model('Entrada', entradaSchema);

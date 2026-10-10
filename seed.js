@@ -7,9 +7,16 @@ const Evento = require('./models/Evento');
 const Entrada = require('./models/Entrada');
 const Transaccion = require('./models/Transaccion');
 
+// CONEXIÓN A LA BASE DE DATOS
+async function conectarBaseDeDatos() {
+  await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/TP2');
+  await Sala.init();
+}
+
+// CARGA DE DATOS DE EJEMPLO POR MÓDULO
 async function poblarBaseDeDatos() {
   try {
-    await mongoose.connect('mongodb://localhost:27017/TP2');
+    await conectarBaseDeDatos();
     console.log('📦 Conectado a MongoDB para el Seed...');
 
     await Usuario.deleteMany({});
@@ -66,6 +73,11 @@ async function poblarBaseDeDatos() {
       nombre: 'Teatro Gran Rex',
       descripcion: 'Sala clásica de eventos masivos en el centro',
       capacidad: 500,
+      zonas: {
+        General: 300,
+        Platea: 150,
+        VIP: 50
+      },
       ubicacion: 'Centro Histórico'
     });
 
@@ -73,6 +85,11 @@ async function poblarBaseDeDatos() {
       nombre: 'Auditorio Central Moderno',
       descripcion: 'Sala equipada con sonido Dolby Atmos y reclinables',
       capacidad: 250,
+      zonas: {
+        General: 150,
+        Platea: 75,
+        VIP: 25
+      },
       ubicacion: 'Zona Norte'
     });
 
@@ -111,6 +128,7 @@ async function poblarBaseDeDatos() {
     await Entrada.create({
       cliente: cliente1._id,
       evento: eventoPasado._id,
+      sector: 'VIP',
       nombre: 'Entrada VIP - Concierto Retró',
       descripcion: 'Acceso preferencial zona A',
       precio: 3500.00,
@@ -121,6 +139,7 @@ async function poblarBaseDeDatos() {
     await Entrada.create({
       cliente: cliente1._id,
       evento: eventoVigente1._id,
+      sector: 'General',
       nombre: 'Abono General - Cine',
       descripcion: 'Acceso a funciones principales',
       precio: 1500.00,
@@ -176,11 +195,17 @@ async function poblarBaseDeDatos() {
 
     console.log('🎟️ Transacciones y comprobantes cargados correctamente.');
     console.log('✨ ¡Seed ejecutado por completo!');
-    process.exit(0);
+
   } catch (error) {
     console.error('❌ Error al poblar la base de datos:', error);
-    process.exit(1);
+    process.exitCode = 1;
+  } finally {
+    await mongoose.disconnect();
   }
 }
 
-poblarBaseDeDatos();
+module.exports = { conectarBaseDeDatos };
+
+if (require.main === module) {
+  poblarBaseDeDatos();
+}
