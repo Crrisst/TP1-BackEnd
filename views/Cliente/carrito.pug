@@ -15,7 +15,7 @@ html(lang="es")
             tr(style="background-color: #e2e8f0; text-align: left; font-size: 14px;")
               th(style="padding: 12px; border: 1px solid #cbd5e1;") Evento
               th(style="padding: 12px; border: 1px solid #cbd5e1;") Tipo
-              th(style="padding: 12px; border: 1px solid #cbd5e1;") Precio
+              th(style="padding: 12px; border: 1px solid #cbd5e1;") Precio U.
               th(style="padding: 12px; border: 1px solid #cbd5e1;") Cantidad
               th(style="padding: 12px; border: 1px solid #cbd5e1;") Subtotal
               th(style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;") Acción
@@ -30,9 +30,15 @@ html(lang="es")
                 td(style="padding: 12px; border: 1px solid #e2e8f0; text-align: center;")
                   a(href=`/cliente/carrito/quitar/${index}` style="background-color: #dc3545; color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-weight: bold;") ❌ Quitar
         
-        div(style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #eee; padding-top: 20px;")
-          h3(style="margin: 0; color: #2c3e50;") Total a Pagar: 
-            span(style="color: #16a34a;") $#{total}
+        div(style="border-top: 2px solid #eee; padding-top: 15px; text-align: right; font-size: 15px; color: #334155;")
+          p(style="margin: 4px 0;") Subtotal: $#{subtotal}
+          if porcentajeDescuento > 0
+            p(style="margin: 4px 0; color: #16a34a; font-weight: bold;") Descuento por Membresía (#{porcentajeDescuento}%): -$#{descuentoAplicado}
+          h3(style="margin: 10px 0 20px 0; color: #2c3e50;") Total a Pagar: 
+            span(style="color: #16a34a; font-size: 22px;") $#{total}
+            
+        div(style="display: flex; justify-content: space-between; align-items: center;")
+          a(href="/cliente/comprar" style="color: #0284c7; text-decoration: none; font-weight: bold;") ➕ Seguir comprando
           a(href="/cliente/carrito/checkout" style="background-color: #16a34a; color: white; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;") 💳 Ir a Pagar
       
       else

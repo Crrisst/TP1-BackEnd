@@ -40,16 +40,9 @@ html(lang="es")
         label(for="fechaNacimiento") Fecha de Nacimiento:
         input#fechaNacimiento(type="date" name="fechaNacimiento" value=(datos ? datos.fechaNacimiento : '') required style="width: 100%; padding: 6px;")
         
-      div(style="margin-bottom: 10px;")
+      div(style="margin-bottom: 15px;")
         label(for="telefono") Teléfono:
         input#telefono(type="tel" name="telefono" value=(datos ? datos.telefono : '') required pattern="[0-9]{10}" maxlength="10" style="width: 100%; padding: 6px;" placeholder="Ej: 1123456789" onkeypress="return event.charCode >= 48 && event.charCode <= 57")
-
-      div(style="margin-bottom: 15px;")
-        label(for="tipoCliente") Tipo de Cliente:
-        select#tipoCliente(name="tipoCliente" style="width: 100%; padding: 6px; margin-top: 5px;")
-          option(value="ESTANDAR" selected=(datos && datos.tipoCliente === 'ESTANDAR')) Estándar
-          option(value="PREMIUM" selected=(datos && datos.tipoCliente === 'PREMIUM')) Premium
-          option(value="VIP" selected=(datos && datos.tipoCliente === 'VIP')) VIP
 
       div
         button(type="submit" style="width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;") Registrarse

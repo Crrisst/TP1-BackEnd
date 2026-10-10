@@ -24,11 +24,69 @@ router.get('/menu', async (req, res) => {
 
     res.render('Cliente/menu', {
       usuarioLogueado: req.session.usuario,
-      usuarioCompleto
+      usuarioCompleto,
+      mensajeExito: req.query.exito || null
     });
   } catch (error) {
     console.error('Error al cargar el menú del cliente:', error);
     res.status(500).send('Error interno.');
+  }
+});
+
+// GET /cliente/membresia - Mostrar tarjeta de beneficios y opciones de membresía
+router.get('/membresia', async (req, res) => {
+  try {
+    const usuarioCompleto = await Usuario.findById(req.session.usuario.id) || 
+                            await Usuario.findOne({ nombreUsuario: req.session.usuario.nombreUsuario });
+    res.render('Cliente/membresia', {
+      usuarioLogueado: req.session.usuario,
+      usuarioCompleto,
+      error: req.query.error || null
+    });
+  } catch (error) {
+    console.error('Error al cargar la vista de membresías:', error);
+    res.status(500).send('Error interno.');
+  }
+});
+
+// POST /cliente/procesar-membresia - Actualizar nivel de membresía con simulación de pago
+router.post('/procesar-membresia', async (req, res) => {
+  try {
+    const { tipoCliente, numeroTarjeta, titular } = req.body;
+    let porcentajeDescuento = 0;
+    let planElegido = 'ESTANDAR';
+
+    if (tipoCliente === 'PREMIUM') {
+      porcentajeDescuento = 0.15; // 15% de descuento
+      planElegido = 'PREMIUM';
+    } else if (tipoCliente === 'VIP') {
+      porcentajeDescuento = 0.30; // 30% de descuento
+      planElegido = 'VIP';
+    } else {
+      planElegido = 'ESTANDAR';
+      porcentajeDescuento = 0;
+    }
+
+    // Validar tarjeta si elige planes pagos
+    if (planElegido !== 'ESTANDAR' && (!numeroTarjeta || !titular)) {
+      return res.redirect('/cliente/membresia?error=Para+los+planes+Premium+o+VIP+debes+ingresar+los+datos+de+pago.');
+    }
+
+    const usuarioId = req.session.usuario.id || req.session.usuario._id;
+
+    const usuarioActualizado = await Usuario.findByIdAndUpdate(usuarioId, {
+      tipoCliente: planElegido,
+      porcentajeDescuento
+    }, { new: true });
+
+    // Actualizar la sesión en tiempo real
+    req.session.usuario.tipoCliente = usuarioActualizado.tipoCliente;
+    req.session.usuario.porcentajeDescuento = usuarioActualizado.porcentajeDescuento;
+
+    res.redirect('/cliente/menu?exito=¡Membresía configurada con éxito!');
+  } catch (error) {
+    console.error('Error al procesar la membresía:', error);
+    res.status(500).send('Error interno al actualizar la membresía.');
   }
 });
 

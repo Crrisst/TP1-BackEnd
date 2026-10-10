@@ -13,15 +13,22 @@ const verificarCliente = (req, res, next) => {
 
 router.use(verificarCliente);
 
-// Ver el carrito actual
+// Ver el carrito con cálculo automático de descuentos por membresía
 router.get('/carrito', (req, res) => {
   if (!req.session.carrito) req.session.carrito = [];
   const carrito = req.session.carrito;
-  const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+
+  const porcentajeDescuento = req.session.usuario ? (req.session.usuario.porcentajeDescuento || 0) : 0;
+  const subtotal = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+  const descuentoAplicado = subtotal * porcentajeDescuento;
+  const total = subtotal - descuentoAplicado;
 
   res.render('Cliente/carrito', {
     usuarioLogueado: req.session.usuario,
     carrito,
+    subtotal,
+    descuentoAplicado,
+    porcentajeDescuento: porcentajeDescuento * 100,
     total
   });
 });
@@ -41,14 +48,12 @@ router.post('/carrito/agregar', async (req, res) => {
 
     if (!req.session.carrito) req.session.carrito = [];
 
-    // 1. Calculamos la cantidad acumulada que el usuario ya tiene en su carrito para este evento
     const cantidadYaEnCarrito = req.session.carrito
       .filter(item => item.eventoId === eventoId)
       .reduce((acc, item) => acc + item.cantidad, 0);
 
     const totalDeseado = cantidadYaEnCarrito + cantNum;
 
-    // 2. Validamos que la suma total acumulada no supere el stock de la base de datos
     if (totalDeseado > evento.entradasDisponibles) {
       const disponiblesRestantes = evento.entradasDisponibles - cantidadYaEnCarrito;
       
@@ -67,7 +72,6 @@ router.post('/carrito/agregar', async (req, res) => {
 
     const precioOficial = evento.precio || 5000;
 
-    // 3. Si supera las validaciones, agregamos o actualizamos la cantidad en el carrito
     const index = req.session.carrito.findIndex(item => item.eventoId === eventoId && item.tipoEntrada === tipoEntrada);
     if (index > -1) {
       req.session.carrito[index].cantidad += cantNum;
@@ -94,7 +98,6 @@ router.post('/carrito/agregar', async (req, res) => {
   }
 });
 
-// Quitar ítem
 router.get('/carrito/quitar/:index', (req, res) => {
   const index = parseInt(req.params.index);
   if (req.session.carrito && req.session.carrito[index]) {
@@ -103,19 +106,24 @@ router.get('/carrito/quitar/:index', (req, res) => {
   res.redirect('/cliente/carrito');
 });
 
-// Checkout
 router.get('/carrito/checkout', (req, res) => {
   const carrito = req.session.carrito || [];
   if (carrito.length === 0) return res.redirect('/cliente/carrito');
 
-  const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+  const porcentajeDescuento = req.session.usuario ? (req.session.usuario.porcentajeDescuento || 0) : 0;
+  const subtotal = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+  const descuentoAplicado = subtotal * porcentajeDescuento;
+  const total = subtotal - descuentoAplicado;
+
   res.render('Cliente/checkout', {
     usuarioLogueado: req.session.usuario,
+    subtotal,
+    descuentoAplicado,
+    porcentajeDescuento: porcentajeDescuento * 100,
     total
   });
 });
 
-// Procesar pago
 router.post('/carrito/procesar-pago', async (req, res) => {
   try {
     const carrito = req.session.carrito || [];
@@ -130,7 +138,12 @@ router.post('/carrito/procesar-pago', async (req, res) => {
 
     const { medioPago, numeroTarjeta } = req.body;
     const usuarioId = req.session.usuario.id || req.session.usuario._id;
-    const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+    
+    const porcentajeDescuento = req.session.usuario ? (req.session.usuario.porcentajeDescuento || 0) : 0;
+    const subtotal = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+    const descuentoAplicado = subtotal * porcentajeDescuento;
+    const total = subtotal - descuentoAplicado;
+
     const comprobanteId = 'REC-' + Math.floor(10000000 + Math.random() * 90000000);
     const tarjetaUltimosDigitos = numeroTarjeta ? numeroTarjeta.slice(-4) : '0000';
 
@@ -159,6 +172,8 @@ router.post('/carrito/procesar-pago', async (req, res) => {
       cliente: usuarioId,
       nombreCliente: req.session.usuario.nombreUsuario,
       items: carrito,
+      subtotal,
+      descuentoAplicado,
       total,
       medioPago: medioPago || 'Tarjeta de Crédito',
       tarjetaUltimosDigitos,

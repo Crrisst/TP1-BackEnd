@@ -1,0 +1,55 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    title Selección de Membresía
+  body(style="font-family: sans-serif; padding: 30px; max-width: 700px; margin: auto; background-color: #f4f6f9;")
+    div(style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
+      h2(style="margin-top: 0; color: #2c3e50;") ⭐ Elige tu Plan de Membresía
+      p(style="color: #666; font-size: 14px;") Selecciona una opción obligatoria para continuar. Si no seleccionas ninguna o prefieres la opción básica, se asignará el plan Estándar de manera gratuita.
+
+      if error
+        div(style="background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-weight: bold; border: 1px solid #f5c6cb;")
+          = error
+
+      form(action="/cliente/procesar-membresia" method="POST")
+        div(style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;")
+          
+          label(style="border: 2px solid #cbd5e1; padding: 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: space-between;")
+            div(style="display: flex; align-items: center; gap: 12px;")
+              input(type="radio" name="tipoCliente" value="ESTANDAR" checked=(!usuarioCompleto.tipoCliente || usuarioCompleto.tipoCliente === 'ESTANDAR'))
+              <div>
+                strong(style="font-size: 16px; color: #1e293b;") Plan Estándar (Gratis)
+                p(style="margin: 3px 0 0 0; font-size: 13px; color: #64748b;") Sin costo mensual, acceso estándar a la cartelera.
+              </div>
+            span(style="font-weight: bold; color: #16a34a;") $0 / mes
+
+          label(style="border: 2px solid #cbd5e1; padding: 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: space-between;")
+            div(style="display: flex; align-items: center; gap: 12px;")
+              input(type="radio" name="tipoCliente" value="PREMIUM" checked=(usuarioCompleto.tipoCliente === 'PREMIUM'))
+              <div>
+                strong(style="font-size: 16px; color: #0284c7;") Plan Premium (15% de Descuento)
+                p(style="margin: 3px 0 0 0; font-size: 13px; color: #64748b;") Obtené un 15% de descuento en todas tus compras de entradas.
+              </div>
+            span(style="font-weight: bold; color: #0284c7;") $2.000 / mes
+
+          label(style="border: 2px solid #cbd5e1; padding: 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: space-between;")
+            div(style="display: flex; align-items: center; gap: 12px;")
+              input(type="radio" name="tipoCliente" value="VIP" checked=(usuarioCompleto.tipoCliente === 'VIP'))
+              <div>
+                strong(style="font-size: 16px; color: #9333ea;") Plan VIP (30% de Descuento)
+                p(style="margin: 3px 0 0 0; font-size: 13px; color: #64748b;") Máximo beneficio con 30% de descuento en entradas y soporte prioritario.
+              </div>
+            span(style="font-weight: bold; color: #9333ea;") $5.000 / mes
+
+        //- Sección de simulación de pago
+        div(style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;")
+          h4(style="margin-top: 0; color: #334155; font-size: 15px;") 💳 Simulación de Pago (Obligatorio si elegiste Premium o VIP)
+          div(style="margin-bottom: 12px;")
+            label(style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;") Titular de la Tarjeta:
+            input(type="text" name="titular" placeholder="Nombre y Apellido" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;")
+          div(style="margin-bottom: 12px;")
+            label(style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;") Número de Tarjeta:
+            input(type="text" name="numeroTarjeta" maxlength="16" placeholder="4532XXXXXXXXXXXX" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;")
+
+        button(type="submit" style="width: 100%; background: #16a34a; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer;") ✅ Confirmar y Continuar al Menú
