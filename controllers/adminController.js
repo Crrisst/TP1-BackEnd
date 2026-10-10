@@ -1,6 +1,12 @@
 const Usuario = require('../models/Usuario');
+const CancelacionLog = require('../models/CancelacionLog');
 
 const mostrarFormularioCrearPersonal = (req, res) => {
+  const rolActual = req.session.usuario && req.session.usuario.rol;
+  if (rolActual !== 'Administrador') {
+    return res.status(403).send('Acceso denegado: Solo los administradores pueden acceder al formulario de registro.');
+  }
+
   res.render('Admin/crear-personal', {
     usuarioLogueado: req.session.usuario
   });
@@ -8,6 +14,11 @@ const mostrarFormularioCrearPersonal = (req, res) => {
 
 const registrarPersonalInterno = async (req, res) => {
   try {
+    const rolActual = req.session.usuario && req.session.usuario.rol;
+    if (rolActual !== 'Administrador') {
+      return res.status(403).send('Acceso denegado.');
+    }
+
     const { 
       nombreUsuario, 
       nombre, 
@@ -31,7 +42,7 @@ const registrarPersonalInterno = async (req, res) => {
       dni,
       fechaNacimiento,
       telefono,
-      rol: rol || 'Administrador',
+      rol: rol || 'Cliente',
       tipoCliente: tipoCliente || 'ESTANDAR',
       porcentajeDescuento: porcentajeDescuento || 0
     });
@@ -50,7 +61,7 @@ const listarUsuarios = async (req, res) => {
   try {
     const usuarios = await Usuario.find().sort({ createdAt: -1 });
     res.render('Admin/usuarios', {
-      usuarioLogueado: req.session.usuario,
+      usuarioLogueado: req.session.usuario, // Envía la sesión para que la vista condicione los botones según el rol
       usuarios,
       exito: req.query.exito || null
     });
@@ -62,6 +73,11 @@ const listarUsuarios = async (req, res) => {
 
 const mostrarFormularioEditarUsuario = async (req, res) => {
   try {
+    const rolActual = req.session.usuario && req.session.usuario.rol;
+    if (rolActual !== 'Administrador') {
+      return res.status(403).send('Acceso denegado.');
+    }
+
     const usuarioAEditar = await Usuario.findById(req.params.id);
     if (!usuarioAEditar) {
       return res.status(404).send('Usuario no encontrado');
@@ -78,7 +94,13 @@ const mostrarFormularioEditarUsuario = async (req, res) => {
 
 const actualizarUsuario = async (req, res) => {
   try {
+    const rolActual = req.session.usuario && req.session.usuario.rol;
+    if (rolActual !== 'Administrador') {
+      return res.status(403).send('Acceso denegado.');
+    }
+
     const { nombreUsuario, nombre, apellido, email, dni, fechaNacimiento, telefono, rol, tipoCliente, porcentajeDescuento } = req.body;
+    
     await Usuario.findByIdAndUpdate(req.params.id, {
       nombreUsuario, nombre, apellido, email, dni, fechaNacimiento, telefono, rol, tipoCliente, porcentajeDescuento
     }, { runValidators: true });
@@ -92,11 +114,29 @@ const actualizarUsuario = async (req, res) => {
 
 const eliminarUsuario = async (req, res) => {
   try {
+    const rolActual = req.session.usuario && req.session.usuario.rol;
+    if (rolActual !== 'Administrador') {
+      return res.status(403).send('Acceso denegado.');
+    }
+
     await Usuario.findByIdAndDelete(req.params.id);
     res.redirect('/admin/usuarios?exito=Usuario eliminado correctamente');
   } catch (error) {
     console.error('Error al eliminar:', error);
     res.status(500).send('Error al eliminar el usuario');
+  }
+};
+
+const listarCancelaciones = async (req, res) => {
+  try {
+    const cancelaciones = await CancelacionLog.find().sort({ fechaCancelacion: -1 });
+    res.render('Admin/cancelaciones', {
+      usuarioLogueado: req.session.usuario,
+      cancelaciones
+    });
+  } catch (error) {
+    console.error('Error al listar cancelaciones:', error);
+    res.status(500).send('Error interno al obtener el historial de cancelaciones');
   }
 };
 
@@ -106,5 +146,6 @@ module.exports = {
   listarUsuarios,
   mostrarFormularioEditarUsuario,
   actualizarUsuario,
-  eliminarUsuario
+  eliminarUsuario,
+  listarCancelaciones
 };

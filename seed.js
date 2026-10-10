@@ -27,7 +27,69 @@ async function poblarBaseDeDatos() {
 
     console.log('🧹 Base de datos limpiada correctamente.');
 
-    // 1. CLIENTES
+    // 1. USUARIOS Y PERSONAL (Diferentes roles y tipos de empresa)
+    
+    // Usuario Administrador principal (Único autorizado para crear otros administradores)
+    const adminPrincipal = await Usuario.create({
+      nombreUsuario: 'admin',
+      nombre: 'Administrador',
+      apellido: 'Principal',
+      email: 'admin@email.com',
+      password: '123',
+      dni: '99887766',
+      fechaNacimiento: new Date('1980-01-01'),
+      telefono: '1100112233',
+      rol: 'Administrador',
+      tipoCliente: 'VIP',
+      porcentajeDescuento: 0.3
+    });
+
+    // Administrador secundario (Para probar restricciones de creación de admins)
+    const adminSecundario = await Usuario.create({
+      nombreUsuario: 'admin_secundario',
+      nombre: 'Carlos',
+      apellido: 'Admin',
+      email: 'carlos.admin@email.com',
+      password: '123',
+      dni: '11223344',
+      fechaNacimiento: new Date('1985-03-10'),
+      telefono: '1155667788',
+      rol: 'Administrador',
+      tipoCliente: 'ESTANDAR',
+      porcentajeDescuento: 0
+    });
+
+    // Supervisor de empresa
+    const supervisor = await Usuario.create({
+      nombreUsuario: 'supervisor1',
+      nombre: 'Roberto',
+      apellido: 'Supervisor',
+      email: 'roberto.sup@email.com',
+      password: '123',
+      dni: '22334455',
+      fechaNacimiento: new Date('1988-07-22'),
+      telefono: '1166778899',
+      rol: 'Supervisor',
+      tipoCliente: 'PREMIUM',
+      porcentajeDescuento: 0.15
+    });
+
+    // Lector / Auditor
+    const lector = await Usuario.create({
+      nombreUsuario: 'lector1',
+      nombre: 'Lucía',
+      apellido: 'Lector',
+      email: 'lucia.lector@email.com',
+      password: '123',
+      dni: '33445566',
+      fechaNacimiento: new Date('1992-11-05'),
+      telefono: '1177889900',
+      rol: 'Lector',
+      tipoCliente: 'ESTANDAR',
+      porcentajeDescuento: 0
+    });
+
+    // Clientes habituales
     const cliente1 = await Usuario.create({
       nombreUsuario: 'cliente1',
       nombre: 'Juan',
@@ -54,18 +116,6 @@ async function poblarBaseDeDatos() {
       rol: 'Cliente',
       tipoCliente: 'PREMIUM',
       porcentajeDescuento: 0.15
-    });
-
-    await Usuario.create({
-      nombreUsuario: 'admin',
-      nombre: 'Administrador',
-      apellido: 'General',
-      email: 'admin@email.com',
-      password: '123',
-      dni: '99887766',
-      fechaNacimiento: new Date('1980-01-01'),
-      telefono: '1100112233',
-      rol: 'Administrador'
     });
 
     // 2. SALAS

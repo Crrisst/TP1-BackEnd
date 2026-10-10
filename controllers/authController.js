@@ -27,10 +27,12 @@ const procesarLogin = async (req, res) => {
       porcentajeDescuento: usuario.porcentajeDescuento
     };
 
-    // Redirección según el rol del usuario
-    if (usuario.rol === 'Administrador') {
+    // Redirección según el rol del usuario (Administradores, Supervisores y Lectores van al panel de control)
+    if (['Administrador', 'Supervisor', 'Lector'].includes(usuario.rol)) {
       return res.redirect('/admin/dashboard');
     }
+    
+    // Clientes estándar o de empresa van a su menú correspondiente
     return res.redirect('/cliente/menu');
   } catch (error) {
     console.error('Error en login:', error);

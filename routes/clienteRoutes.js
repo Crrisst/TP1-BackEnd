@@ -1,5 +1,3 @@
-const { disponibilidadZonas } = require('../models/Evento');
-const { cancelarEntradaZona } = require('../models/Entrada');
 const express = require('express');
 const router = express.Router();
 
@@ -20,7 +18,7 @@ router.use(verificarClienteLogin);
 
 router.get('/menu', async (req, res) => {
   try {
-    const usuarioCompleto = await Usuario.findById(req.session.usuario.id) ||
+    const usuarioCompleto = await Usuario.findById(req.session.usuario.id) || 
                             await Usuario.findOne({ nombreUsuario: req.session.usuario.nombreUsuario });
     if (!usuarioCompleto) return res.redirect('/auth/login');
 
@@ -35,7 +33,7 @@ router.get('/menu', async (req, res) => {
   }
 });
 
-// GET /cliente/membresia - Mostrar tarjeta de beneficios y opciones de membresía
+// GET /cliente/membresia - Mostrar tarjeta de beneficios
 router.get('/membresia', async (req, res) => {
   try {
     const usuarioCompleto = await Usuario.findById(req.session.usuario.id) || 
@@ -43,7 +41,8 @@ router.get('/membresia', async (req, res) => {
     res.render('Cliente/membresia', {
       usuarioLogueado: req.session.usuario,
       usuarioCompleto,
-      error: req.query.error || null
+      error: null,
+      datos: {}
     });
   } catch (error) {
     console.error('Error al cargar la vista de membresías:', error);
@@ -51,10 +50,10 @@ router.get('/membresia', async (req, res) => {
   }
 });
 
-// POST /cliente/procesar-membresia - Actualizar nivel de membresía con simulación de pago
+// POST /cliente/procesar-membresia - Actualizar nivel de membresía con validación rigurosa de campos vacíos
 router.post('/procesar-membresia', async (req, res) => {
   try {
-    const { tipoCliente, numeroTarjeta, titular } = req.body;
+    const { tipoCliente, numeroTarjeta, titular, vencimiento, cvv } = req.body;
     let porcentajeDescuento = 0;
     let planElegido = 'ESTANDAR';
 
@@ -69,9 +68,51 @@ router.post('/procesar-membresia', async (req, res) => {
       porcentajeDescuento = 0;
     }
 
-    // Validar tarjeta si elige planes pagos
-    if (planElegido !== 'ESTANDAR' && (!numeroTarjeta || !titular)) {
-      return res.redirect('/cliente/membresia?error=Para+los+planes+Premium+o+VIP+debes+ingresar+los+datos+de+pago.');
+    const usuarioCompleto = await Usuario.findById(req.session.usuario.id) || 
+                            await Usuario.findOne({ nombreUsuario: req.session.usuario.nombreUsuario });
+
+    // Si elige un plan pago, exigimos estrictamente que TODOS los campos estén completos
+    if (planElegido !== 'ESTANDAR') {
+      if (!titular || titular.trim() === '' || !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(titular.trim())) {
+        return res.status(400).render('Cliente/membresia', {
+          usuarioLogueado: req.session.usuario,
+          usuarioCompleto,
+          error: 'El nombre del titular es obligatorio y solo debe contener letras.',
+          datos: req.body
+        });
+      }
+      if (!numeroTarjeta || numeroTarjeta.trim() === '' || !/^\d{16}$/.test(numeroTarjeta.trim())) {
+        return res.status(400).render('Cliente/membresia', {
+          usuarioLogueado: req.session.usuario,
+          usuarioCompleto,
+          error: 'El número de tarjeta es obligatorio y debe contener exactamente 16 dígitos numéricos.',
+          datos: req.body
+        });
+      }
+      if (!vencimiento || vencimiento.trim() === '' || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(vencimiento.trim())) {
+        return res.status(400).render('Cliente/membresia', {
+          usuarioLogueado: req.session.usuario,
+          usuarioCompleto,
+          error: 'El vencimiento es obligatorio y debe tener formato MM/AA.',
+          datos: req.body
+        });
+      }
+      if (!cvv || cvv.trim() === '' || !/^\d{3}$/.test(cvv.trim())) {
+        return res.status(400).render('Cliente/membresia', {
+          usuarioLogueado: req.session.usuario,
+          usuarioCompleto,
+          error: 'El CVV es obligatorio y debe contener exactamente 3 números.',
+          datos: req.body
+        });
+      }
+      if (numeroTarjeta.trim().endsWith('0000')) {
+        return res.status(400).render('Cliente/membresia', {
+          usuarioLogueado: req.session.usuario,
+          usuarioCompleto,
+          error: '❌ Pago rechazado por el banco: Fondos insuficientes.',
+          datos: req.body
+        });
+      }
     }
 
     const usuarioId = req.session.usuario.id || req.session.usuario._id;
@@ -85,7 +126,7 @@ router.post('/procesar-membresia', async (req, res) => {
     req.session.usuario.tipoCliente = usuarioActualizado.tipoCliente;
     req.session.usuario.porcentajeDescuento = usuarioActualizado.porcentajeDescuento;
 
-    res.redirect('/cliente/menu?exito=¡Membresía configurada con éxito!');
+    res.redirect('/cliente/menu?exito=¡Membresía configurada y cobro aprobado con éxito!');
   } catch (error) {
     console.error('Error al procesar la membresía:', error);
     res.status(500).send('Error interno al actualizar la membresía.');
@@ -94,9 +135,9 @@ router.post('/procesar-membresia', async (req, res) => {
 
 router.get('/mis-compras', async (req, res) => {
   try {
-    const usuarioCompleto = await Usuario.findById(req.session.usuario.id) ||
+    const usuarioCompleto = await Usuario.findById(req.session.usuario.id) || 
                             await Usuario.findOne({ nombreUsuario: req.session.usuario.nombreUsuario });
-
+    
     const misEntradasCompradas = await Entrada.find({ cliente: usuarioCompleto._id }).populate('evento');
     const misCompras = await Transaccion.find({ cliente: usuarioCompleto._id }).sort({ fechaCompra: -1 });
 
@@ -117,8 +158,6 @@ router.post('/cancelar-entrada/:id', async (req, res) => {
     const entradaARecuperar = await Entrada.findById(entradaId).populate('evento');
 
     if (!entradaARecuperar) return res.status(404).json({ success: false, message: 'No se encontró la entrada.' });
-    if (String(entradaARecuperar.cliente) !== String(req.session.usuario.id)) return res.status(403).json({ success: false, message: 'La entrada no pertenece al usuario.' });
-    await cancelarEntradaZona(entradaId, req.session.usuario.id);
 
     await CancelacionLog.create({
       cliente: entradaARecuperar.cliente,
@@ -129,6 +168,14 @@ router.post('/cancelar-entrada/:id', async (req, res) => {
       fechaCancelacion: new Date()
     });
 
+    if (entradaARecuperar.evento) {
+      await Evento.findByIdAndUpdate(entradaARecuperar.evento._id, {
+        $inc: { entradasDisponibles: entradaARecuperar.cantidad || 1 }
+      });
+    }
+
+    await Entrada.findByIdAndDelete(entradaId);
+
     res.json({ success: true, message: 'Entrada cancelada correctamente.' });
   } catch (error) {
     console.error('Error al cancelar:', error);
@@ -138,11 +185,7 @@ router.post('/cancelar-entrada/:id', async (req, res) => {
 
 router.get('/comprar', async (req, res) => {
   try {
-    const lista = await Evento.find({});
-    const eventosDisponibles = await Promise.all(lista.map(async evento => {
-      const { disponibles } = await disponibilidadZonas(evento._id);
-      return { ...evento.toObject(), zonasDisponibles: disponibles };
-    }));
+    const eventosDisponibles = await Evento.find({}).populate('sala'); 
     const carrito = req.session.carrito || [];
     const totalItemsCarrito = carrito.reduce((acc, item) => acc + item.cantidad, 0);
 
@@ -153,7 +196,7 @@ router.get('/comprar', async (req, res) => {
     });
   } catch (error) {
     console.error('Error al cargar la cartelera:', error);
-    res.status(500).send('Error interno al cargar los eventos.');
+    res.status(500).send('Error interno al cargar los eventos: ' + error.message);
   }
 });
 

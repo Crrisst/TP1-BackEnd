@@ -1,54 +1,32 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
-const CancelacionLog = require('../models/CancelacionLog');
+const { verificarRol } = require('../middlewares/authMiddleware');
 
-const verificarAdmin = (req, res, next) => {
-  if (!req.session || !req.session.usuario || req.session.usuario.rol !== 'Administrador') {
-    return res.redirect('/auth/login');
-  }
-  next();
-};
+const soloAdmin = verificarRol(['Administrador']);
+const personalInterno = verificarRol(['Administrador', 'Supervisor', 'Lector']);
 
-router.use(verificarAdmin);
-
-router.get('/dashboard', (req, res) => {
+// Dashboard del panel (permitido para todo el personal interno)
+router.get('/dashboard', personalInterno, (req, res) => {
   res.render('Admin/dashboard', {
-    usuarioLogueado: req.session.usuario,
-    mensajeExito: req.query.exito || null
+    usuarioLogueado: req.session.usuario
   });
 });
 
-router.get('/usuarios', adminController.listarUsuarios);
-router.get('/crear-personal', adminController.mostrarFormularioCrearPersonal);
-router.post('/crear-personal', adminController.registrarPersonalInterno);
-router.get('/usuarios/editar/:id', adminController.mostrarFormularioEditarUsuario);
-router.post('/usuarios/editar/:id', adminController.actualizarUsuario);
-router.post('/usuarios/eliminar/:id', adminController.eliminarUsuario);
+// --- GESTIÓN DE USUARIOS ---
+// Listado permitido para personal interno (Visualización)
+router.get('/usuarios', personalInterno, adminController.listarUsuarios);
 
-router.get('/cancelaciones', async (req, res) => {
-  try {
-    const { usuario } = req.query;
-    let cancelaciones = await CancelacionLog.find({}).sort({ fechaCancelacion: -1 });
+// Acciones de modificación y creación (Exclusivas para Administradores)
+router.get('/crear-personal', soloAdmin, adminController.mostrarFormularioCrearPersonal);
+router.post('/crear-personal', soloAdmin, adminController.registrarPersonalInterno);
 
-    if (usuario && usuario.trim() !== '') {
-      const termino = usuario.toLowerCase();
-      cancelaciones = cancelaciones.filter(c => c.nombreCliente && c.nombreCliente.toLowerCase().includes(termino));
-    }
+router.get('/usuarios/editar/:id', soloAdmin, adminController.mostrarFormularioEditarUsuario);
+router.post('/usuarios/editar/:id', soloAdmin, adminController.actualizarUsuario);
 
-    res.render('Admin/cancelaciones', {
-      usuarioLogueado: req.session.usuario,
-      cancelaciones,
-      busquedaUsuario: usuario || ''
-    });
-  } catch (error) {
-    console.error('Error al cargar la auditoría de cancelaciones:', error);
-    res.render('Admin/cancelaciones', {
-      usuarioLogueado: req.session.usuario,
-      cancelaciones: [],
-      busquedaUsuario: req.query.usuario || ''
-    });
-  }
-});
+router.post('/usuarios/eliminar/:id', soloAdmin, adminController.eliminarUsuario);
+
+// --- CANCELACIONES ---
+router.get('/cancelaciones', personalInterno, adminController.listarCancelaciones);
 
 module.exports = router;

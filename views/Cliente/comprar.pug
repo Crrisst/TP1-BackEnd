@@ -44,8 +44,9 @@ html(lang="es")
               div(style="margin-bottom: 10px;")
                 label(style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px;") Sector / Tipo:
                 select(name="tipoEntrada" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;")
-                  each zona in ['General', 'Platea', 'VIP']
-                    option(value=zona disabled=(evento.zonasDisponibles[zona] <= 0)) #{zona} — #{evento.zonasDisponibles[zona]} disponibles
+                  option(value="General") General
+                  option(value="Platea") Platea
+                  option(value="VIP") VIP
               
               div(style="display: flex; gap: 10px; margin-bottom: 15px;")
                 div(style="flex: 1;")
