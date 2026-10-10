@@ -21,6 +21,12 @@ html
         label(for="hora") Hora:
         input(type="time" name="hora" id="hora" value=evento.hora required)
       div
+        label(for="sala") Sala:
+        select#sala(name="sala")
+          option(value="") Seleccionar sala
+          each sala in salas
+            option(value=sala._id selected=(String(evento.sala || "") === String(sala._id))) #{sala.nombre} (#{sala.capacidad} personas)
+      div
         label(for="entradasDisponibles") Entradas Disponibles:
         input(type="number" name="entradasDisponibles" min="0" id="entradasDisponibles" value=evento.entradasDisponibles required)
       div
