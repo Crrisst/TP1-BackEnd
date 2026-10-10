@@ -19,7 +19,7 @@ Sistema web desarrollado con Node.js, Express, MongoDB y vistas Pug, diseñado p
 - [ ] **Módulo de Salas, Eventos y Mapa de Asientos:**
   - Desarrollar el CRUD completo para administrar salas y funciones.
   - *Idea / Mejora:* Implementar un formulario de alta rápida de **Artistas** para asociarlos mediante un menú desplegable (`<select>`).
-  - *Idea / Mejora:* Permitir configurar la distribución de asientos de la sala (definir cantidad de filas, asientos por fila o sectores como Platea/Pullman) al momento de crearla.
+  - *En algunos espacio culturales que tenga el mapa y permitir configurar la distribución de asientos de la sala (definir cantidad de filas, asientos por fila o sectores como Platea/Pullman) al momento de crearla.
 - [ ] **Módulo de Reportes y Estadísticas:**
   - Diseñar vistas de reportes y métricas de ventas/asistencia orientadas al rol de Supervisor.
 - [ ] **Generación de Entradas con Diseño Realista y Código QR:**
