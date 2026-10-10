@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 
 const eventoSchema = new mongoose.Schema({
-  nombre: { type: String, required: true }, // Mantenido como 'nombre' tal como lo tenía tu compañero
+  nombre: { type: String, required: true },
   descripcion: { type: String, required: true },
   fecha: { type: Date, required: true },
   hora: { type: String },
+  precio: { type: Number, required: true, default: 5000, min: [0, 'El precio no puede ser negativo'] },
   entradasDisponibles: { type: Number, default: 0, min: [0, 'La cantidad de entradas no puede ser negativa.'] },
   sala: { type: mongoose.Schema.Types.ObjectId, ref: 'Sala' }
 }, { timestamps: true });
@@ -18,18 +19,6 @@ eventoSchema.methods.venderEntradas = function(cantidad) {
   }
   this.entradasDisponibles -= cantidad;
   return true;
-};
-
-eventoSchema.methods.obtenerFichaPublica = function() {
-  return {
-    id: this._id,
-    nombre: this.nombre,
-    descripcion: this.descripcion,
-    fecha: this.fecha,
-    hora: this.hora,
-    entradasDisponibles: this.entradasDisponibles,
-    agotado: this.entradasDisponibles === 0
-  };
 };
 
 module.exports = mongoose.model('Evento', eventoSchema);

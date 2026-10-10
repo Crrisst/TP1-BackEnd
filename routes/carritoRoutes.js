@@ -1,4 +1,3 @@
-// routes/carritoRoutes.js
 const express = require('express');
 const router = express.Router();
 const Evento = require('../models/Evento');
@@ -27,27 +26,57 @@ router.get('/carrito', (req, res) => {
   });
 });
 
-// Agregar ítems mediante AJAX sin salir de la cartelera
+// Agregar ítems con control estricto de stock acumulado
 router.post('/carrito/agregar', async (req, res) => {
   try {
-    const { eventoId, cantidad, tipoEntrada, precio } = req.body;
+    const { eventoId, cantidad, tipoEntrada } = req.body;
     const evento = await Evento.findById(eventoId);
     if (!evento) return res.status(404).json({ success: false, message: 'Evento no encontrado' });
 
+    const cantNum = parseInt(cantidad) || 1;
+
+    if (cantNum <= 0) {
+      return res.status(400).json({ success: false, message: 'La cantidad ingresada debe ser al menos 1.' });
+    }
+
     if (!req.session.carrito) req.session.carrito = [];
 
-    const cantNum = parseInt(cantidad) || 1;
-    const precioNum = parseFloat(precio) || 0;
+    // 1. Calculamos la cantidad acumulada que el usuario ya tiene en su carrito para este evento
+    const cantidadYaEnCarrito = req.session.carrito
+      .filter(item => item.eventoId === eventoId)
+      .reduce((acc, item) => acc + item.cantidad, 0);
 
+    const totalDeseado = cantidadYaEnCarrito + cantNum;
+
+    // 2. Validamos que la suma total acumulada no supere el stock de la base de datos
+    if (totalDeseado > evento.entradasDisponibles) {
+      const disponiblesRestantes = evento.entradasDisponibles - cantidadYaEnCarrito;
+      
+      if (disponiblesRestantes <= 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Ya alcanzaste el límite máximo disponible (${evento.entradasDisponibles} entradas) para este evento en tu carrito.` 
+        });
+      } else {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Stock insuficiente. Ya tienes ${cantidadYaEnCarrito} en el carrito y solo quedan ${evento.entradasDisponibles} disponibles. Solo puedes agregar ${disponiblesRestantes} más.` 
+        });
+      }
+    }
+
+    const precioOficial = evento.precio || 5000;
+
+    // 3. Si supera las validaciones, agregamos o actualizamos la cantidad en el carrito
     const index = req.session.carrito.findIndex(item => item.eventoId === eventoId && item.tipoEntrada === tipoEntrada);
     if (index > -1) {
       req.session.carrito[index].cantidad += cantNum;
     } else {
       req.session.carrito.push({
         eventoId: evento._id.toString(),
-        nombreEvento: evento.nombre || evento.titulo || 'Evento',
+        nombreEvento: evento.nombre,
         tipoEntrada: tipoEntrada || 'General',
-        precio: precioNum,
+        precio: precioOficial,
         cantidad: cantNum
       });
     }
@@ -61,7 +90,7 @@ router.post('/carrito/agregar', async (req, res) => {
     res.redirect('/cliente/comprar');
   } catch (error) {
     console.error('Error al agregar al carrito:', error);
-    res.status(500).json({ success: false, message: 'Error interno' });
+    res.status(500).json({ success: false, message: 'Error interno en el servidor.' });
   }
 });
 
@@ -86,14 +115,21 @@ router.get('/carrito/checkout', (req, res) => {
   });
 });
 
-// Procesar pago y guardar en BD
+// Procesar pago
 router.post('/carrito/procesar-pago', async (req, res) => {
   try {
     const carrito = req.session.carrito || [];
     if (carrito.length === 0) return res.redirect('/cliente/carrito');
 
+    for (const item of carrito) {
+      const eventoActual = await Evento.findById(item.eventoId);
+      if (!eventoActual || eventoActual.entradasDisponibles < item.cantidad) {
+        return res.status(400).send(`Error: El evento "${item.nombreEvento}" no tiene suficiente stock disponible.`);
+      }
+    }
+
     const { medioPago, numeroTarjeta } = req.body;
-    const usuarioId = req.session.usuario._id || req.session.usuario.id;
+    const usuarioId = req.session.usuario.id || req.session.usuario._id;
     const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
     const comprobanteId = 'REC-' + Math.floor(10000000 + Math.random() * 90000000);
     const tarjetaUltimosDigitos = numeroTarjeta ? numeroTarjeta.slice(-4) : '0000';
@@ -110,7 +146,7 @@ router.post('/carrito/procesar-pago', async (req, res) => {
         fila: 'Fila Única',
         asiento: 'General / Numerado',
         sector: item.tipoEntrada,
-        estado: 'Completado (Historial)',
+        estado: 'Completado',
         codigoBoleto: codigoBoleto
       });
 

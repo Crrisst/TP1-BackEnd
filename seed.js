@@ -1,4 +1,3 @@
-// seed.js
 global.crypto = require('crypto');
 const mongoose = require('mongoose');
 
@@ -6,21 +5,22 @@ const Usuario = require('./models/Usuario');
 const Sala = require('./models/Sala');
 const Evento = require('./models/Evento');
 const Entrada = require('./models/Entrada');
+const Transaccion = require('./models/Transaccion');
 
 async function poblarBaseDeDatos() {
   try {
     await mongoose.connect('mongodb://localhost:27017/TP2');
     console.log('📦 Conectado a MongoDB para el Seed...');
 
-    // Limpiar datos anteriores
     await Usuario.deleteMany({});
     await Sala.deleteMany({});
     await Evento.deleteMany({});
     await Entrada.deleteMany({});
+    await Transaccion.deleteMany({});
 
     console.log('🧹 Base de datos limpiada correctamente.');
 
-    // --- 1. CREACIÓN DE CLIENTES (Diferentes tipos) ---
+    // 1. CLIENTES
     const cliente1 = await Usuario.create({
       nombreUsuario: 'cliente1',
       nombre: 'Juan',
@@ -49,21 +49,6 @@ async function poblarBaseDeDatos() {
       porcentajeDescuento: 0.15
     });
 
-    const cliente3 = await Usuario.create({
-      nombreUsuario: 'cliente3',
-      nombre: 'Carlos',
-      apellido: 'Lopez',
-      email: 'carlos.lopez@email.com',
-      password: '123',
-      dni: '11223344',
-      fechaNacimiento: new Date('2000-02-10'),
-      telefono: '1199887766',
-      rol: 'Cliente',
-      tipoCliente: 'ESTANDAR',
-      porcentajeDescuento: 0
-    });
-
-    // Administrador
     await Usuario.create({
       nombreUsuario: 'admin',
       nombre: 'Administrador',
@@ -76,9 +61,7 @@ async function poblarBaseDeDatos() {
       rol: 'Administrador'
     });
 
-    console.log('👤 Clientes y Administrador creados correctamente.');
-
-    // --- 2. CREACIÓN DE SALAS ---
+    // 2. SALAS
     const salaTeatro = await Sala.create({
       nombre: 'Teatro Gran Rex',
       descripcion: 'Sala clásica de eventos masivos en el centro',
@@ -88,46 +71,43 @@ async function poblarBaseDeDatos() {
 
     const salaAuditorio = await Sala.create({
       nombre: 'Auditorio Central Moderno',
-      descripcion: 'Sala equipada con sonido Dolby Atmos y butacas reclinables',
+      descripcion: 'Sala equipada con sonido Dolby Atmos y reclinables',
       capacidad: 250,
-      ubicacion: 'Zona Norte - Boulevard 40'
+      ubicacion: 'Zona Norte'
     });
 
-    // --- 3. CREACIÓN DE EVENTOS (Pasados y Vigentes) ---
-    // Evento Pasado (Historial)
+    // 3. EVENTOS
     const eventoPasado = await Evento.create({
       nombre: 'Concierto de Rock Retró (Pasado)',
       descripcion: 'Festival de rock clásico',
       fecha: new Date('2025-11-10T21:00:00'),
       hora: '21:00',
-      entradasDisponibles: 0,
+      precio: 3500,
+      entradasDisponibles: 50,
       sala: salaTeatro._id
     });
 
-    // Evento Vigente 1 (Único para Cliente 1)
     const eventoVigente1 = await Evento.create({
       nombre: 'Festival de Cine Independiente 2026',
       descripcion: 'Exhibición de películas nominadas',
       fecha: new Date('2026-12-15T19:30:00'),
       hora: '19:30',
+      precio: 1500,
       entradasDisponibles: 85,
       sala: salaAuditorio._id
     });
 
-    // Evento Vigente 2 (COMPARTIDO / REPETIDO entre Cliente 1 y Cliente 2)
     const eventoCompartido = await Evento.create({
       nombre: 'Gran Concierto Sinfónico de Fin de Año',
       descripcion: 'Orquesta en vivo con invitados especiales',
       fecha: new Date('2026-12-28T22:00:00'),
       hora: '22:00',
+      precio: 5000,
       entradasDisponibles: 120,
       sala: salaTeatro._id
     });
 
-    console.log('🎭 Salas y Eventos creados correctamente.');
-
-    // --- 4. CREACIÓN DE COMPRAS / ENTRADAS ASOCIADAS ---
-    // Compra pasada del Cliente 1
+    // 4. ENTRADAS VINCULADAS
     await Entrada.create({
       cliente: cliente1._id,
       evento: eventoPasado._id,
@@ -135,10 +115,9 @@ async function poblarBaseDeDatos() {
       descripcion: 'Acceso preferencial zona A',
       precio: 3500.00,
       cantidad: 2,
-      estado: 'Completado (Historial)'
+      estado: 'Completado'
     });
 
-    // Compra vigente del Cliente 1 para el evento 1
     await Entrada.create({
       cliente: cliente1._id,
       evento: eventoVigente1._id,
@@ -149,40 +128,53 @@ async function poblarBaseDeDatos() {
       estado: 'Confirmado'
     });
 
-    // Compra COMPARTIDA: Cliente 1 también compró para el evento sinfónico
-    await Entrada.create({
+    // 5. TRANSACCIONES / RECIBOS DE EJEMPLO
+    await Transaccion.create({
       cliente: cliente1._id,
-      evento: eventoCompartido._id,
-      nombre: 'Entrada Preferencial - Sinfónica',
-      descripcion: 'Sector Fila 3',
-      precio: 5000.00,
-      cantidad: 2,
-      estado: 'Confirmado'
+      nombreCliente: cliente1.nombreUsuario,
+      items: [
+        {
+          eventoId: eventoPasado._id.toString(),
+          nombreEvento: eventoPasado.nombre,
+          tipoEntrada: 'VIP',
+          precio: 3500,
+          cantidad: 2
+        }
+      ],
+      total: 7000,
+      medioPago: 'Tarjeta de Crédito',
+      tarjetaUltimosDigitos: '4321',
+      comprobanteId: 'REC-98234112',
+      fechaCompra: new Date('2025-11-01T15:30:00')
     });
 
-    // Compra COMPARTIDA: Cliente 2 compró para el MISMO evento sinfónico (Evento repetido/compartido)
-    await Entrada.create({
-      cliente: cliente2._id,
-      evento: eventoCompartido._id,
-      nombre: 'Entrada General - Sinfónica',
-      descripcion: 'Sector General',
-      precio: 4000.00,
-      cantidad: 3,
-      estado: 'Confirmado'
+    await Transaccion.create({
+      cliente: cliente1._id,
+      nombreCliente: cliente1.nombreUsuario,
+      items: [
+        {
+          eventoId: eventoVigente1._id.toString(),
+          nombreEvento: eventoVigente1.nombre,
+          tipoEntrada: 'General',
+          precio: 1500,
+          cantidad: 1
+        },
+        {
+          eventoId: eventoCompartido._id.toString(),
+          nombreEvento: eventoCompartido.nombre,
+          tipoEntrada: 'VIP',
+          precio: 5000,
+          cantidad: 2
+        }
+      ],
+      total: 11500,
+      medioPago: 'Mercado Pago',
+      tarjetaUltimosDigitos: '8899',
+      comprobanteId: 'REC-10293847',
+      fechaCompra: new Date('2026-10-01T18:20:00')
     });
 
-    // Compra del Cliente 3 (Tipo estándar)
-    await Entrada.create({
-      cliente: cliente3._id,
-      evento: eventoVigente1._id,
-      nombre: 'Entrada Estándar - Cine',
-      descripcion: 'Entrada general',
-      precio: 1500.00,
-      cantidad: 1,
-      estado: 'Confirmado'
-    });
-
-    console.log('🎟️ Compras y entradas asociadas a múltiples clientes con éxito.');
+    console.log('🎟️ Transacciones y comprobantes cargados correctamente.');
     console.log('✨ ¡Seed ejecutado por completo!');
     process.exit(0);
   } catch (error) {

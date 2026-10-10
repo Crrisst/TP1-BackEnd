@@ -1,15 +1,9 @@
-// src/controllers/adminController.js
 const Usuario = require('../models/Usuario');
 
 const mostrarFormularioCrearPersonal = (req, res) => {
-  try {
-    res.render('Admin/crear-personal', {
-      usuarioLogueado: req.session.usuario
-    });
-  } catch (error) {
-    console.error('Error al cargar la vista:', error);
-    res.status(500).send('Error interno del servidor');
-  }
+  res.render('Admin/crear-personal', {
+    usuarioLogueado: req.session.usuario
+  });
 };
 
 const registrarPersonalInterno = async (req, res) => {
@@ -23,17 +17,12 @@ const registrarPersonalInterno = async (req, res) => {
       dni, 
       fechaNacimiento, 
       telefono, 
-      rol 
+      rol,
+      tipoCliente,
+      porcentajeDescuento
     } = req.body;
 
-    if (rol === 'Cliente') {
-      return res.status(400).render('Admin/crear-personal', {
-        error: 'Los clientes deben registrarse por la vía pública.',
-        usuarioLogueado: req.session.usuario
-      });
-    }
-
-    const nuevoPersonal = new Usuario({
+    await Usuario.create({
       nombreUsuario,
       nombre,
       apellido,
@@ -42,15 +31,16 @@ const registrarPersonalInterno = async (req, res) => {
       dni,
       fechaNacimiento,
       telefono,
-      rol
+      rol: rol || 'Administrador',
+      tipoCliente: tipoCliente || 'ESTANDAR',
+      porcentajeDescuento: porcentajeDescuento || 0
     });
 
-    await nuevoPersonal.save();
-    res.redirect('/admin/dashboard?exito=Personal creado correctamente');
+    res.redirect('/admin/usuarios?exito=Usuario creado correctamente');
   } catch (error) {
-    console.error('Error al crear personal interno:', error);
+    console.error('Error al crear usuario:', error);
     res.status(400).render('Admin/crear-personal', {
-      error: 'No se pudo registrar el personal. Verifique los datos o si el email ya existe.',
+      error: 'No se pudo registrar el usuario. Verifique los datos o si el email/usuario ya existe.',
       usuarioLogueado: req.session.usuario
     });
   }
@@ -72,13 +62,13 @@ const listarUsuarios = async (req, res) => {
 
 const mostrarFormularioEditarUsuario = async (req, res) => {
   try {
-    const usuario = await Usuario.findById(req.params.id);
-    if (!usuario) {
+    const usuarioAEditar = await Usuario.findById(req.params.id);
+    if (!usuarioAEditar) {
       return res.status(404).send('Usuario no encontrado');
     }
     res.render('Admin/editarUsuario', {
       usuarioLogueado: req.session.usuario,
-      usuario
+      usuarioAEditar
     });
   } catch (error) {
     console.error('Error al cargar edición:', error);
@@ -88,14 +78,15 @@ const mostrarFormularioEditarUsuario = async (req, res) => {
 
 const actualizarUsuario = async (req, res) => {
   try {
-    const { nombreUsuario, nombre, apellido, email, dni, telefono, rol, tipoCliente } = req.body;
+    const { nombreUsuario, nombre, apellido, email, dni, fechaNacimiento, telefono, rol, tipoCliente, porcentajeDescuento } = req.body;
     await Usuario.findByIdAndUpdate(req.params.id, {
-      nombreUsuario, nombre, apellido, email, dni, telefono, rol, tipoCliente
-    });
+      nombreUsuario, nombre, apellido, email, dni, fechaNacimiento, telefono, rol, tipoCliente, porcentajeDescuento
+    }, { runValidators: true });
+
     res.redirect('/admin/usuarios?exito=Usuario actualizado exitosamente');
   } catch (error) {
     console.error('Error al actualizar:', error);
-    res.status(400).send('Error al actualizar el usuario');
+    res.status(400).send('Error al actualizar el usuario: ' + error.message);
   }
 };
 

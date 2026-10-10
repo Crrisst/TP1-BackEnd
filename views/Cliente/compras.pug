@@ -6,37 +6,89 @@ html(lang="es")
   body(style="font-family: sans-serif; padding: 30px; max-width: 1000px; margin: auto; background-color: #f4f6f9;")
     
     div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
-      <div>
+      div
         h2(style="margin: 0; color: #2c3e50;") 📦 Mis Compras y Entradas
         p(style="margin: 5px 0 0 0; color: #666; font-size: 14px;") Historial de transacciones y tickets vigentes.
-      </div>
       a(href="/cliente/menu" style="background: #007bff; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; font-size: 14px; font-weight: bold;") ⬅️ Volver al Menú
 
     div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;")
       
+      //- SECCIÓN 1: HISTORIAL DE COMPRAS (RECIBOS)
       div(style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
         h3(style="margin-top: 0; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px;") 📜 Tu Historial de Compras
         if misCompras && misCompras.length > 0
-          div(style="display: flex; flex-direction: column; gap: 12px;")
+          div(style="display: flex; flex-direction: column; gap: 15px;")
             each compra in misCompras
-              div(style="background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef;")
-                p(style="margin: 3px 0; font-weight: bold; color: #16a34a;") Recibo: #{compra.comprobanteId}
-                p(style="margin: 3px 0;") <strong>Fecha:</strong> #{new Date(compra.fechaCompra).toLocaleDateString()}
-                p(style="margin: 3px 0;") <strong>Total Abonado:</strong> $#{compra.total}
-                div(style="margin-top: 10px; display: flex; gap: 8px;")
-                  button(onclick=`abrirModal('modal-compra-${compra._id}')`, style="background-color: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;") 🧾 Ver Recibo
-                  button(onclick="window.print()", style="background-color: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;") 🖨️ Imprimir
+              - const totalEntradas = compra.items ? compra.items.reduce((acc, item) => acc + (item.cantidad || 0), 0) : 0
+              
+              div(style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef; border-left: 5px solid #16a34a;")
+                div(style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;")
+                  span(style="font-weight: bold; color: #16a34a; font-size: 14px;") 🧾 Recibo: #{compra.comprobanteId}
+                  span(style="font-size: 12px; color: #6c757d; font-weight: bold;") #{new Date(compra.fechaCompra).toLocaleDateString()}
+                
+                p(style="margin: 4px 0; font-size: 13px; color: #333;") 🎟️ <strong>Entradas Compradas:</strong> #{totalEntradas} ticket(s)
+                p(style="margin: 4px 0; font-size: 13px; color: #333;") 💳 <strong>Medio de Pago:</strong> #{compra.medioPago || 'Tarjeta'} (**** #{compra.tarjetaUltimosDigitos || '0000'})
+                p(style="margin: 4px 0; font-size: 14px; font-weight: bold; color: #16a34a;") 💵 Total Abonado: $#{compra.total}
+                
+                div(style="margin-top: 12px; display: flex; gap: 8px;")
+                  button(onclick=`abrirModal('modal-compra-${compra._id}')`, style="background-color: #17a2b8; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;") 🧾 Ver Recibo Detallado
+                  button(onclick="window.print()", style="background-color: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;") 🖨️ Imprimir
 
+              //- MODAL DEL RECIBO COMPLETO
               div(id=`modal-compra-${compra._id}` style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:1000;")
-                div(style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; border: 3px dashed #17a2b8;")
-                  h3(style="margin-top:0; color:#17a2b8;") 🧾 Comprobante de Compra
-                  p <strong>ID Recibo:</strong> #{compra.comprobanteId}
-                  p <strong>Medio de Pago:</strong> #{compra.medioPago}
-                  p <strong>Total Pagado:</strong> $#{compra.total}
-                  button(onclick=`cerrarModal('modal-compra-${compra._id}')`, style="margin-top:10px; background:#333; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; width:100%; font-weight:bold;") Cerrar
+                div(style="background:white; padding:25px; border-radius:12px; width:450px; text-align:left; border: 2px dashed #17a2b8; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;")
+                  
+                  //- Encabezado
+                  div(style="text-align: center; border-bottom: 2px dashed #cbd5e1; padding-bottom: 12px; margin-bottom: 15px;")
+                    h2(style="margin: 0; color: #1e293b; font-size: 20px;") 🎫 COMPROBANTE OFICIAL
+                    p(style="margin: 3px 0 0 0; color: #64748b; font-size: 12px;") Ticket Store - Sistema de Ventas
+                    p(style="margin: 2px 0 0 0; font-family: monospace; font-size: 13px; font-weight: bold; color: #17a2b8;") #{compra.comprobanteId}
+
+                  //- Datos de la Transacción
+                  div(style="font-size: 13px; color: #334155; margin-bottom: 15px; line-height: 1.5;")
+                    p(style="margin: 2px 0;") 👤 <strong>Cliente:</strong> #{compra.nombreCliente || usuarioLogueado.nombreUsuario}
+                    p(style="margin: 2px 0;") 📅 <strong>Fecha y Hora:</strong> #{new Date(compra.fechaCompra).toLocaleString()}
+                    p(style="margin: 2px 0;") 💳 <strong>Medio de Pago:</strong> #{compra.medioPago || 'Tarjeta'} (**** #{compra.tarjetaUltimosDigitos || '0000'})
+                    p(style="margin: 2px 0;") 📊 <strong>Estado:</strong> <span style="color: #16a34a; font-weight: bold;">Aprobado ✅</span>
+
+                  //- Tabla de Desglose de Entradas
+                  h4(style="margin: 10px 0 5px 0; color: #1e293b; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;") 🛒 Detalle de Entradas
+                  table(style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 15px;")
+                    thead
+                      tr(style="background-color: #f1f5f9; text-align: left; color: #475569;")
+                        th(style="padding: 6px; border-bottom: 1px solid #cbd5e1;") Cant.
+                        th(style="padding: 6px; border-bottom: 1px solid #cbd5e1;") Evento / Tipo
+                        th(style="padding: 6px; border-bottom: 1px solid #cbd5e1;") Precio U.
+                        th(style="padding: 6px; border-bottom: 1px solid #cbd5e1; text-align: right;") Subtotal
+                    tbody
+                      if compra.items && compra.items.length > 0
+                        each item in compra.items
+                          tr(style="border-bottom: 1px solid #f1f5f9; color: #334155;")
+                            td(style="padding: 6px; font-weight: bold;") #{item.cantidad}x
+                            td(style="padding: 6px;") #{item.nombreEvento} <br><span style="font-size: 11px; color: #0284c7; font-weight: bold;">[Sector: #{item.tipoEntrada}]</span>
+                            td(style="padding: 6px;") $#{item.precio}
+                            td(style="padding: 6px; text-align: right; font-weight: bold;") $#{item.precio * item.cantidad}
+                      else
+                        tr
+                          td(colspan="4" style="padding: 10px; text-align: center; color: #64748b;") Entrada General
+
+                  //- Total
+                  div(style="border-top: 2px dashed #cbd5e1; padding-top: 10px; margin-top: 10px; text-align: right;")
+                    p(style="margin: 2px 0; font-size: 13px; color: #64748b;") Total de Tickets: <strong>#{totalEntradas}</strong>
+                    h3(style="margin: 5px 0 0 0; color: #16a34a; font-size: 18px;") Total Pagado: $#{compra.total}
+
+                  //- Pie del recibo y código de barras
+                  div(style="text-align: center; margin-top: 15px; padding-top: 10px; border-top: 1px solid #e2e8f0;")
+                    p(style="font-family: monospace; font-size: 18px; letter-spacing: 4px; margin: 0; color: #334155;") ||||| || ||||| ||| |||| |||
+                    p(style="font-size: 10px; color: #94a3b8; margin-top: 3px;") Conserve este comprobante como constancia oficial.
+
+                  div(style="display: flex; gap: 10px; margin-top: 15px;")
+                    button(onclick="window.print()", style="flex: 1; background:#0284c7; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 12px;") 🖨️ Imprimir
+                    button(onclick=`cerrarModal('modal-compra-${compra._id}')`, style="flex: 1; background:#333; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size: 12px;") Cerrar
         else
           p(style="color: #666; font-style: italic;") No hay compras registradas en el historial.
 
+      //- SECCIÓN 2: ENTRADAS ACTIVAS / TICKETS
       div(style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
         h3(style="margin-top: 0; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px;") 🌟 Entradas Activas
         if misEntradasCompradas && misEntradasCompradas.length > 0
@@ -51,6 +103,7 @@ html(lang="es")
                   h4(style="margin: 0 0 6px 0; color: #1a202c; font-size: 15px;") #{entrada.evento.nombre}
                   p(style="margin: 0 0 4px 0; font-size: 13px; color: #4a5568;") 📅 <strong>Fecha:</strong> #{new Date(entrada.evento.fecha).toLocaleDateString()}
 
+                p(style="margin: 0 0 4px 0; font-size: 12px; color: #555;") 🎟️ <strong>Cantidad de pases:</strong> #{entrada.cantidad || 1}
                 p(style="margin: 0 0 10px 0; font-size: 12px; color: #555;") 💺 <strong>Sector:</strong> #{entrada.sector} | <strong>Fila:</strong> #{entrada.fila} | <strong>Asiento:</strong> #{entrada.asiento}
 
                 div(style="display: flex; gap: 6px; border-top: 1px solid #f1f5f9; padding-top: 8px; flex-wrap: wrap;")
@@ -63,6 +116,7 @@ html(lang="es")
                   h2(style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 8px;") 🎟️ Boleto Digital Oficial
                   p <strong>Código:</strong> #{entrada.codigoBoleto}
                   p <strong>Titular:</strong> #{usuarioLogueado.nombreUsuario}
+                  p <strong>Cantidad de Entradas:</strong> #{entrada.cantidad || 1}
                   p <strong>Ubicación:</strong> Sector #{entrada.sector} - Fila #{entrada.fila} - Asiento #{entrada.asiento}
                   if entrada.evento
                     hr(style="border:0; border-top:1px dashed #ccc;")

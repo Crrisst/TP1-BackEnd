@@ -1,21 +1,11 @@
-// routes/clienteRoutes.js
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
 
 const Usuario = require('../models/Usuario');
 const Entrada = require('../models/Entrada');
 const Evento = require('../models/Evento');
 const Transaccion = require('../models/Transaccion');
-
-const cancelacionSchema = new mongoose.Schema({
-  cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' },
-  nombreCliente: String,
-  eventoNombre: String,
-  codigoBoleto: String,
-  fechaCancelacion: { type: Date, default: Date.now }
-});
-const CancelacionLog = mongoose.models.CancelacionLog || mongoose.model('CancelacionLog', cancelacionSchema);
+const CancelacionLog = require('../models/CancelacionLog');
 
 const verificarClienteLogin = (req, res, next) => {
   if (!req.session || !req.session.usuario) {
@@ -26,7 +16,6 @@ const verificarClienteLogin = (req, res, next) => {
 
 router.use(verificarClienteLogin);
 
-// Menú principal limpio
 router.get('/menu', async (req, res) => {
   try {
     const usuarioCompleto = await Usuario.findById(req.session.usuario.id) || 
@@ -43,7 +32,6 @@ router.get('/menu', async (req, res) => {
   }
 });
 
-// Mis compras y entradas activas
 router.get('/mis-compras', async (req, res) => {
   try {
     const usuarioCompleto = await Usuario.findById(req.session.usuario.id) || 
@@ -63,7 +51,6 @@ router.get('/mis-compras', async (req, res) => {
   }
 });
 
-// Cancelar entrada
 router.post('/cancelar-entrada/:id', async (req, res) => {
   try {
     const entradaId = req.params.id;
@@ -76,18 +63,25 @@ router.post('/cancelar-entrada/:id', async (req, res) => {
       nombreCliente: req.session.usuario.nombreUsuario,
       eventoNombre: entradaARecuperar.evento ? entradaARecuperar.evento.nombre : 'Evento general',
       codigoBoleto: entradaARecuperar.codigoBoleto || 'TICK-' + entradaARecuperar._id.toString().slice(-6).toUpperCase(),
+      cantidad: entradaARecuperar.cantidad || 1,
       fechaCancelacion: new Date()
     });
 
+    if (entradaARecuperar.evento) {
+      await Evento.findByIdAndUpdate(entradaARecuperar.evento._id, {
+        $inc: { entradasDisponibles: entradaARecuperar.cantidad || 1 }
+      });
+    }
+
     await Entrada.findByIdAndDelete(entradaId);
+
     res.json({ success: true, message: 'Entrada cancelada correctamente.' });
   } catch (error) {
     console.error('Error al cancelar:', error);
-    res.status(500).json({ success: false, message: 'Error interno.' });
+    res.status(500).json({ success: false, message: 'Error interno al cancelar la entrada.' });
   }
 });
 
-// Cartelera con contador del carrito
 router.get('/comprar', async (req, res) => {
   try {
     const eventosDisponibles = await Evento.find({}); 

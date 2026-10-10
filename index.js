@@ -1,59 +1,57 @@
-// index.js
-const crypto = require('crypto');
-if (!global.crypto) {
-  global.crypto = crypto;
-}
+global.crypto = require('crypto');
 
 const express = require('express');
-const session = require('express-session');
 const mongoose = require('mongoose');
+const session = require('express-session');
 const path = require('path');
+
+const { requestLogger, notFoundHandler, errorHandler } = require('./middlewares');
+
+const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const clienteRoutes = require('./routes/clienteRoutes');
+const carritoRoutes = require('./routes/carritoRoutes');
+const eventosRoutes = require('./routes/eventosRoutes');
+const salasRoutes = require('./routes/salasRoutes');
+const entradasRoutes = require('./routes/entradasRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Conexión a MongoDB (Base de datos TP2)
 mongoose.connect('mongodb://localhost:27017/TP2')
-  .then(() => console.log('✅ Conectado a MongoDB (TP2)'))
-  .catch(err => console.error('❌ Error al conectar a MongoDB:', err));
+  .then(() => console.log('📦 Conectado correctamente a MongoDB'))
+  .catch(err => console.error('❌ Error de conexión a MongoDB:', err));
 
-// Configuraciones de Express
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
-app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(requestLogger);
 
-// Configuración de sesiones
 app.use(session({
-  secret: 'secreto_super_seguro_tp2',
+  secret: 'secreto_tp_backend_2026',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: { maxAge: 3600000 }
 }));
 
-// Importación de Rutas
-const authRoutes = require('./routes/authRoutes');
-const adminRoutes = require('./routes/adminRoutes'); // 👈 Apunta correctamente al archivo en la raíz de routes/
-const clienteRoutes = require('./routes/clienteRoutes');
-const carritoRoutes = require('./routes/carritoRoutes');
-
-// Registro de Rutas
 app.use('/auth', authRoutes);
 app.use('/admin', adminRoutes);
 app.use('/cliente', clienteRoutes);
 app.use('/cliente', carritoRoutes);
+app.use('/eventos', eventosRoutes);
+app.use('/salas', salasRoutes);
+app.use('/api/entradas', entradasRoutes);
 
-// Alias directos para accesos rápidos
-app.get('/carrito', (req, res) => res.redirect('/cliente/carrito'));
-app.get('/compras', (req, res) => res.redirect('/admin/transacciones'));
-app.get('/comprar', (req, res) => res.redirect('/cliente/comprar'));
-
-// Ruta raíz por defecto
 app.get('/', (req, res) => {
   res.redirect('/auth/login');
 });
 
-// Iniciar servidor
+app.use(notFoundHandler);
+app.use(errorHandler);
+
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
