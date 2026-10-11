@@ -2,70 +2,232 @@ doctype html
 html(lang="es")
   head
     meta(charset="UTF-8")
-    title Gestión de Eventos
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+
+    title Gestión de Eventos - Administración
+
+    style
+      include eventos.css
+
+
   body
-    //- Menú de navegación
-    nav
-      a(href="/salas")
-        button(type="button") Ir a Gestión de Salas
-      a(href="/usuarios")
-        button(type="button") Ir a Gestión de Usuarios
-    hr
 
-    h1 Gestión de Eventos
+    // =========================
+    // ENCABEZADO
+    // =========================
 
-    h2 Cargar Nuevo Evento
-    form(action="/eventos" method="POST")
-      div
-        label(for="nombre") Nombre:
-        input#nombre(type="text" name="nombre" required)
-      div
-        label(for="descripcion") Descripción:
-        input#descripcion(type="text" name="descripcion" required)
-      div
-        label(for="fecha") Fecha:
-        input#fecha(type="date" name="fecha" required)
-      div
-        label(for="hora") Hora:
-        input#hora(type="time" name="hora" required)
-      div
-        label(for="sala") Sala:
-        select#sala(name="sala")
-          option(value="") Seleccionar sala
-          each sala in salas
-            option(value=sala._id) #{sala.nombre} (#{sala.capacidad} personas)
-      div
-        label(for="entradasDisponibles") Entradas Disponibles:
-        input#entradasDisponibles(type="number" name="entradasDisponibles" min="0" required)
-      div
-        button(type="submit") Cargar Evento
+    header.card.header
+      h1 🎭 Gestión de Eventos
 
-    h2 Listado de Eventos
-    if eventos && eventos.length > 0
-      table(border="1")
-        thead
-          tr
-            th ID
-            th Nombre
-            th Descripción
-            th Fecha
-            th Hora
-            th Entradas Disponibles
-            th Acciones
-        tbody
-          each evento in eventos
-            tr
-              td= evento.id
-              td= evento.nombre
-              td= evento.descripcion
-              td= evento.fecha
-              td= evento.hora
-              td= evento.entradasDisponibles
-              td
-                div(style="display: flex; gap: 5px;")
-                  a(href="/eventos/" + evento.id + "/editar")
-                    button(type="button") Modificar
-                  form(action="/eventos/" + evento.id + "/delete" method="POST")
-                    button(type="submit") Eliminar
-    else
-      p No hay eventos registrados.
+      nav.navigation(aria-label="Navegación de administración")
+        a.button(href="/admin/dashboard") ⬅️ Volver al Panel
+
+
+    main
+
+      // =========================
+      // CARGAR NUEVO EVENTO
+      // =========================
+
+      section.card(aria-labelledby="crear-evento")
+
+        h2#crear-evento Cargar Nuevo Evento
+
+        if error
+          .alert= error
+
+
+        form(action="/eventos" method="POST")
+
+          .fields
+
+            // Nombre
+            .field
+              label(for="nombre") Nombre
+
+              input#nombre(
+                type="text"
+                name="nombre"
+                required
+              )
+
+
+            // Sala
+            .field
+              label(for="sala") Sala
+
+              select#sala(
+                name="sala"
+                required
+              )
+
+                option(value="") Seleccionar sala
+
+                each sala in salas
+                  option(value=sala._id)
+                    | #{sala.nombre} - Capacidad: #{sala.capacidad}
+
+
+            // Fecha
+            .field
+              label(for="fecha") Fecha
+
+              input#fecha(
+                type="date"
+                name="fecha"
+                required
+              )
+
+
+            // Hora
+            .field
+              label(for="hora") Hora
+
+              input#hora(
+                type="time"
+                name="hora"
+                required
+              )
+
+
+            // Precio
+            .field
+              label(for="precio") Precio
+
+              input#precio(
+                type="number"
+                name="precio"
+                min="0"
+                step="1"
+                value="5000"
+                required
+              )
+
+
+            // Entradas disponibles
+            .field
+              label(for="entradasDisponibles") Entradas disponibles
+
+              input#entradasDisponibles(
+                type="number"
+                name="entradasDisponibles"
+                min="0"
+                step="1"
+                required
+              )
+
+
+            // Descripción
+            .field.wide
+              label(for="descripcion") Descripción
+
+              textarea#descripcion(
+                name="descripcion"
+                rows="3"
+                required
+              )
+
+
+          p
+            | La cantidad de entradas disponibles no puede superar la capacidad de la sala seleccionada.
+
+          button.button(type="submit")
+            | ➕ Cargar Evento
+
+
+
+      // =========================
+      // LISTADO DE EVENTOS
+      // =========================
+
+      section.card(aria-labelledby="listado-eventos")
+
+        h2#listado-eventos Listado de Eventos
+
+
+        if eventos && eventos.length > 0
+
+          .table-container
+
+            table
+
+              thead
+                tr
+                  th(scope="col") Nombre
+                  th(scope="col") Descripción
+                  th(scope="col") Sala
+                  th(scope="col") Fecha
+                  th(scope="col") Hora
+                  th(scope="col") Precio
+                  th(scope="col") Entradas
+                  th(scope="col") Acciones
+
+
+              tbody
+
+                each evento in eventos
+
+                  -
+                    const fechaFormateada = evento.fecha
+                      ? new Date(evento.fecha).toLocaleDateString('es-AR')
+                      : '-'
+
+
+                  tr
+
+                    // Nombre
+                    td.name= evento.nombre
+
+
+                    // Descripción
+                    td= evento.descripcion
+
+
+                    // Sala
+                    td= evento.sala ? evento.sala.nombre : 'Sin sala'
+
+
+                    // Fecha
+                    td= fechaFormateada
+
+
+                    // Hora
+                    td= evento.hora || '-'
+
+
+                    // Precio
+                    td $#{Number(evento.precio || 0).toLocaleString('es-AR')}
+
+
+                    // Entradas disponibles
+                    td= evento.entradasDisponibles
+
+
+                    // Acciones
+                    td
+
+                      .actions
+
+                        a.button.edit(
+                          href=`/eventos/${evento.id}/editar`
+                          aria-label=`Editar evento ${evento.nombre}`
+                        )
+                          | ✏️ Editar
+
+
+                        form(
+                          action=`/eventos/${evento.id}/delete`
+                          method="POST"
+                        )
+
+                          button.button.delete(
+                            type="submit"
+                            aria-label=`Eliminar evento ${evento.nombre}`
+                            onclick="return confirm('¿Estás seguro de eliminar este evento?');"
+                          )
+                            | 🗑️ Eliminar
+
+
+        else
+
+          p.empty No hay eventos registrados en el sistema.
