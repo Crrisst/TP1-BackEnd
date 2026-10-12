@@ -1,4 +1,6 @@
 import Entrada from '../models/Entrada.js';
+import Transaccion from '../models/Transaccion.js';
+import Evento from '../models/Evento.js';
 
 const getEntradas = async (req, res) => {
   try {
@@ -72,10 +74,101 @@ const deleteEntrada = async (req, res) => {
   }
 };
 
+
+const mostrarGestionEntradas = async (req, res) => {
+  try {
+    const [eventosBD, transacciones] = await Promise.all([
+      Evento.find().populate('sala').lean(),
+      Transaccion.find().lean()
+    ]);
+
+    // 1. Acumulador de ventas y recaudación por evento
+    const acumuladorPorEvento = {};
+
+    transacciones.forEach(transaccion => {
+      if (Array.isArray(transaccion.items) && transaccion.items.length > 0) {
+        
+        // Suma nominal de ítems de esta transacción
+        const subtotalItems = transaccion.items.reduce((acc, it) => {
+          return acc + ((Number(it.cantidad) || 0) * (Number(it.precio) || 0));
+        }, 0);
+
+        // Si el total registrado difiere (descuento / costo servicio), se prorratea
+        const totalTransaccion = Number(transaccion.total) || subtotalItems;
+
+        transaccion.items.forEach(item => {
+          const evId = String(item.eventoId);
+          const cantidad = Number(item.cantidad) || 0;
+          const nominalItem = cantidad * (Number(item.precio) || 0);
+
+          let montoReal = nominalItem;
+          if (subtotalItems > 0) {
+            montoReal = (nominalItem / subtotalItems) * totalTransaccion;
+          }
+
+          if (!acumuladorPorEvento[evId]) {
+            acumuladorPorEvento[evId] = { vendidas: 0, recaudado: 0 };
+          }
+
+          acumuladorPorEvento[evId].vendidas += cantidad;
+          acumuladorPorEvento[evId].recaudado += montoReal;
+        });
+      }
+    });
+
+    // 2. Mapeo de eventos con columnas claras: Cupo, Vendidas, Disponibles
+    const eventos = eventosBD.map(ev => {
+      const idStr = String(ev._id);
+      const datosVenta = acumuladorPorEvento[idStr] || { vendidas: 0, recaudado: 0 };
+
+      const vendidas = datosVenta.vendidas;
+      const recaudado = Math.round(datosVenta.recaudado);
+
+      // Detectamos el campo correcto de cupo (entradasDisponibles o entradas)
+      const cupo = Number(ev.entradasDisponibles ?? ev.entradas ?? 0);
+      const disponibles = Math.max(0, cupo - vendidas);
+
+      const porcentaje = cupo > 0 
+        ? Math.min(100, Math.round((vendidas / cupo) * 100)) 
+        : 0;
+
+      return {
+        id: ev._id,
+        nombre: ev.nombre,
+        sala: ev.sala ? ev.sala.nombre : 'Sin sala',
+        cupo,
+        vendidas,
+        disponibles,
+        recaudado,
+        porcentaje
+      };
+    });
+
+    // 3. Totales consolidados (suman EXACTAMENTE lo que muestran las filas)
+    const totalTicketsVendidos = eventos.reduce((acc, curr) => acc + curr.vendidas, 0);
+    const totalRecaudadoReal = eventos.reduce((acc, curr) => acc + curr.recaudado, 0);
+
+    res.render('Admin/entradas', {
+      usuarioLogueado: req.session.usuario,
+      resumen: {
+        totalTransacciones: transacciones.length,
+        totalVendidas: totalTicketsVendidos,
+        totalRecaudado: totalRecaudadoReal
+      },
+      eventos
+    });
+  } catch (error) {
+    res.status(500).render('Admin/dashboard', { 
+      error: 'Error al consultar transacciones: ' + error.message 
+    });
+  }
+};
+
 export {
   getEntradas,
   getEntradaById,
   createEntrada,
   updateEntrada,
-  deleteEntrada
+  deleteEntrada,
+  mostrarGestionEntradas
 };

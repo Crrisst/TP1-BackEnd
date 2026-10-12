@@ -7,7 +7,7 @@ import {
   actualizarUsuario, 
   eliminarUsuario, 
   listarAuditoriaPagos,
-  listarCancelaciones 
+  listarCancelaciones
 } from '../controllers/adminController.js';
 import { 
   getEventos, 
@@ -16,6 +16,8 @@ import {
 } from '../controllers/eventosController.js';
 import { verificarRol } from '../middlewares/authMiddleware.js';
 import Entidad from '../models/Entidad.js';
+
+import  { mostrarGestionEntradas } from '../controllers/entradasController.js';
 
 const router = express.Router();
 
@@ -55,6 +57,8 @@ router.get('/entidades', verificarRol(['Administrador', 'Supervisor', 'Lector'])
     res.status(500).send('Error al cargar entidades.');
   }
 });
+
+router.get('/entradas', verificarRol(['Administrador', 'Supervisor', 'Lector']), mostrarGestionEntradas);
 
 // 🔒 Edición y Eliminación restringidas solo a Administrador y Supervisor (Lector rebotará con 403)
 router.post('/entidades/editar/:id', verificarRol(['Administrador', 'Supervisor']), actualizarEntidad);

@@ -3,9 +3,9 @@ import mongoose from 'mongoose';
 import session from 'express-session';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import crypto from 'node:crypto';
+//import crypto from 'node:crypto';
 
-globalThis.crypto = crypto;
+//globalThis.crypto = crypto;
 
 import requestLogger from './middlewares/logger.middleware.js';
 import { notFoundHandler, errorHandler } from './middlewares/errorHandler.middleware.js';

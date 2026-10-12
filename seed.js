@@ -1,5 +1,5 @@
-import crypto from 'node:crypto';
-globalThis.crypto = crypto;
+//import crypto from 'node:crypto';
+//globalThis.crypto = crypto;
 
 import mongoose from 'mongoose';
 import path from 'node:path';
