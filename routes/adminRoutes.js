@@ -6,6 +6,7 @@ import {
   mostrarFormularioEditarUsuario, 
   actualizarUsuario, 
   eliminarUsuario, 
+  listarAuditoriaPagos,
   listarCancelaciones 
 } from '../controllers/adminController.js';
 import { 
@@ -34,7 +35,10 @@ router.get('/usuarios/editar/:id', verificarRol(['Administrador']), mostrarFormu
 router.post('/usuarios/editar/:id', verificarRol(['Administrador']), actualizarUsuario);
 router.post('/usuarios/eliminar/:id', verificarRol(['Administrador']), eliminarUsuario);
 
-// Auditoría de Cancelaciones
+// 💳 Auditoría de Compras y Pagos
+router.get('/compras', verificarRol(['Administrador', 'Supervisor', 'Lector']), listarAuditoriaPagos);
+
+// 🚫 Auditoría de Cancelaciones
 router.get('/cancelaciones', verificarRol(['Administrador', 'Supervisor', 'Lector']), listarCancelaciones);
 
 // Gestión de Artistas / Entidades

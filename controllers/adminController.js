@@ -1,5 +1,6 @@
 import Usuario from '../models/Usuario.js';
 import CancelacionLog from '../models/CancelacionLog.js';
+import Transaccion from '../models/Transaccion.js';
 
 const mostrarFormularioCrearPersonal = (req, res) => {
   const rolActual = req.session.usuario && req.session.usuario.rol;
@@ -142,7 +143,6 @@ const actualizarUsuario = async (req, res) => {
       mensajeError = error.errors?.fechaNacimiento?.message || error.message;
     }
     
-    // Re-renderizamos la vista de edición con la caja de error descriptiva
     const usuarioAEditar = (await Usuario.findById(req.params.id)) || { _id: req.params.id, ...req.body };
     res.status(400).render('Admin/editarUsuario', {
       usuarioLogueado: req.session.usuario,
@@ -167,12 +167,94 @@ const eliminarUsuario = async (req, res) => {
   }
 };
 
+// 💳 Auditoría Exclusiva de Pagos y Compras
+const listarAuditoriaPagos = async (req, res) => {
+  try {
+    const { busqueda } = req.query;
+    let query = {};
+
+    if (busqueda && busqueda.trim()) {
+      const termino = busqueda.trim();
+      const regex = new RegExp(termino, 'i');
+      const esObjectId = /^[a-fA-F0-9]{24}$/.test(termino);
+
+      const usuariosCoincidentes = await Usuario.find({
+        $or: [
+          { email: regex },
+          { nombreUsuario: regex },
+          { dni: regex },
+          { nombre: regex },
+          { apellido: regex }
+        ]
+      }).select('_id');
+      
+      const usuariosIds = usuariosCoincidentes.map(u => u._id);
+
+      const condiciones = [
+        { comprobanteId: regex },
+        { nombreCliente: regex },
+        { medioPago: regex },
+        { 'items.nombreEvento': regex },
+        { 'items.tipoEntrada': regex },
+        { cliente: { $in: usuariosIds } }
+      ];
+
+      if (esObjectId) {
+        condiciones.push({ _id: termino });
+        condiciones.push({ cliente: termino });
+        condiciones.push({ 'items.eventoId': termino });
+      }
+
+      query = { $or: condiciones };
+    }
+
+    const compras = await Transaccion.find(query)
+      .populate('cliente')
+      .sort({ fechaCompra: -1 });
+
+    res.render('Admin/auditoriaPagos', {
+      usuarioLogueado: req.session.usuario,
+      compras,
+      busqueda: busqueda || ''
+    });
+  } catch (error) {
+    console.error('Error al listar las transacciones:', error);
+    res.status(500).send('Error interno al obtener el historial de pagos');
+  }
+};
+
+// 🚫 Auditoría Exclusiva de Cancelaciones (con filtro multicampo)
 const listarCancelaciones = async (req, res) => {
   try {
-    const cancelaciones = await CancelacionLog.find().sort({ fechaCancelacion: -1 });
+    const { busqueda } = req.query;
+    let query = {};
+
+    if (busqueda && busqueda.trim()) {
+      const termino = busqueda.trim();
+      const regex = new RegExp(termino, 'i');
+      const esObjectId = /^[a-fA-F0-9]{24}$/.test(termino);
+
+      const condiciones = [
+        { nombreCliente: regex },
+        { eventoNombre: regex },
+        { codigoBoleto: regex }
+      ];
+
+      if (esObjectId) {
+        condiciones.push({ _id: termino });
+        condiciones.push({ usuario: termino });
+        condiciones.push({ evento: termino });
+      }
+
+      query = { $or: condiciones };
+    }
+
+    const cancelaciones = await CancelacionLog.find(query).sort({ fechaCancelacion: -1 });
+
     res.render('Admin/cancelaciones', {
       usuarioLogueado: req.session.usuario,
-      cancelaciones
+      cancelaciones,
+      busqueda: busqueda || ''
     });
   } catch (error) {
     console.error('Error al listar cancelaciones:', error);
@@ -187,5 +269,6 @@ export {
   mostrarFormularioEditarUsuario,
   actualizarUsuario,
   eliminarUsuario,
+  listarAuditoriaPagos,
   listarCancelaciones
 };
