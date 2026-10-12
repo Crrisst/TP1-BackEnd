@@ -1,5 +1,3 @@
-// src/middlewares/validacionesMiddleware.js
-
 const validarRegistro = (req, res, next) => {
   const { nombre, apellido, email, telefono, dni, fechaNacimiento } = req.body;
   const regexLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
@@ -68,4 +66,4 @@ const validarRegistro = (req, res, next) => {
   next();
 };
 
-module.exports = { validarRegistro };
+export { validarRegistro };

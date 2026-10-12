@@ -1,9 +1,5 @@
-/*const express = require('express');
-const router = express.Router();
-const authController = require('../controllers/authController');*/
-
 import express from 'express';
-import authController from '../controllers/authController.js';  
+import { procesarLogin, registrarCliente } from '../controllers/authController.js';  
 
 const router = express.Router();
 
@@ -12,7 +8,7 @@ router.get('/login', (req, res) => {
   res.render('auth/login', { error: req.query.error || null });
 });
 
-router.post('/login', authController.procesarLogin);
+router.post('/login', procesarLogin);
 
 // Rutas de registro (Soporta tanto /register como /registro)
 router.get('/register', (req, res) => {
@@ -23,8 +19,8 @@ router.get('/registro', (req, res) => {
   res.render('auth/registro', { error: req.query.error || null });
 });
 
-router.post('/register', authController.registrarCliente);
-router.post('/registro', authController.registrarCliente); // Alias por si el formulario apunta a /auth/registro
+router.post('/register', registrarCliente);
+router.post('/registro', registrarCliente); // Alias por si el formulario apunta a /auth/registro
 
 // Ruta para cerrar sesión
 router.get('/logout', (req, res) => {
@@ -33,5 +29,4 @@ router.get('/logout', (req, res) => {
   });
 });
 
-//module.exports = router;
 export default router;

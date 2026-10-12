@@ -1,9 +1,3 @@
-/*const express = require('express');
-const router = express.Router();
-const Evento = require('../models/Evento');
-const Entrada = require('../models/Entrada');
-const Transaccion = require('../models/Transaccion');*/
-
 import express from 'express';
 const router = express.Router();
 import Evento from '../models/Evento.js';
@@ -19,8 +13,8 @@ const verificarCliente = (req, res, next) => {
 
 router.use(verificarCliente);
 
-// Ver el carrito con cálculo automático de descuentos por membresía
-router.get('/carrito', (req, res) => {
+// Ver el carrito
+router.get('/', (req, res) => {
   if (!req.session.carrito) req.session.carrito = [];
   const carrito = req.session.carrito;
 
@@ -39,15 +33,14 @@ router.get('/carrito', (req, res) => {
   });
 });
 
-// Agregar ítems con control estricto de stock acumulado
-router.post('/carrito/agregar', async (req, res) => {
+// Agregar ítems
+router.post('/agregar', async (req, res) => {
   try {
     const { eventoId, cantidad, tipoEntrada } = req.body;
     const evento = await Evento.findById(eventoId);
     if (!evento) return res.status(404).json({ success: false, message: 'Evento no encontrado' });
 
     const cantNum = parseInt(cantidad) || 1;
-
     if (cantNum <= 0) {
       return res.status(400).json({ success: false, message: 'La cantidad ingresada debe ser al menos 1.' });
     }
@@ -62,23 +55,15 @@ router.post('/carrito/agregar', async (req, res) => {
 
     if (totalDeseado > evento.entradasDisponibles) {
       const disponiblesRestantes = evento.entradasDisponibles - cantidadYaEnCarrito;
-      
-      if (disponiblesRestantes <= 0) {
-        return res.status(400).json({ 
-          success: false, 
-          message: `Ya alcanzaste el límite máximo disponible (${evento.entradasDisponibles} entradas) para este evento en tu carrito.` 
-        });
-      } else {
-        return res.status(400).json({ 
-          success: false, 
-          message: `Stock insuficiente. Ya tienes ${cantidadYaEnCarrito} en el carrito y solo quedan ${evento.entradasDisponibles} disponibles. Solo puedes agregar ${disponiblesRestantes} más.` 
-        });
-      }
+      return res.status(400).json({ 
+        success: false, 
+        message: `Stock insuficiente. Solo puedes agregar ${disponiblesRestantes} más.` 
+      });
     }
 
     const precioOficial = evento.precio || 5000;
-
     const index = req.session.carrito.findIndex(item => item.eventoId === eventoId && item.tipoEntrada === tipoEntrada);
+    
     if (index > -1) {
       req.session.carrito[index].cantidad += cantNum;
     } else {
@@ -104,7 +89,8 @@ router.post('/carrito/agregar', async (req, res) => {
   }
 });
 
-router.get('/carrito/quitar/:index', (req, res) => {
+// Quitar ítem
+router.get('/quitar/:index', (req, res) => {
   const index = parseInt(req.params.index);
   if (req.session.carrito && req.session.carrito[index]) {
     req.session.carrito.splice(index, 1);
@@ -112,7 +98,8 @@ router.get('/carrito/quitar/:index', (req, res) => {
   res.redirect('/cliente/carrito');
 });
 
-router.get('/carrito/checkout', (req, res) => {
+// Checkout
+router.get('/checkout', (req, res) => {
   const carrito = req.session.carrito || [];
   if (carrito.length === 0) return res.redirect('/cliente/carrito');
 
@@ -132,7 +119,8 @@ router.get('/carrito/checkout', (req, res) => {
   });
 });
 
-router.post('/carrito/procesar-pago', async (req, res) => {
+// Procesar Pago con Validaciones Estrictas
+router.post('/procesar-pago', async (req, res) => {
   try {
     const carrito = req.session.carrito || [];
     if (carrito.length === 0) return res.redirect('/cliente/carrito');
@@ -147,76 +135,48 @@ router.post('/carrito/procesar-pago', async (req, res) => {
       return { subtotal, descuentoAplicado, total };
     };
 
-    // --- VALIDACIONES ESTRICTAS DE FORMATO ---
+    // --- VALIDACIONES ESTRICTAS ---
     if (!titular || !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(titular.trim())) {
       const { subtotal, descuentoAplicado, total } = calcularTotalesCheckout();
       return res.status(400).render('Cliente/checkout', {
-        usuarioLogueado: req.session.usuario,
-        subtotal,
-        descuentoAplicado,
-        porcentajeDescuento: (req.session.usuario?.porcentajeDescuento || 0) * 100,
-        total,
-        error: 'El nombre del titular solo debe contener letras y espacios (sin números).',
-        datos: req.body
+        usuarioLogueado: req.session.usuario, subtotal, descuentoAplicado, total,
+        error: 'El nombre del titular solo debe contener letras.', datos: req.body
       });
     }
+    
     if (!numeroTarjeta || !/^\d{16}$/.test(numeroTarjeta.trim())) {
       const { subtotal, descuentoAplicado, total } = calcularTotalesCheckout();
       return res.status(400).render('Cliente/checkout', {
-        usuarioLogueado: req.session.usuario,
-        subtotal,
-        descuentoAplicado,
-        porcentajeDescuento: (req.session.usuario?.porcentajeDescuento || 0) * 100,
-        total,
-        error: 'El número de tarjeta debe contener exactamente 16 dígitos numéricos.',
-        datos: req.body
+        usuarioLogueado: req.session.usuario, subtotal, descuentoAplicado, total,
+        error: 'El número de tarjeta debe contener exactamente 16 dígitos.', datos: req.body
       });
     }
+
+    // Validación estricta de mes real (01 a 12) y formato MM/AA
     if (!vencimiento || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(vencimiento.trim())) {
       const { subtotal, descuentoAplicado, total } = calcularTotalesCheckout();
       return res.status(400).render('Cliente/checkout', {
-        usuarioLogueado: req.session.usuario,
-        subtotal,
-        descuentoAplicado,
-        porcentajeDescuento: (req.session.usuario?.porcentajeDescuento || 0) * 100,
-        total,
-        error: 'El formato de vencimiento debe ser MM/AA.',
-        datos: req.body
+        usuarioLogueado: req.session.usuario, subtotal, descuentoAplicado, total,
+        error: 'El vencimiento es inválido. Debe tener formato MM/AA con un mes real entre 01 y 12.', datos: req.body
       });
     }
+
     if (!cvv || !/^\d{3}$/.test(cvv.trim())) {
       const { subtotal, descuentoAplicado, total } = calcularTotalesCheckout();
       return res.status(400).render('Cliente/checkout', {
-        usuarioLogueado: req.session.usuario,
-        subtotal,
-        descuentoAplicado,
-        porcentajeDescuento: (req.session.usuario?.porcentajeDescuento || 0) * 100,
-        total,
-        error: 'El CVV debe contener exactamente 3 números.',
-        datos: req.body
+        usuarioLogueado: req.session.usuario, subtotal, descuentoAplicado, total,
+        error: 'El CVV debe contener exactamente 3 números.', datos: req.body
       });
     }
 
     if (numeroTarjeta.trim().endsWith('0000')) {
       const { subtotal, descuentoAplicado, total } = calcularTotalesCheckout();
       return res.status(400).render('Cliente/checkout', {
-        usuarioLogueado: req.session.usuario,
-        subtotal,
-        descuentoAplicado,
-        porcentajeDescuento: (req.session.usuario?.porcentajeDescuento || 0) * 100,
-        total,
-        error: '❌ Pago rechazado por la entidad bancaria: Fondos insuficientes o tarjeta inválida.',
-        datos: req.body
+        usuarioLogueado: req.session.usuario, subtotal, descuentoAplicado, total,
+        error: '❌ Pago rechazado por la entidad bancaria: Tarjeta inválida o fondos insuficientes.', datos: req.body
       });
     }
-    // ----------------------------------------
-
-    for (const item of carrito) {
-      const eventoActual = await Evento.findById(item.eventoId);
-      if (!eventoActual || eventoActual.entradasDisponibles < item.cantidad) {
-        return res.status(400).send(`Error: El evento "${item.nombreEvento}" no tiene suficiente stock disponible.`);
-      }
-    }
+    // -----------------------------
 
     const usuarioId = req.session.usuario.id || req.session.usuario._id;
     const { subtotal, descuentoAplicado, total } = calcularTotalesCheckout();
@@ -270,5 +230,4 @@ router.post('/carrito/procesar-pago', async (req, res) => {
   }
 });
 
-//module.exports = router;
 export default router;

@@ -1,8 +1,6 @@
-//const mongoose = require('mongoose');
 import mongoose from 'mongoose';
-
-//const Sala = require('./Sala');
 import Sala from './Sala.js';
+
 const { ZONAS, obtenerZonas } = Sala;
 
 const eventoSchema = new mongoose.Schema({
@@ -13,16 +11,13 @@ const eventoSchema = new mongoose.Schema({
   precio: { type: Number, required: true, default: 5000, min: [0, 'El precio no puede ser negativo'] },
   entradasDisponibles: { type: Number, default: 0, min: [0, 'La cantidad de entradas no puede ser negativa.'] },
   vendidosPorZona: { type: mongoose.Schema.Types.Mixed, default: undefined },
-  sala: { type: mongoose.Schema.Types.ObjectId, ref: 'Sala' }
+  sala: { type: mongoose.Schema.Types.ObjectId, ref: 'Sala' },
+  entidad: { type: mongoose.Schema.Types.ObjectId, ref: 'Entidad' } // <-- Vínculo con Artista/Compañía
 }, { timestamps: true });
 
 eventoSchema.methods.venderEntradas = function(cantidad) {
-  if (cantidad <= 0) {
-    throw new Error('La cantidad a vender debe ser mayor a cero.');
-  }
-  if (cantidad > this.entradasDisponibles) {
-    throw new Error('No hay suficientes entradas disponibles para este evento.');
-  }
+  if (cantidad <= 0) throw new Error('La cantidad a vender debe ser mayor a cero.');
+  if (cantidad > this.entradasDisponibles) throw new Error('No hay suficientes entradas disponibles para este evento.');
   this.entradasDisponibles -= cantidad;
   return true;
 };
@@ -37,7 +32,7 @@ async function prepararStockZonas(eventoId) {
       const sector = entrada.sector === 'Platea Preferencial' ? 'Platea' : entrada.sector;
       vendidos[ZONAS.includes(sector) ? sector : 'General'] += entrada.cantidad;
     }
-    await mongoose.model('Evento').updateOne({ _id: eventoId, vendidosPorZona: { $exists: false } }, { $set: { vendidosPorZona: vendidos } });
+    await mongoose.model('Evento').updateOne({ _id: eventoId, vendidosPorZona: { $exists: false } }, {$set: { vendidosPorZona: vendidos } });
     evento = await mongoose.model('Evento').findById(eventoId).populate('sala');
   }
   return evento;
@@ -61,7 +56,7 @@ async function reservarZona(eventoId, zona, cantidad) {
   const filtro = { _id: eventoId, entradasDisponibles: { $gte: cantidad } };
   if (evento.sala) {
     filtro[`vendidosPorZona.${zona}`] = { $lte: obtenerZonas(evento.sala)[zona] - cantidad };
-    filtro.$expr = { $lte: [ { $add: ZONAS.map(key => ({ $ifNull: [`$vendidosPorZona.${key}`, 0] })) }, evento.sala.capacidad - cantidad ] };
+    filtro.$expr = {$lte: [ { $add: ZONAS.map(key => ({$ifNull: [`$vendidosPorZona.${key}`, 0] })) }, evento.sala.capacidad - cantidad ] };
   }
   const reservado = await mongoose.model('Evento').findOneAndUpdate(filtro, {
     $inc: { entradasDisponibles: -cantidad, [`vendidosPorZona.${zona}`]: cantidad }
@@ -96,13 +91,10 @@ async function validarCupoEvento(salaId, entradasDisponibles, eventoId) {
   }
 }
 
-
 eventoSchema.statics.prepararStockZonas = prepararStockZonas;
 eventoSchema.statics.disponibilidadZonas = disponibilidadZonas;
 eventoSchema.statics.reservarZona = reservarZona;
 eventoSchema.statics.liberarZona = liberarZona;
 eventoSchema.statics.validarCupoEvento = validarCupoEvento;
-
-//module.exports = mongoose.model('Evento', eventoSchema);
 
 export default mongoose.model('Evento', eventoSchema);

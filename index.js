@@ -1,101 +1,78 @@
-/*global.crypto = require('crypto');
-
-const express = require('express');
-const { conectarBaseDeDatos } = require('./seed');
-const session = require('express-session');
-const path = require('path');
-
-const { requestLogger, notFoundHandler, errorHandler } = require('./middlewares');
-
-const authRoutes = require('./routes/authRoutes');
-const adminRoutes = require('./routes/adminRoutes');
-const clienteRoutes = require('./routes/clienteRoutes');
-const carritoRoutes = require('./routes/carritoRoutes');
-const eventosRoutes = require('./routes/eventosRoutes');
-const salasRoutes = require('./routes/salasRoutes');
-const entradasRoutes = require('./routes/entradasRoutes');*/
-
-// crypto ya viene disponible globalmente en Node moderno, 
-// pero si necesitas asignarlo explícitamente:
-//import crypto from 'node:crypto';
-//globalThis.crypto = crypto;
-
 import express from 'express';
+import mongoose from 'mongoose';
 import session from 'express-session';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import crypto from 'node:crypto';
+globalThis.crypto = crypto;
+
+import authRoutes from './routes/authRoutes.js';
+import clienteRoutes from './routes/clienteRoutes.js';
+import salasRoutes from './routes/salasRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import eventosRoutes from './routes/eventosRoutes.js';
+import carritoRoutes from './routes/carritoRoutes.js';
+import entradasRoutes from './routes/entradasRoutes.js';
+
+import { poblarBaseDeDatos } from './seed.js';
+import Entidad from './models/Entidad.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// En ESM es obligatorio incluir la extensión (.js) en archivos locales
-import { conectarBaseDeDatos } from './seed.js';
-import { requestLogger, notFoundHandler, errorHandler } from './middlewares/index.js';
-
-import authRoutes from './routes/authRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
-import clienteRoutes from './routes/clienteRoutes.js';
-import carritoRoutes from './routes/carritoRoutes.js';
-import eventosRoutes from './routes/eventosRoutes.js';
-import salasRoutes from './routes/salasRoutes.js';
-import entradasRoutes from './routes/entradasRoutes.js';
-
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(requestLogger);
 
 app.use(session({
-  secret: 'secreto_tp_backend_2026',
+  secret: 'mi_secreto_super_seguro_tp2',
   resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 3600000 }
+  saveUninitialized: false
 }));
 
 app.use('/auth', authRoutes);
-app.use('/admin', adminRoutes);
 app.use('/cliente', clienteRoutes);
-app.use('/cliente', carritoRoutes);
-app.use('/eventos', eventosRoutes);
 app.use('/salas', salasRoutes);
-app.use('/api/rooms', salasRoutes.apiRouter);
-app.use('/api/entradas', entradasRoutes);
+app.use('/admin', adminRoutes);     
+app.use('/eventos', eventosRoutes); 
+app.use('/cliente/carrito', carritoRoutes); // 👈 Carrito unificado bajo /cliente/carrito
+app.use('/entradas', entradasRoutes); 
 
 app.get('/', (req, res) => {
   res.redirect('/auth/login');
 });
 
-app.use(notFoundHandler);
-app.use(errorHandler);
+app.use((req, res) => {
+  res.status(404).send('Página no encontrada');
+});
 
-async function iniciarServidor() {
-  await conectarBaseDeDatos();
-  return app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-  });
-}
+const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/TP2';
 
-//module.exports = { app, iniciarServidor };
-export { app, iniciarServidor };
+mongoose.connect(uri)
+  .then(async () => {
+    console.log('📦 Conectado a MongoDB exitosamente');
 
-/*if (require.main === module) {
-  iniciarServidor().catch(error => {
-    console.error('Error al iniciar el servidor:', error.message);
-    process.exitCode = 1;
-  });
-}*/
+    try {
+      const cantidadEntidades = await Entidad.countDocuments();
+      if (cantidadEntidades === 0) {
+        console.log('⚠️ La base de datos está vacía. Ejecutando seed automático...');
+        await poblarBaseDeDatos();
+        console.log('✨ Seed automático finalizado con éxito.');
+      }
+    } catch (seedError) {
+      console.error('⚠️ No se pudo ejecutar el seed automático:', seedError);
+    }
+  })
+  .catch(err => console.error('❌ Error al conectar a MongoDB:', err));
 
-const esArchivoPrincipal = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+const PORT = process.env.PORT || 3000;
 
-if (esArchivoPrincipal) {
-  iniciarServidor().catch(error => {
-    console.error('Error al iniciar el servidor:', error.message);
-    process.exitCode = 1;
-  });
-}
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`🌐 Prueba también en tu navegador: http://127.0.0.1:${PORT}`);
+});

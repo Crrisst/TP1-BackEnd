@@ -1,5 +1,5 @@
 import express from 'express';
-import controller from '../controllers/salasController.js';
+import * as controller from '../controllers/salasController.js';
 import { validarSalaBody, validarSalaId } from '../middlewares/validateSala.js';
 
 function rutasCrud(router) {

@@ -1,10 +1,8 @@
-/*const Sala = require('../models/Sala');
-const { validarCupoEvento } = require('../models/Evento');
-const Evento = require('../models/Evento');*/
-
 import Sala from '../models/Sala.js';
-import validarCupoEvento  from '../models/Evento.js';
 import Evento from '../models/Evento.js';
+import Entidad from '../models/Entidad.js';
+
+const validarCupoEvento = Evento.validarCupoEvento;
 
 const isHtmlRequest = (req) => {
   return (req.headers.accept && req.headers.accept.includes('text/html')) || 
@@ -13,9 +11,14 @@ const isHtmlRequest = (req) => {
 
 const getEventos = async (req, res) => {
   try {
-    const eventos = await Evento.find().populate('sala');
+    const eventos = await Evento.find().populate('sala').populate('entidad'); 
     if (isHtmlRequest(req)) {
-      return res.render('eventos', { eventos, salas: await Sala.find(), error: req.query.error });
+      return res.render('eventos', { 
+        eventos, 
+        salas: await Sala.find(), 
+        entidades: await Entidad.find().sort({ nombre: 1 }), 
+        error: req.query.error 
+      });
     }
     res.json(eventos);
   } catch (error) {
@@ -26,10 +29,8 @@ const getEventos = async (req, res) => {
 
 const getEventoById = async (req, res) => {
   try {
-    const evento = await Evento.findById(req.params.id).populate('sala');
-    if (!evento) {
-      return res.status(404).json({ message: 'Evento no encontrado' });
-    }
+    const evento = await Evento.findById(req.params.id).populate('sala').populate('entidad');
+    if (!evento) return res.status(404).json({ message: 'Evento no encontrado' });
     res.json(evento);
   } catch (error) {
     res.status(500).json({ message: 'Error al buscar el evento' });
@@ -38,7 +39,7 @@ const getEventoById = async (req, res) => {
 
 const createEvento = async (req, res) => {
   try {
-    const { nombre, descripcion, fecha, hora, precio, entradasDisponibles, sala } = req.body;
+    const { nombre, descripcion, fecha, hora, precio, entradasDisponibles, sala, nombreEntidadSelect, nombreEntidadTexto } = req.body;
     const entradas = Number(entradasDisponibles);
 
     if (entradasDisponibles === undefined || isNaN(entradas) || entradas < 0) {
@@ -47,21 +48,29 @@ const createEvento = async (req, res) => {
     }
 
     await validarCupoEvento(sala, entradas);
+
+    const nombreEntidadFinal = (nombreEntidadTexto && nombreEntidadTexto.trim() !== '') 
+      ? nombreEntidadTexto 
+      : nombreEntidadSelect;
+
+    let entidadAsignada = null;
+    if (nombreEntidadFinal && nombreEntidadFinal.trim() !== '') {
+      const nombreLimpio = nombreEntidadFinal.trim();
+      let encontrada = await Entidad.findOne({ nombre: { $regex: new RegExp(`^${nombreLimpio}$`, 'i') } });
+      if (!encontrada) encontrada = await Entidad.create({ nombre: nombreLimpio });
+      entidadAsignada = encontrada._id;
+    }
+
     const nuevoEvento = new Evento({
-      nombre,
-      descripcion,
-      fecha,
-      hora,
+      nombre, descripcion, fecha, hora, 
       precio: parseFloat(precio) || 5000,
       entradasDisponibles: entradas,
-      sala: sala || null
+      sala: sala || null,
+      entidad: entidadAsignada
     });
 
     await nuevoEvento.save();
-
-    if (isHtmlRequest(req)) {
-      return res.redirect('/eventos');
-    }
+    if (isHtmlRequest(req)) return res.redirect('/eventos');
     res.status(201).json(nuevoEvento);
   } catch (error) {
     console.error('Error al crear evento:', error);
@@ -71,11 +80,14 @@ const createEvento = async (req, res) => {
 
 const showEditEventoForm = async (req, res) => {
   try {
-    const evento = await Evento.findById(req.params.id);
-    if (!evento) {
-      return res.redirect('/eventos?error=Evento+no+encontrado');
-    }
-    res.render('editarEvento', { evento, salas: await Sala.find(), error: req.query.error });
+    const evento = await Evento.findById(req.params.id).populate('entidad');
+    if (!evento) return res.redirect('/eventos?error=Evento+no+encontrado');
+    res.render('editarEvento', { 
+      evento, 
+      salas: await Sala.find(), 
+      entidades: await Entidad.find().sort({ nombre: 1 }),
+      error: req.query.error 
+    });
   } catch (error) {
     res.redirect('/eventos?error=Error+al+cargar+el+evento');
   }
@@ -83,7 +95,7 @@ const showEditEventoForm = async (req, res) => {
 
 const updateEvento = async (req, res) => {
   try {
-    const { nombre, descripcion, fecha, hora, precio, entradasDisponibles, sala } = req.body;
+    const { nombre, descripcion, fecha, hora, precio, entradasDisponibles, sala, nombreEntidadSelect, nombreEntidadTexto } = req.body;
     const updateData = {};
 
     if (nombre) updateData.nombre = nombre;
@@ -93,6 +105,17 @@ const updateEvento = async (req, res) => {
     if (precio !== undefined) updateData.precio = parseFloat(precio);
     if (entradasDisponibles !== undefined) updateData.entradasDisponibles = Number(entradasDisponibles);
     if (sala) updateData.sala = sala;
+
+    const nombreEntidadFinal = (nombreEntidadTexto && nombreEntidadTexto.trim() !== '') 
+      ? nombreEntidadTexto 
+      : nombreEntidadSelect;
+
+    if (nombreEntidadFinal && nombreEntidadFinal.trim() !== '') {
+      const nombreLimpio = nombreEntidadFinal.trim();
+      let encontrada = await Entidad.findOne({ nombre: { $regex: new RegExp(`^${nombreLimpio}$`, 'i') } });
+      if (!encontrada) encontrada = await Entidad.create({ nombre: nombreLimpio });
+      updateData.entidad = encontrada._id;
+    }
 
     const actual = await Evento.findById(req.params.id);
     if (!actual) return res.status(404).json({ message: 'Evento no encontrado' });
@@ -105,9 +128,7 @@ const updateEvento = async (req, res) => {
       return res.status(404).json({ message: 'Evento no encontrado' });
     }
 
-    if (isHtmlRequest(req)) {
-      return res.redirect('/eventos');
-    }
+    if (isHtmlRequest(req)) return res.redirect('/eventos');
     res.json(eventoActualizado);
   } catch (error) {
     console.error('Error al actualizar evento:', error);
@@ -122,21 +143,11 @@ const deleteEvento = async (req, res) => {
       if (isHtmlRequest(req)) return res.redirect('/eventos?error=Evento+no+encontrado');
       return res.status(404).json({ message: 'Evento no encontrado' });
     }
-
-    if (isHtmlRequest(req)) {
-      return res.redirect('/eventos');
-    }
+    if (isHtmlRequest(req)) return res.redirect('/eventos');
     res.json({ message: 'Evento eliminado correctamente', evento: eventoEliminado });
   } catch (error) {
     res.status(500).json({ message: 'Error al eliminar el evento' });
   }
 };
 
-export  {
-  getEventos,
-  getEventoById,
-  createEvento,
-  showEditEventoForm,
-  updateEvento,
-  deleteEvento
-};
+export { getEventos, getEventoById, createEvento, showEditEventoForm, updateEvento, deleteEvento };

@@ -3,231 +3,113 @@ html(lang="es")
   head
     meta(charset="UTF-8")
     meta(name="viewport" content="width=device-width, initial-scale=1")
-
     title Gestión de Eventos - Administración
-
     style
       include eventos.css
-
-
   body
-
-    // =========================
-    // ENCABEZADO
-    // =========================
-
     header.card.header
       h1 🎭 Gestión de Eventos
-
       nav.navigation(aria-label="Navegación de administración")
         a.button(href="/admin/dashboard") ⬅️ Volver al Panel
-
-
     main
-
-      // =========================
-      // CARGAR NUEVO EVENTO
-      // =========================
-
       section.card(aria-labelledby="crear-evento")
-
         h2#crear-evento Cargar Nuevo Evento
-
         if error
           .alert= error
-
-
         form(action="/eventos" method="POST")
-
           .fields
-
-            // Nombre
             .field
-              label(for="nombre") Nombre
+              label(for="nombre") Nombre del Evento
+              input#nombre(type="text" name="nombre" required)
+            
+            .field
+              label(for="nombreEntidadSelect") Artista / Compañía / Productora
+              select#nombreEntidadSelect(name="nombreEntidadSelect" onchange="toggleNuevoArtista(this)")
+                option(value="") Seleccionar de la lista...
+                if entidades
+                  each ent in entidades
+                    option(value=ent.nombre)= ent.nombre
+                option(value="OTRO_NUEVO") ➕ Escribir uno nuevo...
 
-              input#nombre(
-                type="text"
-                name="nombre"
-                required
-              )
-
-
-            // Sala
+              input#nombreEntidadTexto(type="text" name="nombreEntidadTexto" placeholder="Escribe el nombre del nuevo artista/compañía..." style="display:none; margin-top: 8px;" autocomplete="off")
+            
             .field
               label(for="sala") Sala
-
-              select#sala(
-                name="sala"
-                required
-              )
-
+              select#sala(name="sala" required)
                 option(value="") Seleccionar sala
-
                 each sala in salas
-                  option(value=sala._id)
-                    | #{sala.nombre} - Capacidad: #{sala.capacidad}
-
-
-            // Fecha
+                  option(value=sala._id) #{sala.nombre} - Capacidad: #{sala.capacidad}
+            
             .field
               label(for="fecha") Fecha
-
-              input#fecha(
-                type="date"
-                name="fecha"
-                required
-              )
-
-
-            // Hora
+              input#fecha(type="date" name="fecha" required)
+            
             .field
               label(for="hora") Hora
-
-              input#hora(
-                type="time"
-                name="hora"
-                required
-              )
-
-
-            // Precio
+              input#hora(type="time" name="hora" required)
+            
             .field
               label(for="precio") Precio
-
-              input#precio(
-                type="number"
-                name="precio"
-                min="0"
-                step="1"
-                value="5000"
-                required
-              )
-
-
-            // Entradas disponibles
+              input#precio(type="number" name="precio" min="0" step="1" value="5000" required)
+            
             .field
               label(for="entradasDisponibles") Entradas disponibles
-
-              input#entradasDisponibles(
-                type="number"
-                name="entradasDisponibles"
-                min="0"
-                step="1"
-                required
-              )
-
-
-            // Descripción
+              input#entradasDisponibles(type="number" name="entradasDisponibles" min="0" step="1" required)
+            
             .field.wide
               label(for="descripcion") Descripción
-
-              textarea#descripcion(
-                name="descripcion"
-                rows="3"
-                required
-              )
-
-
-          p
-            | La cantidad de entradas disponibles no puede superar la capacidad de la sala seleccionada.
-
-          button.button(type="submit")
-            | ➕ Cargar Evento
-
-
-
-      // =========================
-      // LISTADO DE EVENTOS
-      // =========================
+              textarea#descripcion(name="descripcion" rows="3" required)
+          p La cantidad de entradas disponibles no puede superar la capacidad de la sala.
+          button.button(type="submit") ➕ Cargar Evento
 
       section.card(aria-labelledby="listado-eventos")
-
         h2#listado-eventos Listado de Eventos
-
-
         if eventos && eventos.length > 0
-
           .table-container
-
             table
-
               thead
                 tr
-                  th(scope="col") Nombre
-                  th(scope="col") Descripción
-                  th(scope="col") Sala
-                  th(scope="col") Fecha
-                  th(scope="col") Hora
-                  th(scope="col") Precio
-                  th(scope="col") Entradas
-                  th(scope="col") Acciones
-
-
+                  th Evento
+                  th Presenta
+                  th Descripción
+                  th Sala
+                  th Fecha
+                  th Hora
+                  th Precio
+                  th Entradas
+                  th Acciones
               tbody
-
                 each evento in eventos
-
-                  -
-                    const fechaFormateada = evento.fecha
-                      ? new Date(evento.fecha).toLocaleDateString('es-AR', { timeZone: 'UTC' })
-                      : '-'
-
-
+                  - const fechaFormateada = evento.fecha ? new Date(evento.fecha).toLocaleDateString('es-AR', { timeZone: 'UTC' }) : '-'
                   tr
-
-                    // Nombre
                     td.name= evento.nombre
-
-
-                    // Descripción
+                    td(style="font-weight: bold; color: #0284c7;")= evento.entidad ? evento.entidad.nombre : '-'
                     td= evento.descripcion
-
-
-                    // Sala
                     td= evento.sala ? evento.sala.nombre : 'Sin sala'
-
-
-                    // Fecha
                     td= fechaFormateada
-
-
-                    // Hora
                     td= evento.hora || '-'
-
-
-                    // Precio
                     td $#{Number(evento.precio || 0).toLocaleString('es-AR')}
-
-
-                    // Entradas disponibles
                     td= evento.entradasDisponibles
-
-
-                    // Acciones
                     td
-
                       .actions
-
-                        a.button.edit(
-                          href=`/eventos/${evento.id}/editar`
-                          aria-label=`Editar evento ${evento.nombre}`
-                        )
-                          | ✏️ Editar
-
-
-                        form(
-                          action=`/eventos/${evento.id}/delete`
-                          method="POST"
-                        )
-
-                          button.button.delete(
-                            type="submit"
-                            aria-label=`Eliminar evento ${evento.nombre}`
-                            onclick="return confirm('¿Estás seguro de eliminar este evento?');"
-                          )
-                            | 🗑️ Eliminar
-
-
+                        a.button.edit(href=`/eventos/${evento.id}/editar`) ✏️ Editar
+                        form(action=`/eventos/${evento.id}/delete` method="POST")
+                          button.button.delete(type="submit" onclick="return confirm('¿Estás seguro?');") 🗑️ Eliminar
         else
+          p.empty No hay eventos registrados.
 
-          p.empty No hay eventos registrados en el sistema.
+    script.
+      function toggleNuevoArtista(select) {
+        const inputTexto = document.getElementById('nombreEntidadTexto');
+        if (select.value === 'OTRO_NUEVO') {
+          inputTexto.style.display = 'block';
+          inputTexto.required = true;
+          inputTexto.focus();
+          select.required = false;
+        } else {
+          inputTexto.style.display = 'none';
+          inputTexto.required = false;
+          inputTexto.value = '';
+          select.required = true;
+        }
+      }

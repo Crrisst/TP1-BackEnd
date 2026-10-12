@@ -1,5 +1,3 @@
-//const Usuario = require('../models/Usuario');
-
 import Usuario from '../models/Usuario.js';
 
 const procesarLogin = async (req, res) => {
@@ -85,12 +83,7 @@ const registrarCliente = async (req, res) => {
   }
 };
 
-/*module.exports = {
-  procesarLogin,
-  registrarCliente
-};*/
-
-export default {
+export {
   procesarLogin,
   registrarCliente
 };
