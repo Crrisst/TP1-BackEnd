@@ -1,17 +1,12 @@
 import express from 'express';
-const router = express.Router();
 import Evento from '../models/Evento.js';
 import Entrada from '../models/Entrada.js';
 import Transaccion from '../models/Transaccion.js';
+import { verificarRol } from '../middlewares/authMiddleware.js';
 
-const verificarCliente = (req, res, next) => {
-  if (!req.session || !req.session.usuario) {
-    return res.redirect('/auth/login');
-  }
-  next();
-};
+const router = express.Router();
 
-router.use(verificarCliente);
+router.use(verificarRol(['Cliente']));
 
 // Ver el carrito
 router.get('/', (req, res) => {
@@ -184,8 +179,6 @@ router.post('/procesar-pago', async (req, res) => {
 
     for (const item of carrito) {
       const zona = ['General', 'Platea', 'VIP'].includes(item.tipoEntrada) ? item.tipoEntrada : 'General';
-      
-      // Reserva el cupo por zona y descuenta el stock de forma atómica en MongoDB
       await Evento.reservarZona(item.eventoId, zona, item.cantidad);
 
       const codigoBoleto = 'TICK-' + Math.floor(100000 + Math.random() * 900000);

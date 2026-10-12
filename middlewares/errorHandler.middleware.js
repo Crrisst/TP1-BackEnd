@@ -1,50 +1,45 @@
-/**
- * Middlewares de Manejo Global de Errores y Rutas No Encontradas
- */
-
-/**
- * Captura solicitudes a rutas no existentes (404).
- */
 const notFoundHandler = (req, res, next) => {
-  res.status(404).json({
-    status: 'error',
-    message: `Ruta no encontrada: ${req.method} ${req.originalUrl}`
-  });
+  const error = new Error(`Ruta no encontrada: ${req.method} ${req.originalUrl}`);
+  error.status = 404;
+  next(error);
 };
 
-/**
- * Middleware centralizado de gestión de errores (500).
- * Captura cualquier error no controlado enviado mediante next(err).
- */
 const errorHandler = (err, req, res, next) => {
-  if (res.headersSent) return next(err);
-  let statusCode = err.statusCode || err.status || 500;
-  let message = err.message || 'Error interno del servidor.';
-  if (err.code === 11000) {
-    statusCode = 409;
-    message = 'Conflicto: ya existe un registro con ese valor único.';
-  } else if (err.name === 'CastError') {
-    statusCode = 400;
-    message = 'Identificador o valor con formato no válido.';
-  } else if (err.name === 'ValidationError') {
-    statusCode = 400;
-    message = Object.values(err.errors).map(error => error.message).join(' ');
+  console.error('❌ Error interno detectado:', err);
+
+  const status = err.status || 500;
+  const message = err.message || 'Error interno del servidor.';
+
+  const esPeticionApi = req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'));
+
+  if (esPeticionApi) {
+    return res.status(status).json({
+      status: 'error',
+      message
+    });
   }
-  if (statusCode >= 500) {
-    console.error(`[Error Interno]: ${err.stack || err.message || err}`);
-    message = 'Error interno del servidor.';
-  }
-  res.status(statusCode).json(req.esApiSalas ? { error: message } : {
-    status: 'error', message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
+
+  return res.status(status).send(`
+    <!DOCTYPE html>
+    <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <title>Error en el Servidor</title>
+      </head>
+      <body style="font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f6f9; margin: 0;">
+        <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 500px; width: 100%;">
+          <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
+          <h2 style="color: #dc2626; margin-top: 0; margin-bottom: 10px;">Error del Servidor (${status})</h2>
+          <p style="color: #475569; font-size: 14px; line-height: 1.5; margin-bottom: 25px;">${message}</p>
+          <a href="/admin/dashboard" style="background: #0ea5e9; color: white; padding: 10px 18px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">
+            ⬅️ Volver al Panel
+          </a>
+        </div>
+      </body>
+    </html>
+  `);
 };
 
-/*module.exports = {
-  notFoundHandler,
-  errorHandler
-};
-*/
 export {
   notFoundHandler,
   errorHandler

@@ -22,17 +22,23 @@ html(lang="es")
         table(style="width: 100%; border-collapse: collapse; margin-top: 10px;")
           thead
             tr(style="background-color: #f1f5f9; text-align: left; border-bottom: 2px solid #cbd5e1;")
-              th(style="padding: 10px;") Nombre Actual
-              th(style="padding: 10px; text-align: center;") Acciones (Editar / Eliminar)
+              th(style="padding: 10px;") Nombre del Artista / Compañía
+              if usuarioLogueado && ['Administrador', 'Supervisor'].includes(usuarioLogueado.rol)
+                th(style="padding: 10px; text-align: center;") Acciones (Editar / Eliminar)
           tbody
             each ent in entidades
               tr(style="border-bottom: 1px solid #e2e8f0;")
-                td(style="padding: 10px;")
-                  form(action=`/admin/entidades/editar/${ent._id}` method="POST" style="display: flex; gap: 10px; margin: 0;")
-                    input(type="text" name="nombre" value=ent.nombre required style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;")
-                    button(type="submit" style="background-color: #0ea5e9; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;") 💾 Actualizar
-                td(style="padding: 10px; text-align: center;")
-                  form(action=`/admin/entidades/eliminar/${ent._id}` method="POST" style="margin: 0;" onsubmit="return confirm('¿Estás seguro de eliminar este artista/productora?');")
-                    button(type="submit" style="background-color: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;") 🗑️ Eliminar
+                td(style="padding: 10px; font-weight: bold; color: #334155;")
+                  if usuarioLogueado && ['Administrador', 'Supervisor'].includes(usuarioLogueado.rol)
+                    form(action=`/admin/entidades/editar/${ent._id}` method="POST" style="display: flex; gap: 10px; margin: 0;")
+                      input(type="text" name="nombre" value=ent.nombre required style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;")
+                      button(type="submit" style="background-color: #0ea5e9; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;") 💾 Actualizar
+                  else
+                    span= ent.nombre
+
+                if usuarioLogueado && ['Administrador', 'Supervisor'].includes(usuarioLogueado.rol)
+                  td(style="padding: 10px; text-align: center;")
+                    form(action=`/admin/entidades/eliminar/${ent._id}` method="POST" style="margin: 0;" onsubmit="return confirm('¿Estás seguro de eliminar este artista/productora?');")
+                      button(type="submit" style="background-color: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;") 🗑️ Eliminar
       else
         p(style="color: #64748b; text-align: center; padding: 20px;") No hay artistas o productoras registradas en el sistema.

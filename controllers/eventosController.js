@@ -16,6 +16,7 @@ const getEventos = async (req, res) => {
     const eventos = await Evento.find().populate('sala').populate('entidad'); 
     if (isHtmlRequest(req)) {
       return res.render('eventos', { 
+        usuarioLogueado: req.session ? req.session.usuario : null, // 👈 Enviamos la sesión activa
         eventos, 
         salas: await Sala.find(), 
         entidades: await Entidad.find().sort({ nombre: 1 }), 
@@ -87,6 +88,7 @@ const showEditEventoForm = async (req, res) => {
     const evento = await Evento.findById(req.params.id).populate('entidad');
     if (!evento) return res.redirect('/eventos?error=Evento+no+encontrado');
     res.render('editarEvento', { 
+      usuarioLogueado: req.session ? req.session.usuario : null, // 👈 Enviamos la sesión activa
       evento, 
       salas: await Sala.find(), 
       entidades: await Entidad.find().sort({ nombre: 1 }),

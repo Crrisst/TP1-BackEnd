@@ -1,39 +1,29 @@
 import express from 'express';
-const router = express.Router();
+import { 
+  getEventos, 
+  createEvento, 
+  showEditEventoForm, 
+  updateEvento, 
+  deleteEvento 
+} from '../controllers/eventosController.js';
 import { verificarRol } from '../middlewares/authMiddleware.js';
 
-// --- Definición de Roles ---
-const personalInterno = verificarRol(['Administrador', 'Supervisor', 'Lector']);
-const adminYSupervisor = verificarRol(['Administrador', 'Supervisor']);
-const soloAdmin = verificarRol(['Administrador']);
+const router = express.Router();
 
-import {
-  getEventos,
-  getEventoById,
-  createEvento,
-  updateEvento,
-  deleteEvento,
-  showEditEventoForm,
-  actualizarEntidad,
-  eliminarEntidad
-} from '../controllers/eventosController.js';
+// 👁️ Ver listado de eventos (Administrador, Supervisor y Lector)
+router.get('/', verificarRol(['Administrador', 'Supervisor', 'Lector']), getEventos);
 
-// --- RUTAS PROTEGIDAS ---
+// 🔒 Crear evento (Solo Administrador y Supervisor)
+router.post('/', verificarRol(['Administrador', 'Supervisor']), createEvento);
 
-// Lectura (Todo el personal)
-router.get('/', personalInterno, getEventos);
-router.get('/:id', personalInterno, getEventoById);
+// 🔒 Mostrar formulario de edición (Solo Administrador y Supervisor)
+router.get('/editar/:id', verificarRol(['Administrador', 'Supervisor']), showEditEventoForm);
 
-// Creación y Edición (Admin y Supervisor)
-router.get('/:id/editar', adminYSupervisor, showEditEventoForm);
-router.post('/', adminYSupervisor, createEvento);
-router.put('/:id', adminYSupervisor, updateEvento);
-router.post('/:id/editar', adminYSupervisor, updateEvento);
-router.post('/entidades/:id/editar', adminYSupervisor, actualizarEntidad);
+// 🔒 Guardar cambios de edición
+router.post('/editar/:id', verificarRol(['Administrador', 'Supervisor']), updateEvento);
+router.post('/actualizar/:id', verificarRol(['Administrador', 'Supervisor']), updateEvento);
 
-// Eliminación (Solo Admin)
-router.delete('/:id', soloAdmin, deleteEvento);
-router.post('/:id/delete', soloAdmin, deleteEvento);
-router.post('/entidades/:id/delete', soloAdmin, eliminarEntidad);
+// 🔒 Eliminar evento (Solo Administrador y Supervisor)
+router.post('/eliminar/:id', verificarRol(['Administrador', 'Supervisor']), deleteEvento);
 
 export default router;

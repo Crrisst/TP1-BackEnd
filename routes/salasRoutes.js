@@ -1,41 +1,29 @@
 import express from 'express';
-import * as controller from '../controllers/salasController.js';
-import { validarSalaBody, validarSalaId } from '../middlewares/validateSala.js';
+import { 
+  getSalas, 
+  createSala, 
+  showEditSalaForm, 
+  updateSala, 
+  deleteSala 
+} from '../controllers/salasController.js';
 import { verificarRol } from '../middlewares/authMiddleware.js';
 
-// --- Definición de Roles ---
-const personalInterno = verificarRol(['Administrador', 'Supervisor', 'Lector']);
-const adminYSupervisor = verificarRol(['Administrador', 'Supervisor']);
-const soloAdmin = verificarRol(['Administrador']);
+const router = express.Router();
 
-function rutasCrud(router) {
-  // Lectura
-  router.get('/', personalInterno, controller.getSalas);
-  router.get('/:id', personalInterno, validarSalaId, controller.getSalaById);
-  
-  // Creación y Edición
-  router.post('/', adminYSupervisor, validarSalaBody, controller.createSala);
-  router.put('/:id', adminYSupervisor, validarSalaId, validarSalaBody, controller.updateSala);
-  
-  // Eliminación
-  router.delete('/:id', soloAdmin, validarSalaId, controller.deleteSala);
-  
-  return router;
-}
+// 👁️ Ver listado de salas (Administrador, Supervisor y Lector)
+router.get('/', verificarRol(['Administrador', 'Supervisor', 'Lector']), getSalas);
 
-const router = rutasCrud(express.Router());
+// 🔒 Crear sala (Solo Administrador y Supervisor)
+router.post('/', verificarRol(['Administrador', 'Supervisor']), createSala);
 
-// Rutas para las vistas (Pug)
-router.get('/:id/editar', adminYSupervisor, validarSalaId, controller.showEditSalaForm);
-router.post('/:id/editar', adminYSupervisor, validarSalaId, validarSalaBody, controller.updateSala);
-router.post('/:id/delete', soloAdmin, validarSalaId, controller.deleteSala);
+// 🔒 Mostrar formulario de edición de sala (Solo Administrador y Supervisor)
+router.get('/editar/:id', verificarRol(['Administrador', 'Supervisor']), showEditSalaForm);
 
-// API
-const apiRouter = express.Router();
-apiRouter.use((req, res, next) => { req.esApiSalas = true; next(); });
-rutasCrud(apiRouter);
+// 🔒 Guardar cambios de edición de sala (Soporta /editar/:id y /actualizar/:id)
+router.post('/editar/:id', verificarRol(['Administrador', 'Supervisor']), updateSala);
+router.post('/actualizar/:id', verificarRol(['Administrador', 'Supervisor']), updateSala);
 
-// Exportaciones
-router.apiRouter = apiRouter;
-export { apiRouter };
+// 🔒 Eliminar sala (Solo Administrador y Supervisor)
+router.post('/eliminar/:id', verificarRol(['Administrador', 'Supervisor']), deleteSala);
+
 export default router;

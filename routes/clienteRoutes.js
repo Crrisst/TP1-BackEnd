@@ -5,16 +5,14 @@ import Evento from '../models/Evento.js';
 import Transaccion from '../models/Transaccion.js';
 import CancelacionLog from '../models/CancelacionLog.js';
 import Entidad from '../models/Entidad.js'; 
+import { verificarRol } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
 const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 
-const verificarClienteLogin = (req, res, next) => {
-  if (!req.session || !req.session.usuario) return res.redirect('/auth/login');
-  next();
-};
-router.use(verificarClienteLogin);
+// Middleware centralizado para asegurar acceso exclusivo a Clientes
+router.use(verificarRol(['Cliente']));
 
 router.get('/menu', async (req, res) => {
   try {
@@ -106,7 +104,6 @@ router.post('/cancelar-entrada/:id', async (req, res) => {
       fechaCancelacion: new Date()
     });
 
-    // Cancela la entrada y libera los cupos de la zona correspondiente de forma segura
     await Entrada.cancelarEntradaZona(req.params.id, usuarioId);
 
     res.json({ success: true, message: 'Entrada cancelada correctamente y stock de zona liberado.' });

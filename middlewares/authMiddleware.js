@@ -1,14 +1,33 @@
-// src/middlewares/authMiddleware.js
+const verificarAutenticacion = (req, res, next) => {
+  const usuarioLogueado = req.session && req.session.usuario;
+  const esPeticionApi = req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'));
+
+  if (!usuarioLogueado) {
+    if (esPeticionApi) {
+      return res.status(401).json({ error: 'Debes iniciar sesión para realizar esta acción.' });
+    }
+    return res.redirect('/auth/login');
+  }
+  next();
+};
+
 const verificarRol = (rolesPermitidos) => {
   return (req, res, next) => {
     const usuarioLogueado = req.session && req.session.usuario;
+    const esPeticionApi = req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'));
 
     if (!usuarioLogueado) {
+      if (esPeticionApi) {
+        return res.status(401).json({ error: 'Debes iniciar sesión para realizar esta acción.' });
+      }
       return res.redirect('/auth/login');
     }
 
     if (!rolesPermitidos.includes(usuarioLogueado.rol)) {
-      // Devolver una vista HTML estilizada en lugar de texto plano feo
+      if (esPeticionApi) {
+        return res.status(403).json({ error: 'No tienes los permisos necesarios para realizar esta acción.' });
+      }
+
       return res.status(403).send(`
         <!DOCTYPE html>
         <html lang="es">
@@ -36,6 +55,7 @@ const verificarRol = (rolesPermitidos) => {
   };
 };
 
-export  {
+export {
+  verificarAutenticacion,
   verificarRol
 };

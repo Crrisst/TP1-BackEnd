@@ -54,27 +54,109 @@ async function poblarBaseDeDatos() {
     const entidadesGuardadas = await Entidad.insertMany(entidadesSeed);
     console.log(`🎭 ${entidadesGuardadas.length} entidades culturales cargadas con éxito.`);
 
-    await Usuario.create({
-      nombreUsuario: 'admin', nombre: 'Administrador', apellido: 'Principal', email: 'admin@email.com', password: '123', dni: '99887766', fechaNacimiento: new Date('1980-01-01'), telefono: '1100112233', rol: 'Administrador', tipoCliente: 'VIP', porcentajeDescuento: 0.3
+    // --- USUARIOS POR ROL ---
+    const admin = await Usuario.create({
+      nombreUsuario: 'admin',
+      nombre: 'Administrador',
+      apellido: 'Principal',
+      email: 'admin@email.com',
+      password: '123',
+      dni: '99887766',
+      fechaNacimiento: new Date('1980-01-01'),
+      telefono: '1100112233',
+      rol: 'Administrador',
+      tipoCliente: 'VIP',
+      porcentajeDescuento: 0.3
+    });
+
+    const supervisor = await Usuario.create({
+      nombreUsuario: 'supervisor',
+      nombre: 'Carlos',
+      apellido: 'Gómez',
+      email: 'supervisor@email.com',
+      password: '123',
+      dni: '33445566',
+      fechaNacimiento: new Date('1988-03-20'),
+      telefono: '1144556677',
+      rol: 'Supervisor',
+      tipoCliente: 'ESTANDAR',
+      porcentajeDescuento: 0
+    });
+
+    const lector = await Usuario.create({
+      nombreUsuario: 'lector',
+      nombre: 'Lucía',
+      apellido: 'Fernández',
+      email: 'lector@email.com',
+      password: '123',
+      dni: '44556677',
+      fechaNacimiento: new Date('1992-07-10'),
+      telefono: '1155667788',
+      rol: 'Lector',
+      tipoCliente: 'ESTANDAR',
+      porcentajeDescuento: 0
     });
 
     const cliente1 = await Usuario.create({
-      nombreUsuario: 'cliente1', nombre: 'Juan', apellido: 'Perez', email: 'juan.perez@email.com', password: '123', dni: '12345678', fechaNacimiento: new Date('1995-05-15'), telefono: '1122334455', rol: 'Cliente', tipoCliente: 'VIP', porcentajeDescuento: 0.3
+      nombreUsuario: 'cliente1',
+      nombre: 'Juan',
+      apellido: 'Perez',
+      email: 'juan.perez@email.com',
+      password: '123',
+      dni: '12345678',
+      fechaNacimiento: new Date('1995-05-15'),
+      telefono: '1122334455',
+      rol: 'Cliente',
+      tipoCliente: 'VIP',
+      porcentajeDescuento: 0.3
     });
 
+    const cliente2 = await Usuario.create({
+      nombreUsuario: 'cliente2',
+      nombre: 'Maria',
+      apellido: 'Lopez',
+      email: 'maria.lopez@email.com',
+      password: '123',
+      dni: '23456789',
+      fechaNacimiento: new Date('2000-11-22'),
+      telefono: '1133445566',
+      rol: 'Cliente',
+      tipoCliente: 'ESTANDAR',
+      porcentajeDescuento: 0
+    });
+
+    // --- SALAS Y EVENTOS ---
     const salaTeatro = await Sala.create({
-      nombre: 'Teatro Gran Rex', descripcion: 'Sala clásica céntrica', capacidad: 500, zonas: { General: 300, Platea: 150, VIP: 50 }, ubicacion: 'Centro Histórico'
+      nombre: 'Teatro Gran Rex',
+      descripcion: 'Sala clásica céntrica',
+      capacidad: 500,
+      zonas: { General: 300, Platea: 150, VIP: 50 },
+      ubicacion: 'Centro Histórico'
     });
 
     const eventoCultural = await Evento.create({
-      nombre: 'Espectáculo Visual - Wayra', descripcion: 'Experiencia inmersiva 360', fecha: new Date('2025-11-10T21:00:00'), hora: '21:00', precio: 8500, entradasDisponibles: 200, sala: salaTeatro._id, entidad: entidadesGuardadas[0]._id 
+      nombre: 'Espectáculo Visual - Wayra',
+      descripcion: 'Experiencia inmersiva 360',
+      fecha: new Date('2025-11-10T21:00:00'),
+      hora: '21:00',
+      precio: 8500,
+      entradasDisponibles: 200,
+      sala: salaTeatro._id,
+      entidad: entidadesGuardadas[0]._id 
     });
 
     const eventoMusica = await Evento.create({
-      nombre: 'Gran Concierto Sinfónico', descripcion: 'Show en vivo con orquesta completa', fecha: new Date('2026-12-28T22:00:00'), hora: '22:00', precio: 5000, entradasDisponibles: 120, sala: salaTeatro._id, entidad: entidadesGuardadas[2]._id 
+      nombre: 'Gran Concierto Sinfónico',
+      descripcion: 'Show en vivo con orquesta completa',
+      fecha: new Date('2026-12-28T22:00:00'),
+      hora: '22:00',
+      precio: 5000,
+      entradasDisponibles: 120,
+      sala: salaTeatro._id,
+      entidad: entidadesGuardadas[2]._id 
     });
 
-    const entradaPrueba = await Entrada.create({
+    await Entrada.create({
       cliente: cliente1._id,
       evento: eventoCultural._id,
       nombre: 'General - Espectáculo Visual - Wayra',
@@ -109,7 +191,7 @@ async function poblarBaseDeDatos() {
       fechaCompra: new Date()
     });
 
-    console.log('🎟️ Eventos, usuarios e historial de compras cargados correctamente.');
+    console.log('🎟️ Usuarios por roles, eventos e historial cargados correctamente.');
     console.log('✨ ¡Seed ejecutado por completo!');
 
   } catch (error) {
