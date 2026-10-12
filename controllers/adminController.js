@@ -50,8 +50,25 @@ const registrarPersonalInterno = async (req, res) => {
     res.redirect('/admin/usuarios?exito=Usuario creado correctamente');
   } catch (error) {
     console.error('Error al crear usuario:', error);
+    
+    let mensajeError = 'No se pudo registrar el usuario. Verifique los datos ingresados.';
+    if (error.code === 11000) {
+      const campoDuplicado = Object.keys(error.keyValue || {})[0];
+      if (campoDuplicado === 'nombreUsuario') {
+        mensajeError = 'El nombre de usuario ya está registrado en el sistema.';
+      } else if (campoDuplicado === 'email') {
+        mensajeError = 'El correo electrónico ya está registrado en el sistema.';
+      } else if (campoDuplicado === 'dni') {
+        mensajeError = 'El DNI ya está registrado en el sistema.';
+      } else {
+        mensajeError = 'El nombre de usuario, email o DNI ya está registrado en el sistema.';
+      }
+    } else {
+      mensajeError = error.errors?.fechaNacimiento?.message || error.message;
+    }
+
     res.status(400).render('Admin/crear-personal', {
-      error: error.errors?.fechaNacimiento?.message || 'No se pudo registrar el usuario. Verifique los datos ingresados.',
+      error: mensajeError,
       usuarioLogueado: req.session.usuario
     });
   }
@@ -108,9 +125,24 @@ const actualizarUsuario = async (req, res) => {
     res.redirect('/admin/usuarios?exito=Usuario actualizado exitosamente');
   } catch (error) {
     console.error('Error al actualizar:', error);
-    const mensajeError = error.errors?.fechaNacimiento?.message || error.message;
     
-    // Re-renderizamos la vista con la caja de error en lugar de enviar texto plano
+    let mensajeError = 'Error al actualizar el usuario.';
+    if (error.code === 11000) {
+      const campoDuplicado = Object.keys(error.keyValue || {})[0];
+      if (campoDuplicado === 'nombreUsuario') {
+        mensajeError = 'El nombre de usuario ya está registrado por otro usuario.';
+      } else if (campoDuplicado === 'email') {
+        mensajeError = 'El correo electrónico ya está registrado por otro usuario.';
+      } else if (campoDuplicado === 'dni') {
+        mensajeError = 'El DNI ya está registrado por otro usuario.';
+      } else {
+        mensajeError = 'El nombre de usuario, email o DNI ya pertenece a otro usuario registrado.';
+      }
+    } else {
+      mensajeError = error.errors?.fechaNacimiento?.message || error.message;
+    }
+    
+    // Re-renderizamos la vista de edición con la caja de error descriptiva
     const usuarioAEditar = (await Usuario.findById(req.params.id)) || { _id: req.params.id, ...req.body };
     res.status(400).render('Admin/editarUsuario', {
       usuarioLogueado: req.session.usuario,

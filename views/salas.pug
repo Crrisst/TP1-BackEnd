@@ -27,32 +27,32 @@ html(lang="es")
           div(style="display: flex; gap: 15px; margin-bottom: 15px;")
             div(style="flex: 2;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Nombre de la Sala
-              input(type="text" name="nombre" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input(type="text" name="nombre" value=(datos && datos.nombre ? datos.nombre : '') required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Capacidad Total
-              input(type="number" name="capacidad" min="1" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input(type="number" name="capacidad" min="1" value=(datos && datos.capacidad ? datos.capacidad : '') required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 2;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Ubicación
-              input(type="text" name="ubicacion" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input(type="text" name="ubicacion" value=(datos && datos.ubicacion ? datos.ubicacion : '') required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
           div(style="margin-bottom: 15px;")
             label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Descripción
-            textarea(name="descripcion" rows="2" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+            textarea(name="descripcion" rows="2" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")=(datos && datos.descripcion ? datos.descripcion : '')
 
           div(style="display: flex; gap: 15px; margin-bottom: 20px; background-color: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0;")
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 12px; margin-bottom: 5px; color: #475569;") Sector General
-              input(type="number" name="general" min="0" value="0" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;")
+              input(type="number" name="general" min="0" value=(datos && datos.general !== undefined ? datos.general : '0') style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;")
 
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 12px; margin-bottom: 5px; color: #475569;") Sector Platea
-              input(type="number" name="platea" min="0" value="0" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;")
+              input(type="number" name="platea" min="0" value=(datos && datos.platea !== undefined ? datos.platea : '0') style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;")
 
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 12px; margin-bottom: 5px; color: #475569;") Sector VIP
-              input(type="number" name="vip" min="0" value="0" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;")
+              input(type="number" name="vip" min="0" value=(datos && datos.vip !== undefined ? datos.vip : '0') style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;")
 
           button(type="submit" style="background-color: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;") ➕ Crear Sala
 

@@ -11,10 +11,11 @@ const getSalas = async (req, res) => {
     const salas = await Sala.find();
     if (isHtmlRequest(req)) {
       return res.render('salas', { 
-        usuarioLogueado: req.session ? req.session.usuario : null, // 👈 Enviamos la sesión activa
+        usuarioLogueado: req.session ? req.session.usuario : null,
         salas,
         error: req.query.error || null,
-        exito: req.query.exito || null
+        exito: req.query.exito || null,
+        datos: {}
       });
     }
     res.json(salas);
@@ -36,30 +37,39 @@ const getSalaById = async (req, res) => {
 
 const createSala = async (req, res) => {
   try {
-    const { nombre, descripcion, capacidad, general, platea, vip, ubicacion } = req.body;
-    
-    const zonas = {
-      General: Number(general) || 0,
-      Platea: Number(platea) || 0,
-      VIP: Number(vip) || 0
+    const datos = req.salaDatos || {
+      nombre: req.body.nombre,
+      descripcion: req.body.descripcion,
+      capacidad: Number(req.body.capacidad),
+      zonas: {
+        General: Number(req.body.general) || 0,
+        Platea: Number(req.body.platea) || 0,
+        VIP: Number(req.body.vip) || 0
+      },
+      ubicacion: req.body.ubicacion
     };
 
-    const nuevaSala = new Sala({
-      nombre,
-      descripcion,
-      capacidad: Number(capacidad),
-      zonas,
-      ubicacion
-    });
-
+    const nuevaSala = new Sala(datos);
     await nuevaSala.save();
 
     if (isHtmlRequest(req)) return res.redirect('/salas?exito=Sala+creada+correctamente');
     res.status(201).json(nuevaSala);
   } catch (error) {
     console.error('Error al crear sala:', error);
-    if (isHtmlRequest(req)) return res.redirect(`/salas?error=${encodeURIComponent(error.message)}`);
-    res.status(400).json({ message: error.message });
+    let mensajeError = error.message;
+    if (error.code === 11000) {
+      mensajeError = 'Ya existe una sala registrada con ese nombre.';
+    }
+    if (isHtmlRequest(req)) {
+      const salas = await Sala.find();
+      return res.status(400).render('salas', {
+        usuarioLogueado: req.session ? req.session.usuario : null,
+        salas,
+        datos: req.body,
+        error: mensajeError
+      });
+    }
+    res.status(400).json({ message: mensajeError });
   }
 };
 
@@ -68,7 +78,7 @@ const showEditSalaForm = async (req, res) => {
     const sala = await Sala.findById(req.params.id);
     if (!sala) return res.redirect('/salas?error=Sala+no+encontrada');
     res.render('editarSala', { 
-      usuarioLogueado: req.session ? req.session.usuario : null, // 👈 Enviamos la sesión activa
+      usuarioLogueado: req.session ? req.session.usuario : null,
       sala,
       error: req.query.error || null 
     });
@@ -79,17 +89,21 @@ const showEditSalaForm = async (req, res) => {
 
 const updateSala = async (req, res) => {
   try {
-    const { nombre, descripcion, capacidad, general, platea, vip, ubicacion } = req.body;
-    
-    const zonas = {
-      General: Number(general) || 0,
-      Platea: Number(platea) || 0,
-      VIP: Number(vip) || 0
+    const datos = req.salaDatos || {
+      nombre: req.body.nombre,
+      descripcion: req.body.descripcion,
+      capacidad: Number(req.body.capacidad),
+      zonas: {
+        General: Number(req.body.general) || 0,
+        Platea: Number(req.body.platea) || 0,
+        VIP: Number(req.body.vip) || 0
+      },
+      ubicacion: req.body.ubicacion
     };
 
     const salaActualizada = await Sala.findByIdAndUpdate(
       req.params.id,
-      { nombre, descripcion, capacidad: Number(capacidad), zonas, ubicacion },
+      datos,
       { new: true, runValidators: true }
     );
 
@@ -102,8 +116,30 @@ const updateSala = async (req, res) => {
     res.json(salaActualizada);
   } catch (error) {
     console.error('Error al actualizar sala:', error);
-    if (isHtmlRequest(req)) return res.redirect(`/salas?error=${encodeURIComponent(error.message)}`);
-    res.status(400).json({ message: error.message });
+    let mensajeError = error.message;
+    if (error.code === 11000) {
+      mensajeError = 'Ya existe una sala registrada con ese nombre.';
+    }
+    if (isHtmlRequest(req)) {
+      const salaObj = {
+        _id: req.params.id,
+        nombre: req.body.nombre || '',
+        ubicacion: req.body.ubicacion || '',
+        capacidad: req.body.capacidad || '',
+        descripcion: req.body.descripcion || '',
+        zonas: {
+          General: req.body.general !== undefined ? req.body.general : 0,
+          Platea: req.body.platea !== undefined ? req.body.platea : 0,
+          VIP: req.body.vip !== undefined ? req.body.vip : 0
+        }
+      };
+      return res.status(400).render('editarSala', {
+        usuarioLogueado: req.session ? req.session.usuario : null,
+        sala: salaObj,
+        error: mensajeError
+      });
+    }
+    res.status(400).json({ message: mensajeError });
   }
 };
 

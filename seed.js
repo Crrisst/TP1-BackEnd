@@ -19,7 +19,16 @@ async function conectarBaseDeDatos() {
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/TP2');
   }
-  await Sala.init();
+  
+  // Sincronizar e inicializar índices únicos de todos los modelos antes de operar
+  await Promise.all([
+    Usuario.init(),
+    Sala.init(),
+    Evento.init(),
+    Entrada.init(),
+    Transaccion.init(),
+    Entidad.init()
+  ]);
 }
 
 async function poblarBaseDeDatos() {
@@ -29,11 +38,12 @@ async function poblarBaseDeDatos() {
     await conectarBaseDeDatos();
     console.log('📦 Conectado a MongoDB para seed...');
 
-    await Usuario.deleteMany({});
-    await Sala.deleteMany({});
-    await Evento.deleteMany({});
+    // Limpieza de colecciones en orden secuencial
     await Entrada.deleteMany({});
     await Transaccion.deleteMany({});
+    await Evento.deleteMany({});
+    await Sala.deleteMany({});
+    await Usuario.deleteMany({});
     await Entidad.deleteMany({}); 
 
     console.log('🧹 Base de datos limpiada.');
