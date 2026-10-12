@@ -92,19 +92,19 @@ router.get('/mis-compras', async (req, res) => {
 router.post('/cancelar-entrada/:id', async (req, res) => {
   try {
     const usuarioId = req.session.usuario.id || req.session.usuario._id;
-    const entradaARecuperar = await Entrada.findById(req.params.id).populate('evento');
-    if (!entradaARecuperar) return res.status(404).json({ success: false, message: 'No se encontró la entrada.' });
+    
+    // 1. Cancelar la entrada y liberar el stock primero
+    const entradaCancelada = await Entrada.cancelarEntradaZona(req.params.id, usuarioId);
 
+    // 2. Registrar el Log de auditoría únicamente si la cancelación fue exitosa
     await CancelacionLog.create({
-      cliente: entradaARecuperar.cliente,
+      cliente: entradaCancelada.cliente,
       nombreCliente: req.session.usuario.nombreUsuario,
-      eventoNombre: entradaARecuperar.evento ? entradaARecuperar.evento.nombre : 'Evento general',
-      codigoBoleto: entradaARecuperar.codigoBoleto || 'TICK-' + entradaARecuperar._id.toString().slice(-6).toUpperCase(),
-      cantidad: entradaARecuperar.cantidad || 1,
+      eventoNombre: entradaCancelada.nombre || 'Evento general',
+      codigoBoleto: entradaCancelada.codigoBoleto || 'TICK-' + entradaCancelada._id.toString().slice(-6).toUpperCase(),
+      cantidad: entradaCancelada.cantidad || 1,
       fechaCancelacion: new Date()
     });
-
-    await Entrada.cancelarEntradaZona(req.params.id, usuarioId);
 
     res.json({ success: true, message: 'Entrada cancelada correctamente y stock de zona liberado.' });
   } catch (error) {

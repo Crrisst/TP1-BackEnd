@@ -115,8 +115,11 @@ router.get('/checkout', (req, res) => {
   });
 });
 
-// Procesar Pago con Reservas por Zona
+// Procesar Pago con Reservas por Zona y Rollback
 router.post('/procesar-pago', async (req, res) => {
+  const entradasCreadas = [];
+  const reservasRealizadas = [];
+
   try {
     const carrito = req.session.carrito || [];
     if (carrito.length === 0) return res.redirect('/cliente/carrito');
@@ -180,9 +183,10 @@ router.post('/procesar-pago', async (req, res) => {
     for (const item of carrito) {
       const zona = ['General', 'Platea', 'VIP'].includes(item.tipoEntrada) ? item.tipoEntrada : 'General';
       await Evento.reservarZona(item.eventoId, zona, item.cantidad);
+      reservasRealizadas.push({ eventoId: item.eventoId, zona, cantidad: item.cantidad });
 
       const codigoBoleto = 'TICK-' + Math.floor(100000 + Math.random() * 900000);
-      await Entrada.create({
+      const nuevaEntrada = await Entrada.create({
         cliente: usuarioId,
         evento: item.eventoId,
         nombre: `${item.tipoEntrada} - ${item.nombreEvento}`,
@@ -195,6 +199,7 @@ router.post('/procesar-pago', async (req, res) => {
         estado: 'Completado',
         codigoBoleto: codigoBoleto
       });
+      entradasCreadas.push(nuevaEntrada._id);
     }
 
     const nuevaTransaccion = await Transaccion.create({
@@ -217,8 +222,17 @@ router.post('/procesar-pago', async (req, res) => {
       transaccion: nuevaTransaccion
     });
   } catch (error) {
-    console.error('Error al procesar pago:', error);
-    res.status(error.status || 500).send('Error al procesar el pago: ' + error.message);
+    console.error('Error al procesar pago, ejecutando reversión:', error);
+
+    // 🔄 ROLLBACK
+    for (const entradaId of entradasCreadas) {
+      await Entrada.findByIdAndDelete(entradaId);
+    }
+    for (const resv of reservasRealizadas) {
+      await Evento.liberarZona(resv.eventoId, resv.zona, resv.cantidad);
+    }
+
+    res.status(400).send('No se pudo completar la transacción: ' + error.message);
   }
 });
 

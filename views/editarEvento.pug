@@ -14,7 +14,7 @@ html(lang="es")
       h2= evento.nombre
       if error
         .alert(role="alert")= error
-      form(action=`/eventos/${evento._id}/editar` method="POST")
+      form(action=`/eventos/editar/${evento._id}` method="POST")
         .fields
           .field
             label(for="nombre") Nombre del Evento
