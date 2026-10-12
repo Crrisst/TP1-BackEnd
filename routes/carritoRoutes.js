@@ -62,7 +62,8 @@ router.post('/agregar', async (req, res) => {
     }
 
     const precioOficial = evento.precio || 5000;
-    const index = req.session.carrito.findIndex(item => item.eventoId === eventoId && item.tipoEntrada === tipoEntrada);
+    const sectorElegido = ['General', 'Platea', 'VIP'].includes(tipoEntrada) ? tipoEntrada : 'General';
+    const index = req.session.carrito.findIndex(item => item.eventoId === eventoId && item.tipoEntrada === sectorElegido);
     
     if (index > -1) {
       req.session.carrito[index].cantidad += cantNum;
@@ -70,7 +71,7 @@ router.post('/agregar', async (req, res) => {
       req.session.carrito.push({
         eventoId: evento._id.toString(),
         nombreEvento: evento.nombre,
-        tipoEntrada: tipoEntrada || 'General',
+        tipoEntrada: sectorElegido,
         precio: precioOficial,
         cantidad: cantNum
       });
@@ -78,7 +79,7 @@ router.post('/agregar', async (req, res) => {
 
     const totalItems = req.session.carrito.reduce((acc, item) => acc + item.cantidad, 0);
 
-    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+    if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
       return res.json({ success: true, totalItems });
     }
 
@@ -119,7 +120,7 @@ router.get('/checkout', (req, res) => {
   });
 });
 
-// Procesar Pago con Validaciones Estrictas
+// Procesar Pago con Reservas por Zona
 router.post('/procesar-pago', async (req, res) => {
   try {
     const carrito = req.session.carrito || [];
@@ -135,7 +136,6 @@ router.post('/procesar-pago', async (req, res) => {
       return { subtotal, descuentoAplicado, total };
     };
 
-    // --- VALIDACIONES ESTRICTAS ---
     if (!titular || !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(titular.trim())) {
       const { subtotal, descuentoAplicado, total } = calcularTotalesCheckout();
       return res.status(400).render('Cliente/checkout', {
@@ -152,7 +152,6 @@ router.post('/procesar-pago', async (req, res) => {
       });
     }
 
-    // Validación estricta de mes real (01 a 12) y formato MM/AA
     if (!vencimiento || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(vencimiento.trim())) {
       const { subtotal, descuentoAplicado, total } = calcularTotalesCheckout();
       return res.status(400).render('Cliente/checkout', {
@@ -176,7 +175,6 @@ router.post('/procesar-pago', async (req, res) => {
         error: '❌ Pago rechazado por la entidad bancaria: Tarjeta inválida o fondos insuficientes.', datos: req.body
       });
     }
-    // -----------------------------
 
     const usuarioId = req.session.usuario.id || req.session.usuario._id;
     const { subtotal, descuentoAplicado, total } = calcularTotalesCheckout();
@@ -185,6 +183,11 @@ router.post('/procesar-pago', async (req, res) => {
     const tarjetaUltimosDigitos = numeroTarjeta.slice(-4);
 
     for (const item of carrito) {
+      const zona = ['General', 'Platea', 'VIP'].includes(item.tipoEntrada) ? item.tipoEntrada : 'General';
+      
+      // Reserva el cupo por zona y descuenta el stock de forma atómica en MongoDB
+      await Evento.reservarZona(item.eventoId, zona, item.cantidad);
+
       const codigoBoleto = 'TICK-' + Math.floor(100000 + Math.random() * 900000);
       await Entrada.create({
         cliente: usuarioId,
@@ -195,13 +198,9 @@ router.post('/procesar-pago', async (req, res) => {
         cantidad: item.cantidad,
         fila: 'Fila Única',
         asiento: 'General / Numerado',
-        sector: item.tipoEntrada,
+        sector: zona,
         estado: 'Completado',
         codigoBoleto: codigoBoleto
-      });
-
-      await Evento.findByIdAndUpdate(item.eventoId, {
-        $inc: { entradasDisponibles: -item.cantidad }
       });
     }
 
@@ -226,7 +225,7 @@ router.post('/procesar-pago', async (req, res) => {
     });
   } catch (error) {
     console.error('Error al procesar pago:', error);
-    res.status(500).send('Error al procesar el pago: ' + error.message);
+    res.status(error.status || 500).send('Error al procesar el pago: ' + error.message);
   }
 });
 

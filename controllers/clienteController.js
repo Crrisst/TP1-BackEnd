@@ -3,13 +3,16 @@ import Transaccion from '../models/Transaccion.js';
 
 const mostrarPanelCliente = async (req, res) => {
   try {
-    const usuarioId = req.session.usuario && req.session.usuario.id;
+    const usuarioId = req.session.usuario && (req.session.usuario.id || req.session.usuario._id);
     if (!usuarioId) {
       return res.redirect('/auth/login');
     }
 
-    // Buscamos las entradas activas del cliente con populate anidado
-    const entradasActivas = await Entrada.find({ cliente: usuarioId, estado: 'Activa' })
+    // Busca entradas activas o completadas vinculadas al cliente
+    const entradasActivas = await Entrada.find({ 
+      cliente: usuarioId, 
+      estado: { $in: ['Activa', 'Completado'] } 
+    })
       .populate({
         path: 'evento',
         populate: [
@@ -19,19 +22,9 @@ const mostrarPanelCliente = async (req, res) => {
       })
       .sort({ createdAt: -1 });
 
-    // Buscamos el historial de transacciones del cliente
+    // Carga el historial de compras directo del modelo Transaccion
     const historialCompras = await Transaccion.find({ cliente: usuarioId })
-      .populate({
-        path: 'entradas',
-        populate: {
-          path: 'evento',
-          populate: [
-            { path: 'sala' },
-            { path: 'entidad' }
-          ]
-        }
-      })
-      .sort({ createdAt: -1 });
+      .sort({ fechaCompra: -1 });
 
     res.render('Cliente/compras', {
       usuarioLogueado: req.session.usuario,

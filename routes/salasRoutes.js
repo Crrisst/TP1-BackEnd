@@ -1,28 +1,41 @@
 import express from 'express';
 import * as controller from '../controllers/salasController.js';
 import { validarSalaBody, validarSalaId } from '../middlewares/validateSala.js';
+import { verificarRol } from '../middlewares/authMiddleware.js';
+
+// --- Definición de Roles ---
+const personalInterno = verificarRol(['Administrador', 'Supervisor', 'Lector']);
+const adminYSupervisor = verificarRol(['Administrador', 'Supervisor']);
+const soloAdmin = verificarRol(['Administrador']);
 
 function rutasCrud(router) {
-  router.get('/', controller.getSalas);
-  router.post('/', validarSalaBody, controller.createSala);
-  router.get('/:id', validarSalaId, controller.getSalaById);
-  router.put('/:id', validarSalaId, validarSalaBody, controller.updateSala);
-  router.delete('/:id', validarSalaId, controller.deleteSala);
+  // Lectura
+  router.get('/', personalInterno, controller.getSalas);
+  router.get('/:id', personalInterno, validarSalaId, controller.getSalaById);
+  
+  // Creación y Edición
+  router.post('/', adminYSupervisor, validarSalaBody, controller.createSala);
+  router.put('/:id', adminYSupervisor, validarSalaId, validarSalaBody, controller.updateSala);
+  
+  // Eliminación
+  router.delete('/:id', soloAdmin, validarSalaId, controller.deleteSala);
+  
   return router;
 }
 
 const router = rutasCrud(express.Router());
-router.get('/:id/editar', validarSalaId, controller.showEditSalaForm);
-router.post('/:id/editar', validarSalaId, validarSalaBody, controller.updateSala);
-router.post('/:id/delete', validarSalaId, controller.deleteSala);
 
+// Rutas para las vistas (Pug)
+router.get('/:id/editar', adminYSupervisor, validarSalaId, controller.showEditSalaForm);
+router.post('/:id/editar', adminYSupervisor, validarSalaId, validarSalaBody, controller.updateSala);
+router.post('/:id/delete', soloAdmin, validarSalaId, controller.deleteSala);
+
+// API
 const apiRouter = express.Router();
 apiRouter.use((req, res, next) => { req.esApiSalas = true; next(); });
 rutasCrud(apiRouter);
 
-// Para soportar `salasRoutes.apiRouter` si se importa por default
+// Exportaciones
 router.apiRouter = apiRouter;
-
-// Exportación nombrada de apiRouter y exportación por defecto de router
 export { apiRouter };
 export default router;

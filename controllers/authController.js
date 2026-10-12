@@ -5,7 +5,7 @@ const procesarLogin = async (req, res) => {
     const { identificador, nombreUsuario, password } = req.body;
     const userField = identificador || nombreUsuario;
     
-    // Buscar el usuario en MongoDB por nombre de usuario O por email
+    // Búsqueda directa por usuario/email y contraseña en texto plano
     const usuario = await Usuario.findOne({
       $or: [
         { nombreUsuario: userField },
@@ -18,21 +18,19 @@ const procesarLogin = async (req, res) => {
       return res.status(400).render('auth/login', { error: 'Credenciales inválidas. Usuario o contraseña incorrectos.' });
     }
 
-    // Almacenar los datos clave en la sesión
     req.session.usuario = {
       id: usuario._id,
+      _id: usuario._id,
       nombreUsuario: usuario.nombreUsuario,
       rol: usuario.rol,
       tipoCliente: usuario.tipoCliente,
       porcentajeDescuento: usuario.porcentajeDescuento
     };
 
-    // Redirección según el rol del usuario (Administradores, Supervisores y Lectores van al panel de control)
     if (['Administrador', 'Supervisor', 'Lector'].includes(usuario.rol)) {
       return res.redirect('/admin/dashboard');
     }
     
-    // Clientes estándar o de empresa van a su menú correspondiente
     return res.redirect('/cliente/menu');
   } catch (error) {
     console.error('Error en login:', error);
@@ -44,13 +42,11 @@ const registrarCliente = async (req, res) => {
   try {
     const { nombreUsuario, nombre, apellido, email, password, dni, fechaNacimiento, telefono } = req.body;
     
-    // Validar si el email o nombre de usuario ya se encuentran registrados
     const usuarioExistente = await Usuario.findOne({ $or: [{ email }, { nombreUsuario }] });
     if (usuarioExistente) {
       return res.status(400).render('auth/registro', { error: 'El email o nombre de usuario ya está registrado en el sistema.' });
     }
 
-    // Crear el nuevo usuario asignándole por defecto el plan Estándar (sin descuento)
     const nuevoUsuario = await Usuario.create({
       nombreUsuario,
       nombre,
@@ -65,16 +61,15 @@ const registrarCliente = async (req, res) => {
       porcentajeDescuento: 0
     });
 
-    // Guardar los datos esenciales en la sesión activa
     req.session.usuario = {
       id: nuevoUsuario._id,
+      _id: nuevoUsuario._id,
       nombreUsuario: nuevoUsuario.nombreUsuario,
       rol: nuevoUsuario.rol,
       tipoCliente: nuevoUsuario.tipoCliente,
       porcentajeDescuento: nuevoUsuario.porcentajeDescuento
     };
 
-    // Redirigir obligatoriamente a la pantalla de selección de membresías post-registro
     return res.redirect('/cliente/membresia');
     
   } catch (error) {

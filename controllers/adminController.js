@@ -1,7 +1,4 @@
-//const Usuario = require('../models/Usuario');
 import Usuario from '../models/Usuario.js';
-
-//const CancelacionLog = require('../models/CancelacionLog');
 import CancelacionLog from '../models/CancelacionLog.js';
 
 const mostrarFormularioCrearPersonal = (req, res) => {
@@ -54,7 +51,7 @@ const registrarPersonalInterno = async (req, res) => {
   } catch (error) {
     console.error('Error al crear usuario:', error);
     res.status(400).render('Admin/crear-personal', {
-      error: 'No se pudo registrar el usuario. Verifique los datos o si el email/usuario ya existe.',
+      error: error.errors?.fechaNacimiento?.message || 'No se pudo registrar el usuario. Verifique los datos ingresados.',
       usuarioLogueado: req.session.usuario
     });
   }
@@ -64,7 +61,7 @@ const listarUsuarios = async (req, res) => {
   try {
     const usuarios = await Usuario.find().sort({ createdAt: -1 });
     res.render('Admin/usuarios', {
-      usuarioLogueado: req.session.usuario, // Envía la sesión para que la vista condicione los botones según el rol
+      usuarioLogueado: req.session.usuario,
       usuarios,
       exito: req.query.exito || null
     });
@@ -111,7 +108,15 @@ const actualizarUsuario = async (req, res) => {
     res.redirect('/admin/usuarios?exito=Usuario actualizado exitosamente');
   } catch (error) {
     console.error('Error al actualizar:', error);
-    res.status(400).send('Error al actualizar el usuario: ' + error.message);
+    const mensajeError = error.errors?.fechaNacimiento?.message || error.message;
+    
+    // Re-renderizamos la vista con la caja de error en lugar de enviar texto plano
+    const usuarioAEditar = (await Usuario.findById(req.params.id)) || { _id: req.params.id, ...req.body };
+    res.status(400).render('Admin/editarUsuario', {
+      usuarioLogueado: req.session.usuario,
+      usuarioAEditar,
+      error: mensajeError
+    });
   }
 };
 
@@ -152,13 +157,3 @@ export {
   eliminarUsuario,
   listarCancelaciones
 };
-/*
-module.exports = {
-  mostrarFormularioCrearPersonal,
-  registrarPersonalInterno,
-  listarUsuarios,
-  mostrarFormularioEditarUsuario,
-  actualizarUsuario,
-  eliminarUsuario,
-  listarCancelaciones
-};*/

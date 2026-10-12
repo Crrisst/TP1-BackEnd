@@ -47,16 +47,31 @@ const validarRegistro = (req, res, next) => {
     });
   }
 
-  const hoy = new Date();
   const fechaNac = new Date(fechaNacimiento);
-  let edad = hoy.getFullYear() - fechaNac.getFullYear();
+  if (isNaN(fechaNac.getTime())) {
+    return res.status(400).render('auth/registro', { 
+      error: 'Por favor, ingresa una fecha de nacimiento válida.',
+      datos: req.body 
+    });
+  }
+
+  const anio = fechaNac.getFullYear();
+  if (anio < 1900) {
+    return res.status(400).render('auth/registro', { 
+      error: 'Ingresa un año de nacimiento válido (posterior a 1900).',
+      datos: req.body 
+    });
+  }
+
+  const hoy = new Date();
+  let edad = hoy.getFullYear() - anio;
   const mes = hoy.getMonth() - fechaNac.getMonth();
 
   if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
     edad--;
   }
 
-  if (edad < 18) {
+  if (edad < 18 || edad > 120) {
     return res.status(400).render('auth/registro', { 
       error: 'Debes ser mayor de 18 años para registrarte en el sistema.',
       datos: req.body 

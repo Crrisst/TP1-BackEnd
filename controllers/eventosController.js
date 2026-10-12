@@ -4,6 +4,8 @@ import Entidad from '../models/Entidad.js';
 
 const validarCupoEvento = Evento.validarCupoEvento;
 
+const escapeRegex = (text) => text ? text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&') : '';
+
 const isHtmlRequest = (req) => {
   return (req.headers.accept && req.headers.accept.includes('text/html')) || 
          (req.headers['content-type'] && req.headers['content-type'].includes('application/x-www-form-urlencoded'));
@@ -57,7 +59,8 @@ const createEvento = async (req, res) => {
     let entidadAsignada = null;
     if (nombreEntidadFinal && nombreEntidadFinal.trim() !== '') {
       const nombreLimpio = nombreEntidadFinal.trim();
-      let encontrada = await Entidad.findOne({ nombre: { $regex: new RegExp(`^${nombreLimpio}$`, 'i') } });
+      const regexEntidad = new RegExp(`^${escapeRegex(nombreLimpio)}$`, 'i');
+      let encontrada = await Entidad.findOne({ nombre: regexEntidad });
       if (!encontrada) encontrada = await Entidad.create({ nombre: nombreLimpio });
       entidadAsignada = encontrada._id;
     }
@@ -113,7 +116,8 @@ const updateEvento = async (req, res) => {
 
     if (nombreEntidadFinal && nombreEntidadFinal.trim() !== '') {
       const nombreLimpio = nombreEntidadFinal.trim();
-      let encontrada = await Entidad.findOne({ nombre: { $regex: new RegExp(`^${nombreLimpio}$`, 'i') } });
+      const regexEntidad = new RegExp(`^${escapeRegex(nombreLimpio)}$`, 'i');
+      let encontrada = await Entidad.findOne({ nombre: regexEntidad });
       if (!encontrada) encontrada = await Entidad.create({ nombre: nombreLimpio });
       updateData.entidad = encontrada._id;
     }
@@ -151,7 +155,6 @@ const deleteEvento = async (req, res) => {
   }
 };
 
-// --- GESTIÓN DE ARTISTAS / ENTIDADES ---
 const actualizarEntidad = async (req, res) => {
   try {
     const { nombre } = req.body;

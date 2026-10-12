@@ -6,6 +6,10 @@ html(lang="es")
   body(style="font-family: sans-serif; padding: 30px; max-width: 600px; margin: auto; background-color: #f4f6f9;")
     div(style="background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
       h2(style="margin-top: 0; color: #2c3e50;") 👤 Registrar Nuevo Usuario
+
+      if error
+        div(style="background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f5c6cb; font-weight: bold; font-size: 14px;")
+          | ⚠️ #{error}
       
       form(action="/admin/crear-personal" method="POST")
         div(style="margin-bottom: 15px;")
@@ -38,7 +42,8 @@ html(lang="es")
 
         div(style="margin-bottom: 15px;")
           label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Fecha de Nacimiento:
-          input(type="date" name="fechaNacimiento" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+          - const maxFechaPermitida = new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]
+          input(type="date" name="fechaNacimiento" required min="1900-01-01" max=maxFechaPermitida style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
         div(style="display: flex; gap: 10px; margin-bottom: 20px;")
           div(style="flex: 1;")

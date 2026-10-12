@@ -8,6 +8,8 @@ import Entidad from '../models/Entidad.js';
 
 const router = express.Router();
 
+const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+
 const verificarClienteLogin = (req, res, next) => {
   if (!req.session || !req.session.usuario) return res.redirect('/auth/login');
   next();
@@ -16,7 +18,8 @@ router.use(verificarClienteLogin);
 
 router.get('/menu', async (req, res) => {
   try {
-    const usuarioCompleto = await Usuario.findById(req.session.usuario.id) || await Usuario.findOne({ nombreUsuario: req.session.usuario.nombreUsuario });
+    const usuarioId = req.session.usuario.id || req.session.usuario._id;
+    const usuarioCompleto = await Usuario.findById(usuarioId) || await Usuario.findOne({ nombreUsuario: req.session.usuario.nombreUsuario });
     if (!usuarioCompleto) return res.redirect('/auth/login');
     res.render('Cliente/menu', { usuarioLogueado: req.session.usuario, usuarioCompleto, mensajeExito: req.query.exito || null });
   } catch (error) {
@@ -26,7 +29,8 @@ router.get('/menu', async (req, res) => {
 
 router.get('/membresia', async (req, res) => {
   try {
-    const usuarioCompleto = await Usuario.findById(req.session.usuario.id) || await Usuario.findOne({ nombreUsuario: req.session.usuario.nombreUsuario });
+    const usuarioId = req.session.usuario.id || req.session.usuario._id;
+    const usuarioCompleto = await Usuario.findById(usuarioId) || await Usuario.findOne({ nombreUsuario: req.session.usuario.nombreUsuario });
     res.render('Cliente/membresia', { usuarioLogueado: req.session.usuario, usuarioCompleto, error: null, datos: {} });
   } catch (error) {
     res.status(500).send('Error interno.');
@@ -42,16 +46,16 @@ router.post('/procesar-membresia', async (req, res) => {
     if (tipoCliente === 'PREMIUM') { porcentajeDescuento = 0.15; planElegido = 'PREMIUM'; }
     else if (tipoCliente === 'VIP') { porcentajeDescuento = 0.30; planElegido = 'VIP'; }
     
-    const usuarioCompleto = await Usuario.findById(req.session.usuario.id) || await Usuario.findOne({ nombreUsuario: req.session.usuario.nombreUsuario });
+    const usuarioId = req.session.usuario.id || req.session.usuario._id;
+    const usuarioCompleto = await Usuario.findById(usuarioId) || await Usuario.findOne({ nombreUsuario: req.session.usuario.nombreUsuario });
 
     if (planElegido !== 'ESTANDAR') {
-      if (!titular || titular.trim() === '' || !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(titular.trim())) return res.status(400).render('Cliente/membresia', { usuarioLogueado: req.session.usuario, usuarioCompleto, error: 'Titular inválido.', datos: req.body });
-      if (!numeroTarjeta || numeroTarjeta.trim() === '' || !/^\d{16}$/.test(numeroTarjeta.trim()) || numeroTarjeta.trim().endsWith('0000')) return res.status(400).render('Cliente/membresia', { usuarioLogueado: req.session.usuario, usuarioCompleto, error: 'Tarjeta inválida o fondos insuficientes.', datos: req.body });
-      if (!vencimiento || vencimiento.trim() === '' || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(vencimiento.trim())) return res.status(400).render('Cliente/membresia', { usuarioLogueado: req.session.usuario, usuarioCompleto, error: 'Vencimiento inválido.', datos: req.body });
-      if (!cvv || cvv.trim() === '' || !/^\d{3}$/.test(cvv.trim())) return res.status(400).render('Cliente/membresia', { usuarioLogueado: req.session.usuario, usuarioCompleto, error: 'CVV inválido.', datos: req.body });
+      if (!titular || !titular.trim() || !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(titular.trim())) return res.status(400).render('Cliente/membresia', { usuarioLogueado: req.session.usuario, usuarioCompleto, error: 'Titular inválido.', datos: req.body });
+      if (!numeroTarjeta || !numeroTarjeta.trim() || !/^\d{16}$/.test(numeroTarjeta.trim()) || numeroTarjeta.trim().endsWith('0000')) return res.status(400).render('Cliente/membresia', { usuarioLogueado: req.session.usuario, usuarioCompleto, error: 'Tarjeta inválida o fondos insuficientes.', datos: req.body });
+      if (!vencimiento || !vencimiento.trim() || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(vencimiento.trim())) return res.status(400).render('Cliente/membresia', { usuarioLogueado: req.session.usuario, usuarioCompleto, error: 'Vencimiento inválido.', datos: req.body });
+      if (!cvv || !cvv.trim() || !/^\d{3}$/.test(cvv.trim())) return res.status(400).render('Cliente/membresia', { usuarioLogueado: req.session.usuario, usuarioCompleto, error: 'CVV inválido.', datos: req.body });
     }
 
-    const usuarioId = req.session.usuario.id || req.session.usuario._id;
     const usuarioActualizado = await Usuario.findByIdAndUpdate(usuarioId, { tipoCliente: planElegido, porcentajeDescuento }, { new: true });
     req.session.usuario.tipoCliente = usuarioActualizado.tipoCliente;
     req.session.usuario.porcentajeDescuento = usuarioActualizado.porcentajeDescuento;
@@ -63,12 +67,12 @@ router.post('/procesar-membresia', async (req, res) => {
 
 router.get('/mis-compras', async (req, res) => {
   try {
-    const usuarioCompleto = await Usuario.findById(req.session.usuario.id || req.session.usuario._id) || 
+    const usuarioId = req.session.usuario.id || req.session.usuario._id;
+    const usuarioCompleto = await Usuario.findById(usuarioId) || 
                             await Usuario.findOne({ nombreUsuario: req.session.usuario.nombreUsuario });
     
     if (!usuarioCompleto) return res.redirect('/auth/login');
 
-    // Entradas activas populadas profundamente con sala y entidad (artista)
     const misEntradasCompradas = await Entrada.find({ cliente: usuarioCompleto._id }).populate({
       path: 'evento',
       populate: [
@@ -77,7 +81,6 @@ router.get('/mis-compras', async (req, res) => {
       ]
     });
 
-    // Historial de transacciones basado en el esquema de ítems
     const misCompras = await Transaccion.find({ cliente: usuarioCompleto._id })
       .sort({ fechaCompra: -1 });
 
@@ -90,6 +93,7 @@ router.get('/mis-compras', async (req, res) => {
 
 router.post('/cancelar-entrada/:id', async (req, res) => {
   try {
+    const usuarioId = req.session.usuario.id || req.session.usuario._id;
     const entradaARecuperar = await Entrada.findById(req.params.id).populate('evento');
     if (!entradaARecuperar) return res.status(404).json({ success: false, message: 'No se encontró la entrada.' });
 
@@ -102,11 +106,12 @@ router.post('/cancelar-entrada/:id', async (req, res) => {
       fechaCancelacion: new Date()
     });
 
-    if (entradaARecuperar.evento) await Evento.findByIdAndUpdate(entradaARecuperar.evento._id, { $inc: { entradasDisponibles: entradaARecuperar.cantidad || 1 } });
-    await Entrada.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'Entrada cancelada correctamente.' });
+    // Cancela la entrada y libera los cupos de la zona correspondiente de forma segura
+    await Entrada.cancelarEntradaZona(req.params.id, usuarioId);
+
+    res.json({ success: true, message: 'Entrada cancelada correctamente y stock de zona liberado.' });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error interno al cancelar la entrada.' });
+    res.status(500).json({ success: false, message: error.message || 'Error interno al cancelar la entrada.' });
   }
 });
 
@@ -116,11 +121,12 @@ router.get('/comprar', async (req, res) => {
     let eventosDisponibles = [];
 
     if (busqueda) {
-      const entidadesEncontradas = await Entidad.find({ nombre: { $regex: busqueda, $options: 'i' } });
+      const busquedaLimpia = escapeRegex(busqueda);
+      const entidadesEncontradas = await Entidad.find({ nombre: { $regex: busquedaLimpia, $options: 'i' } });
       const idsEntidades = entidadesEncontradas.map(e => e._id);
       eventosDisponibles = await Evento.find({
         $or: [
-          { nombre: { $regex: busqueda, $options: 'i' } },
+          { nombre: { $regex: busquedaLimpia, $options: 'i' } },
           { entidad: { $in: idsEntidades } }
         ]
       }).populate('sala').populate('entidad');

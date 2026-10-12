@@ -1,5 +1,11 @@
 import express from 'express';
 const router = express.Router();
+import { verificarRol } from '../middlewares/authMiddleware.js';
+
+// --- Definición de Roles ---
+const personalInterno = verificarRol(['Administrador', 'Supervisor', 'Lector']);
+const adminYSupervisor = verificarRol(['Administrador', 'Supervisor']);
+const soloAdmin = verificarRol(['Administrador']);
 
 import {
   getEventos,
@@ -12,21 +18,22 @@ import {
   eliminarEntidad
 } from '../controllers/eventosController.js';
 
-router.get('/', getEventos);
+// --- RUTAS PROTEGIDAS ---
 
-// Rutas para gestionar artistas/entidades desde la misma sección
-router.post('/entidades/:id/editar', actualizarEntidad);
-router.post('/entidades/:id/delete', eliminarEntidad);
+// Lectura (Todo el personal)
+router.get('/', personalInterno, getEventos);
+router.get('/:id', personalInterno, getEventoById);
 
-// Ruta para mostrar la vista de edición (Pug)
-router.get('/:id/editar', showEditEventoForm);
+// Creación y Edición (Admin y Supervisor)
+router.get('/:id/editar', adminYSupervisor, showEditEventoForm);
+router.post('/', adminYSupervisor, createEvento);
+router.put('/:id', adminYSupervisor, updateEvento);
+router.post('/:id/editar', adminYSupervisor, updateEvento);
+router.post('/entidades/:id/editar', adminYSupervisor, actualizarEntidad);
 
-router.get('/:id', getEventoById);
-router.post('/', createEvento);
-router.put('/:id', updateEvento);
-router.post('/:id/editar', updateEvento);
-
-router.delete('/:id', deleteEvento);
-router.post('/:id/delete', deleteEvento);
+// Eliminación (Solo Admin)
+router.delete('/:id', soloAdmin, deleteEvento);
+router.post('/:id/delete', soloAdmin, deleteEvento);
+router.post('/entidades/:id/delete', soloAdmin, eliminarEntidad);
 
 export default router;
