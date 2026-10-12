@@ -1,6 +1,6 @@
-const express = require('express');
-const controller = require('../controllers/salasController');
-const { validarSalaBody, validarSalaId } = require('../middlewares/validateSala');
+import express from 'express';
+import controller from '../controllers/salasController.js';
+import { validarSalaBody, validarSalaId } from '../middlewares/validateSala.js';
 
 function rutasCrud(router) {
   router.get('/', controller.getSalas);
@@ -10,6 +10,7 @@ function rutasCrud(router) {
   router.delete('/:id', validarSalaId, controller.deleteSala);
   return router;
 }
+
 const router = rutasCrud(express.Router());
 router.get('/:id/editar', validarSalaId, controller.showEditSalaForm);
 router.post('/:id/editar', validarSalaId, validarSalaBody, controller.updateSala);
@@ -18,5 +19,10 @@ router.post('/:id/delete', validarSalaId, controller.deleteSala);
 const apiRouter = express.Router();
 apiRouter.use((req, res, next) => { req.esApiSalas = true; next(); });
 rutasCrud(apiRouter);
-module.exports = router;
-module.exports.apiRouter = apiRouter;
+
+// Para soportar `salasRoutes.apiRouter` si se importa por default
+router.apiRouter = apiRouter;
+
+// Exportación nombrada de apiRouter y exportación por defecto de router
+export { apiRouter };
+export default router;

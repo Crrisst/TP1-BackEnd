@@ -1,5 +1,6 @@
 // models/Transaccion.js
-const mongoose = require('mongoose');
+//const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const transaccionSchema = new mongoose.Schema({
   cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' },
@@ -12,4 +13,6 @@ const transaccionSchema = new mongoose.Schema({
   fechaCompra: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.models.Transaccion || mongoose.model('Transaccion', transaccionSchema);
+//module.exports = mongoose.models.Transaccion || mongoose.model('Transaccion', transaccionSchema);
+
+export default mongoose.models.Transaccion || mongoose.model('Transaccion', transaccionSchema);

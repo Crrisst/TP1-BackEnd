@@ -1,4 +1,6 @@
-const Entrada = require('../models/Entrada');
+//const Entrada = require('../models/Entrada');
+
+import Entrada from '../models/Entrada.js';
 
 const getEntradas = async (req, res) => {
   try {
@@ -61,7 +63,7 @@ const deleteEntrada = async (req, res) => {
   }
 };
 
-module.exports = {
+export  {
   getEntradas,
   getEntradaById,
   createEntrada,

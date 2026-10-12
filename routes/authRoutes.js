@@ -1,6 +1,11 @@
-const express = require('express');
+/*const express = require('express');
 const router = express.Router();
-const authController = require('../controllers/authController');
+const authController = require('../controllers/authController');*/
+
+import express from 'express';
+import authController from '../controllers/authController.js';  
+
+const router = express.Router();
 
 // Ruta para mostrar la vista de inicio de sesión
 router.get('/login', (req, res) => {
@@ -28,4 +33,5 @@ router.get('/logout', (req, res) => {
   });
 });
 
-module.exports = router;
+//module.exports = router;
+export default router;

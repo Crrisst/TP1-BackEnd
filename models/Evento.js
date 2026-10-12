@@ -1,5 +1,8 @@
-const mongoose = require('mongoose');
-const Sala = require('./Sala');
+//const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+
+//const Sala = require('./Sala');
+import Sala from './Sala.js';
 const { ZONAS, obtenerZonas } = Sala;
 
 const eventoSchema = new mongoose.Schema({
@@ -100,4 +103,6 @@ eventoSchema.statics.reservarZona = reservarZona;
 eventoSchema.statics.liberarZona = liberarZona;
 eventoSchema.statics.validarCupoEvento = validarCupoEvento;
 
-module.exports = mongoose.model('Evento', eventoSchema);
+//module.exports = mongoose.model('Evento', eventoSchema);
+
+export default mongoose.model('Evento', eventoSchema);

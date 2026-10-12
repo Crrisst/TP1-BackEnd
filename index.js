@@ -1,4 +1,4 @@
-global.crypto = require('crypto');
+/*global.crypto = require('crypto');
 
 const express = require('express');
 const { conectarBaseDeDatos } = require('./seed');
@@ -13,7 +13,32 @@ const clienteRoutes = require('./routes/clienteRoutes');
 const carritoRoutes = require('./routes/carritoRoutes');
 const eventosRoutes = require('./routes/eventosRoutes');
 const salasRoutes = require('./routes/salasRoutes');
-const entradasRoutes = require('./routes/entradasRoutes');
+const entradasRoutes = require('./routes/entradasRoutes');*/
+
+// crypto ya viene disponible globalmente en Node moderno, 
+// pero si necesitas asignarlo explícitamente:
+//import crypto from 'node:crypto';
+//globalThis.crypto = crypto;
+
+import express from 'express';
+import session from 'express-session';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// En ESM es obligatorio incluir la extensión (.js) en archivos locales
+import { conectarBaseDeDatos } from './seed.js';
+import { requestLogger, notFoundHandler, errorHandler } from './middlewares/index.js';
+
+import authRoutes from './routes/authRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import clienteRoutes from './routes/clienteRoutes.js';
+import carritoRoutes from './routes/carritoRoutes.js';
+import eventosRoutes from './routes/eventosRoutes.js';
+import salasRoutes from './routes/salasRoutes.js';
+import entradasRoutes from './routes/entradasRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -56,9 +81,19 @@ async function iniciarServidor() {
   });
 }
 
-module.exports = { app, iniciarServidor };
+//module.exports = { app, iniciarServidor };
+export { app, iniciarServidor };
 
-if (require.main === module) {
+/*if (require.main === module) {
+  iniciarServidor().catch(error => {
+    console.error('Error al iniciar el servidor:', error.message);
+    process.exitCode = 1;
+  });
+}*/
+
+const esArchivoPrincipal = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+
+if (esArchivoPrincipal) {
   iniciarServidor().catch(error => {
     console.error('Error al iniciar el servidor:', error.message);
     process.exitCode = 1;

@@ -1,11 +1,18 @@
-const express = require('express');
-const router = express.Router();
-
+/*const express = require('express');
 const Usuario = require('../models/Usuario');
 const Entrada = require('../models/Entrada');
 const Evento = require('../models/Evento');
 const Transaccion = require('../models/Transaccion');
-const CancelacionLog = require('../models/CancelacionLog');
+const CancelacionLog = require('../models/CancelacionLog');*/
+
+import express from 'express';
+import Usuario from '../models/Usuario.js';
+import Entrada from '../models/Entrada.js';
+import Evento from '../models/Evento.js';
+import Transaccion from '../models/Transaccion.js';
+import CancelacionLog from '../models/CancelacionLog.js';
+
+const router = express.Router();
 
 const verificarClienteLogin = (req, res, next) => {
   if (!req.session || !req.session.usuario) {
@@ -200,4 +207,5 @@ router.get('/comprar', async (req, res) => {
   }
 });
 
-module.exports = router;
+//module.exports = router;
+export default router;

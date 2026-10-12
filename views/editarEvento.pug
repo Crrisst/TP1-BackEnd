@@ -1,34 +1,51 @@
 doctype html
-html
+html(lang="es")
   head
-    title Editar Evento
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    title Editar Evento - Administración
+    style
+      include salas.css
   body
-    h1 Editar Evento: #{evento.nombre}
-    if error
-      p(style="color: red;")= error
+    header.card.header
+      h1 ✏️ Editar Evento
+      a.button(href="/eventos") ⬅️ Volver a Eventos
 
-    form(action=`/eventos/${evento.id}/editar` method="POST")
-      div
-        label(for="nombre") Nombre del Evento:
-        input(type="text" name="nombre" id="nombre" value=evento.nombre required)
-      div
-        label(for="descripcion") Descripción:
-        input(type="text" name="descripcion" value=evento.descripcion required)
-      div
-        label(for="fecha") Fecha:
-        input(type="date" name="fecha" id="fecha" value=evento.fecha required)
-      div
-        label(for="hora") Hora:
-        input(type="time" name="hora" id="hora" value=evento.hora required)
-      div
-        label(for="sala") Sala:
-        select#sala(name="sala")
-          option(value="") Seleccionar sala
-          each sala in salas
-            option(value=sala._id selected=(String(evento.sala || "") === String(sala._id))) #{sala.nombre} (#{sala.capacidad} personas)
-      div
-        label(for="entradasDisponibles") Entradas Disponibles:
-        input(type="number" name="entradasDisponibles" min="0" id="entradasDisponibles" value=evento.entradasDisponibles required)
-      div
-        button(type="submit") Actualizar Evento
-        a(href="/eventos") Cancelar
+    main.card
+      h2= evento.nombre
+      if error
+        .alert(role="alert")= error
+
+      form(action=`/eventos/${evento.id || evento._id}/editar` method="POST")
+        .fields
+          .field
+            label(for="nombre") Nombre del Evento
+            input#nombre(type="text" name="nombre" value=evento.nombre required)
+
+          .field
+            label(for="fecha") Fecha
+            - const fechaFormateada = evento.fecha ? (evento.fecha instanceof Date ? evento.fecha.toISOString().split('T')[0] : String(evento.fecha).slice(0, 10)) : ''
+            input#fecha(type="date" name="fecha" value=fechaFormateada required)
+
+          .field
+            label(for="hora") Hora
+            input#hora(type="time" name="hora" value=evento.hora required)
+
+          .field
+            label(for="sala") Sala
+            select#sala(name="sala" required)
+              option(value="") Seleccionar sala
+              each sala in salas
+                option(value=sala._id selected=(String((evento.sala && evento.sala._id) || evento.sala || "") === String(sala._id))) #{sala.nombre} (#{sala.capacidad} personas)
+
+          .field
+            label(for="entradasDisponibles") Entradas Disponibles
+            input#entradasDisponibles(type="number" name="entradasDisponibles" min="0" step="1" value=evento.entradasDisponibles required)
+
+          .field.wide
+            label(for="descripcion") Descripción
+            textarea#descripcion(name="descripcion" rows="3" required)= evento.descripcion
+
+        .actions
+          button.button(type="submit") Guardar Cambios
+          a.button.secondary(href="/eventos") Cancelar

@@ -169,7 +169,7 @@ html(lang="es")
 
                   -
                     const fechaFormateada = evento.fecha
-                      ? new Date(evento.fecha).toLocaleDateString('es-AR')
+                      ? new Date(evento.fecha).toLocaleDateString('es-AR', { timeZone: 'UTC' })
                       : '-'
 
 

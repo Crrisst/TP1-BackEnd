@@ -1,8 +1,14 @@
-const express = require('express');
+/*const express = require('express');
 const router = express.Router();
 const Evento = require('../models/Evento');
 const Entrada = require('../models/Entrada');
-const Transaccion = require('../models/Transaccion');
+const Transaccion = require('../models/Transaccion');*/
+
+import express from 'express';
+const router = express.Router();
+import Evento from '../models/Evento.js';
+import Entrada from '../models/Entrada.js';
+import Transaccion from '../models/Transaccion.js';
 
 const verificarCliente = (req, res, next) => {
   if (!req.session || !req.session.usuario) {
@@ -264,4 +270,5 @@ router.post('/carrito/procesar-pago', async (req, res) => {
   }
 });
 
-module.exports = router;
+//module.exports = router;
+export default router;

@@ -1,4 +1,5 @@
-const Sala = require('../models/Sala');
+//const Sala = require('../models/Sala');
+import Sala from '../models/Sala.js';
 const { obtenerZonas } = Sala;
 
 const isHtmlRequest = req => !req.esApiSalas && Boolean(
@@ -54,4 +55,6 @@ const showEditSalaForm = async (req, res, next) => {
     res.render('editarSala', { sala: { ...sala.toObject(), id: sala.id, zonas: obtenerZonas(sala) }, usuarioLogueado: req.session?.usuario, error: req.query.error });
   } catch (error) { next(error); }
 };
-module.exports = { getSalas, getSalaById, createSala, updateSala, deleteSala, showEditSalaForm };
+
+//export default { getSalas, getSalaById, createSala, updateSala, deleteSala, showEditSalaForm };
+export default { getSalas, getSalaById, createSala, updateSala, deleteSala, showEditSalaForm };

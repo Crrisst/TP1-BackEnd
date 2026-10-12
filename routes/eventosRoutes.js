@@ -1,14 +1,24 @@
-const express = require('express');
+//const express = require('express');
+import express from 'express';
 const router = express.Router();
 
-const { 
+/*const { 
   getEventos, 
   getEventoById, 
   createEvento, 
   updateEvento, 
   deleteEvento,
   showEditEventoForm 
-} = require('../controllers/eventosController');
+} = require('../controllers/eventosController');*/
+
+import {
+  getEventos,
+  getEventoById,
+  createEvento,
+  updateEvento,
+  deleteEvento,
+  showEditEventoForm
+} from '../controllers/eventosController.js';
 
 router.get('/', getEventos);
 
@@ -25,4 +35,5 @@ router.post('/:id/editar', updateEvento);
 router.delete('/:id', deleteEvento);
 router.post('/:id/delete', deleteEvento);
 
-module.exports = router;
+//module.exports = router;
+export default router;

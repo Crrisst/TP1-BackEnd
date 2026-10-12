@@ -1,4 +1,6 @@
-const Usuario = require('../models/Usuario');
+//const Usuario = require('../models/Usuario');
+
+import Usuario from '../models/Usuario.js';
 
 const procesarLogin = async (req, res) => {
   try {
@@ -83,7 +85,12 @@ const registrarCliente = async (req, res) => {
   }
 };
 
-module.exports = {
+/*module.exports = {
+  procesarLogin,
+  registrarCliente
+};*/
+
+export default {
   procesarLogin,
   registrarCliente
 };

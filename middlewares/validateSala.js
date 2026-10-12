@@ -1,4 +1,5 @@
-const { ZONAS, validarZonas } = require('../models/Sala');
+//const { ZONAS, validarZonas } = require('../models/Sala');
+import { ZONAS, validarZonas } from '../models/Sala.js';
 const camposApi = { name: 'nombre', capacity: 'capacidad', type: 'tipo', isAvailable: 'disponible', zones: 'zonas' };
 const camposWeb = ['nombre', 'capacidad', 'tipo', 'disponible', 'descripcion', 'ubicacion', 'zonas'];
 const tipos = ['conferencia', 'reunión', 'laboratorio', 'auditorio'];
@@ -42,4 +43,6 @@ const validarSalaBody = (req, res, next) => {
   req.salaDatos = datos;
   next();
 };
-module.exports = { validarSalaBody, validarSalaId };
+//module.exports = { validarSalaBody, validarSalaId };
+
+export { validarSalaBody, validarSalaId };

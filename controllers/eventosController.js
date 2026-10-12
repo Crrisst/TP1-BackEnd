@@ -1,6 +1,10 @@
-const Sala = require('../models/Sala');
+/*const Sala = require('../models/Sala');
 const { validarCupoEvento } = require('../models/Evento');
-const Evento = require('../models/Evento');
+const Evento = require('../models/Evento');*/
+
+import Sala from '../models/Sala.js';
+import validarCupoEvento  from '../models/Evento.js';
+import Evento from '../models/Evento.js';
 
 const isHtmlRequest = (req) => {
   return (req.headers.accept && req.headers.accept.includes('text/html')) || 
@@ -128,7 +132,7 @@ const deleteEvento = async (req, res) => {
   }
 };
 
-module.exports = {
+export  {
   getEventos,
   getEventoById,
   createEvento,

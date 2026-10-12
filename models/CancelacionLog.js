@@ -1,4 +1,6 @@
-const mongoose = require('mongoose');
+//const mongoose = require('mongoose');
+
+import mongoose from 'mongoose';
 
 const cancelacionSchema = new mongoose.Schema({
   cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' },
@@ -9,4 +11,6 @@ const cancelacionSchema = new mongoose.Schema({
   fechaCancelacion: { type: Date, default: Date.now }
 }, { timestamps: true });
 
-module.exports = mongoose.models.CancelacionLog || mongoose.model('CancelacionLog', cancelacionSchema);
+//module.exports = mongoose.models.CancelacionLog || mongoose.model('CancelacionLog', cancelacionSchema);
+
+export default mongoose.models.CancelacionLog || mongoose.model('CancelacionLog', cancelacionSchema);

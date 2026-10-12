@@ -36,6 +36,6 @@ const verificarRol = (rolesPermitidos) => {
   };
 };
 
-module.exports = {
+export  {
   verificarRol
 };

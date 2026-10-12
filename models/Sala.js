@@ -1,7 +1,9 @@
-const mongoose = require('mongoose');
-const ZONAS = Object.freeze(['General', 'Platea', 'VIP']);
+//const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+
+export const ZONAS = Object.freeze(['General', 'Platea', 'VIP']);
 const errorDatos = message => Object.assign(new Error(message), { status: 400 });
-function validarZonas(zonas) {
+export function validarZonas(zonas) {
   if (!zonas || typeof zonas !== 'object' || Array.isArray(zonas) ||
       Object.keys(zonas).length !== ZONAS.length || Object.keys(zonas).some(key => !ZONAS.includes(key))) {
     throw errorDatos('Debe detallar las capacidades de General, Platea y VIP.');
@@ -13,7 +15,8 @@ function validarZonas(zonas) {
   if (!Number.isSafeInteger(total) || total < 1) throw errorDatos('La capacidad total debe ser un entero mayor a 0.');
   return total;
 }
-function obtenerZonas(sala) {
+
+export function obtenerZonas(sala) {
   return sala?.zonas || { General: sala?.capacidad || 0, Platea: 0, VIP: 0 };
 }
 const zonaSchema = new mongoose.Schema(Object.fromEntries(ZONAS.map(zona => [zona, {
@@ -70,4 +73,6 @@ salaSchema.statics.eliminarConEventos = async function(id) {
   return await this.findByIdAndDelete(id);
 };
 
-module.exports = mongoose.model('Sala', salaSchema);
+//module.exports = mongoose.model('Sala', salaSchema);
+
+export default mongoose.model('Sala', salaSchema);

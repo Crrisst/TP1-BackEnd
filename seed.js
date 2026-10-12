@@ -1,11 +1,21 @@
-global.crypto = require('crypto');
-const mongoose = require('mongoose');
+import crypto from 'node:crypto';
+//globalThis.crypto = crypto;
 
-const Usuario = require('./models/Usuario');
+//const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+import path from 'node:path';
+
+/*const Usuario = require('./models/Usuario');
 const Sala = require('./models/Sala');
 const Evento = require('./models/Evento');
 const Entrada = require('./models/Entrada');
-const Transaccion = require('./models/Transaccion');
+const Transaccion = require('./models/Transaccion');*/
+
+import Usuario from './models/Usuario.js';
+import Sala from './models/Sala.js';
+import Evento from './models/Evento.js';
+import Entrada from './models/Entrada.js';
+import Transaccion from './models/Transaccion.js';
 
 // CONEXIÓN A LA BASE DE DATOS
 async function conectarBaseDeDatos() {
@@ -254,8 +264,15 @@ async function poblarBaseDeDatos() {
   }
 }
 
-module.exports = { conectarBaseDeDatos };
+//module.exports = { conectarBaseDeDatos };
+export { conectarBaseDeDatos, poblarBaseDeDatos };
 
-if (require.main === module) {
+/*if (require.main === module) {
+  poblarBaseDeDatos();
+}*/
+
+
+
+if (process.argv[1] && import.meta.filename === path.resolve(process.argv[1])) {
   poblarBaseDeDatos();
 }

@@ -40,7 +40,12 @@ const errorHandler = (err, req, res, next) => {
   });
 };
 
-module.exports = {
+/*module.exports = {
+  notFoundHandler,
+  errorHandler
+};
+*/
+export {
   notFoundHandler,
   errorHandler
 };

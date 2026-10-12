@@ -1,5 +1,8 @@
-const Usuario = require('../models/Usuario');
-const CancelacionLog = require('../models/CancelacionLog');
+//const Usuario = require('../models/Usuario');
+import Usuario from '../models/Usuario.js';
+
+//const CancelacionLog = require('../models/CancelacionLog');
+import CancelacionLog from '../models/CancelacionLog.js';
 
 const mostrarFormularioCrearPersonal = (req, res) => {
   const rolActual = req.session.usuario && req.session.usuario.rol;
@@ -140,7 +143,7 @@ const listarCancelaciones = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   mostrarFormularioCrearPersonal,
   registrarPersonalInterno,
   listarUsuarios,
@@ -149,3 +152,13 @@ module.exports = {
   eliminarUsuario,
   listarCancelaciones
 };
+/*
+module.exports = {
+  mostrarFormularioCrearPersonal,
+  registrarPersonalInterno,
+  listarUsuarios,
+  mostrarFormularioEditarUsuario,
+  actualizarUsuario,
+  eliminarUsuario,
+  listarCancelaciones
+};*/

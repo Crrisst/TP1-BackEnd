@@ -1,6 +1,8 @@
 // models/Entrada.js
-const mongoose = require('mongoose');
-const { ZONAS } = require('./Sala');
+import mongoose from 'mongoose';
+import { ZONAS } from './Sala.js';
+//const mongoose = require('mongoose');
+//const { ZONAS } = require('./Sala');
 
 const entradaSchema = new mongoose.Schema({
   cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', required: true },
@@ -54,4 +56,6 @@ async function cancelarEntradaZona(entradaId, clienteId) {
 
 entradaSchema.statics.cancelarEntradaZona = cancelarEntradaZona;
 
-module.exports = mongoose.model('Entrada', entradaSchema);
+//module.exports = mongoose.model('Entrada', entradaSchema);
+
+export default mongoose.model('Entrada', entradaSchema);
