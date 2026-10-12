@@ -15,7 +15,7 @@ html(lang="es")
       h2= sala.nombre
       if error
         .alert(role="alert")= error
-      form(action=`/salas/${sala.id}/editar` method="POST")
+      form(action=`/salas/${sala._id}/editar` method="POST")
         .fields
           .field
             label(for="nombre") Nombre

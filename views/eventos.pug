@@ -92,8 +92,8 @@ html(lang="es")
                     td= evento.entradasDisponibles
                     td
                       .actions
-                        a.button.edit(href=`/eventos/${evento.id}/editar`) ✏️ Editar
-                        form(action=`/eventos/${evento.id}/delete` method="POST")
+                        a.button.edit(href=`/eventos/${evento._id}/editar`) ✏️ Editar
+                        form(action=`/eventos/${evento._id}/delete` method="POST")
                           button.button.delete(type="submit" onclick="return confirm('¿Estás seguro?');") 🗑️ Eliminar
         else
           p.empty No hay eventos registrados.
@@ -105,11 +105,13 @@ html(lang="es")
           inputTexto.style.display = 'block';
           inputTexto.required = true;
           inputTexto.focus();
+          select.removeAttribute('name');
           select.required = false;
         } else {
           inputTexto.style.display = 'none';
           inputTexto.required = false;
           inputTexto.value = '';
+          select.setAttribute('name', 'nombreEntidadSelect');
           select.required = true;
         }
       }

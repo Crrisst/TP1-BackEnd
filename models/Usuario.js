@@ -1,4 +1,3 @@
-//const mongoose = require('mongoose');
 import mongoose from 'mongoose';
 
 const usuarioSchema = new mongoose.Schema({
@@ -29,7 +28,7 @@ const usuarioSchema = new mongoose.Schema({
   telefono: { 
     type: String, 
     required: true,
-    match: [/^\d{1,10}$/, 'El teléfono debe ser numérico y tener un máximo de 10 dígitos']
+    match: [/^\d{10}$/, 'El teléfono debe contener exactamente 10 números'] // 👈 Corregido a 10 dígitos estrictos
   },
   rol: { 
     type: String, 
@@ -46,5 +45,4 @@ const usuarioSchema = new mongoose.Schema({
   timestamps: true
 });
 
-//module.exports = mongoose.model('Usuario', usuarioSchema);
 export default mongoose.model('Usuario', usuarioSchema);

@@ -1,8 +1,5 @@
-// models/Entrada.js
 import mongoose from 'mongoose';
 import { ZONAS } from './Sala.js';
-//const mongoose = require('mongoose');
-//const { ZONAS } = require('./Sala');
 
 const entradaSchema = new mongoose.Schema({
   cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', required: true },
@@ -13,7 +10,7 @@ const entradaSchema = new mongoose.Schema({
   cantidad: { type: Number, required: true, min: [0, 'La cantidad de entradas no puede ser negativa.'] },
   fila: { type: String, default: 'Fila 4' },
   asiento: { type: String, default: 'Asiento 12' },
-  sector: { type: String, default: 'Platea Preferencial' },
+  sector: { type: String, default: 'Platea' }, // 👈 Corregido a una zona válida del sistema
   codigoBoleto: { type: String, default: () => 'TICK-' + Math.floor(100000 + Math.random() * 900000) },
   estado: { type: String, default: 'Completado' }
 }, { timestamps: true });
@@ -53,9 +50,6 @@ async function cancelarEntradaZona(entradaId, clienteId) {
   return eliminada;
 }
 
-
 entradaSchema.statics.cancelarEntradaZona = cancelarEntradaZona;
-
-//module.exports = mongoose.model('Entrada', entradaSchema);
 
 export default mongoose.model('Entrada', entradaSchema);

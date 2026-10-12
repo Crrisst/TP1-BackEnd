@@ -55,8 +55,8 @@ html(lang="es")
                     td= sala.capacidad
                     td
                       .actions
-                        a.button.edit(href=`/salas/${sala.id}/editar` aria-label=`Editar sala ${sala.nombre}`) ✏️ Editar
-                        form(action=`/salas/${sala.id}/delete` method="POST")
+                        a.button.edit(href=`/salas/${sala._id}/editar` aria-label=`Editar sala ${sala.nombre}`) ✏️ Editar
+                        form(action=`/salas/${sala._id}/delete` method="POST")
                           button.button.delete(type="submit" aria-label=`Eliminar sala ${sala.nombre}` onclick="return confirm('¿Estás seguro de eliminar esta sala?');") 🗑️ Eliminar
         else
           p.empty No hay salas registradas en el sistema.

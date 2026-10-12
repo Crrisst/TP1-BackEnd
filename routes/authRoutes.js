@@ -10,17 +10,16 @@ router.get('/login', (req, res) => {
 
 router.post('/login', procesarLogin);
 
-// Rutas de registro (Soporta tanto /register como /registro)
-router.get('/register', (req, res) => {
-  res.render('auth/registro', { error: req.query.error || null });
-});
+// Rutas de registro unificadas (Soporta /register y /registro renderizando la misma vista)
+const renderRegistro = (req, res) => {
+  res.render('auth/registro', { error: req.query.error || null, datos: {} });
+};
 
-router.get('/registro', (req, res) => {
-  res.render('auth/registro', { error: req.query.error || null });
-});
+router.get('/register', renderRegistro);
+router.get('/registro', renderRegistro);
 
 router.post('/register', registrarCliente);
-router.post('/registro', registrarCliente); // Alias por si el formulario apunta a /auth/registro
+router.post('/registro', registrarCliente);
 
 // Ruta para cerrar sesión
 router.get('/logout', (req, res) => {

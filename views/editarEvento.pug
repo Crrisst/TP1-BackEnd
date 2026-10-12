@@ -14,7 +14,7 @@ html(lang="es")
       h2= evento.nombre
       if error
         .alert(role="alert")= error
-      form(action=`/eventos/${evento.id || evento._id}/editar` method="POST")
+      form(action=`/eventos/${evento._id}/editar` method="POST")
         .fields
           .field
             label(for="nombre") Nombre del Evento
@@ -65,11 +65,13 @@ html(lang="es")
           inputTexto.style.display = 'block';
           inputTexto.required = true;
           inputTexto.focus();
+          select.removeAttribute('name');
           select.required = false;
         } else {
           inputTexto.style.display = 'none';
           inputTexto.required = false;
           inputTexto.value = '';
+          select.setAttribute('name', 'nombreEntidadSelect');
           select.required = true;
         }
       }
