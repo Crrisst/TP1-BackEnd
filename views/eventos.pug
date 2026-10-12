@@ -12,10 +12,13 @@ html(lang="es")
       nav.navigation(aria-label="Navegación de administración")
         a.button(href="/admin/dashboard") ⬅️ Volver al Panel
     main
+      if error
+        .alert= error
+      if exito
+        div(style="background-color: #d1e7dd; color: #0f5132; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #badbcc; font-weight: bold;")= exito
+
       section.card(aria-labelledby="crear-evento")
         h2#crear-evento Cargar Nuevo Evento
-        if error
-          .alert= error
         form(action="/eventos" method="POST")
           .fields
             .field
@@ -31,8 +34,33 @@ html(lang="es")
                     option(value=ent.nombre)= ent.nombre
                 option(value="OTRO_NUEVO") ➕ Escribir uno nuevo...
 
-              input#nombreEntidadTexto(type="text" name="nombreEntidadTexto" placeholder="Escribe el nombre del nuevo artista/compañía..." style="display:none; margin-top: 8px;" autocomplete="off")
+              input#nombreEntidadTexto(type="text" name="nombreEntidadTexto" placeholder="Escribe el nombre del nuevo artista/compañía..." style="display:none; margin-top: 8px; margin-bottom: 4px;" autocomplete="off")
+              
+              //- 🟢 BOTÓN DESPLEGABLE UBICADO EXACTAMENTE DONDE INDICASTE (ÁREA ROSA)
+              div(style="margin-top: 6px;")
+                button(type="button" onclick="togglePanelArtistas()" style="background: none; border: none; color: #0284c7; padding: 0; font-size: 13px; font-weight: bold; cursor: pointer; text-decoration: underline;") ✏️ Administrar / Editar artistas existentes
             
+            //- 🟢 CONTENEDOR DESPLEGABLE (ACORDEÓN) PARA GESTIONAR ARTISTAS
+            .field.wide#panelAdministrarArtistas(style="display: none; background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin-top: 5px;")
+              h3(style="margin: 0 0 8px 0; font-size: 15px; color: #1e293b;") 📋 Listado de Artistas / Compañías Registradas
+              p(style="color: #64748b; font-size: 12px; margin-bottom: 12px; line-height: 1.4;") Si te equivocaste al tipear un nombre, edítalo aquí. Se actualizará automáticamente en todos los eventos asociados.
+              
+              if entidades && entidades.length > 0
+                div(style="max-height: 200px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 4px; background: white;")
+                  table(style="width: 100%; border-collapse: collapse; font-size: 12px;")
+                    tbody
+                      each ent in entidades
+                        tr(style="border-bottom: 1px solid #f1f5f9;")
+                          td(style="padding: 8px;")
+                            form(action=`/eventos/entidades/${ent._id}/editar` method="POST" style="display: flex; gap: 8px; margin: 0;" id=`form-ent-${ent._id}`)
+                              input(type="text" name="nombre" value=ent.nombre required style="padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; width: 100%;")
+                          td(style="padding: 8px; text-align: right; width: 140px; white-space: nowrap;")
+                            button.button.edit(type="submit" form=`form-ent-${ent._id}` style="padding: 4px 8px; font-size: 11px;") 💾 Guardar
+                            |  
+                            a.button.delete(href=`/eventos/entidades/${ent._id}/delete` onclick="return confirm('¿Estás seguro de eliminar este artista?');" style="padding: 4px 8px; font-size: 11px; text-decoration: none;") 🗑️
+              else
+                p(style="color: #64748b; font-size: 12px; font-style: italic; margin: 0;") No hay artistas registrados.
+
             .field
               label(for="sala") Sala
               select#sala(name="sala" required)
@@ -113,5 +141,15 @@ html(lang="es")
           inputTexto.value = '';
           select.setAttribute('name', 'nombreEntidadSelect');
           select.required = true;
+        }
+      }
+
+      // 🟢 Función para abrir/cerrar el panel desplegable de gestión de artistas
+      function togglePanelArtistas() {
+        const panel = document.getElementById('panelAdministrarArtistas');
+        if (panel.style.display === 'none' || panel.style.display === '') {
+          panel.style.display = 'block';
+        } else {
+          panel.style.display = 'none';
         }
       }

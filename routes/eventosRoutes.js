@@ -1,15 +1,5 @@
-//const express = require('express');
 import express from 'express';
 const router = express.Router();
-
-/*const { 
-  getEventos, 
-  getEventoById, 
-  createEvento, 
-  updateEvento, 
-  deleteEvento,
-  showEditEventoForm 
-} = require('../controllers/eventosController');*/
 
 import {
   getEventos,
@@ -17,10 +7,16 @@ import {
   createEvento,
   updateEvento,
   deleteEvento,
-  showEditEventoForm
+  showEditEventoForm,
+  actualizarEntidad,
+  eliminarEntidad
 } from '../controllers/eventosController.js';
 
 router.get('/', getEventos);
+
+// Rutas para gestionar artistas/entidades desde la misma sección
+router.post('/entidades/:id/editar', actualizarEntidad);
+router.post('/entidades/:id/delete', eliminarEntidad);
 
 // Ruta para mostrar la vista de edición (Pug)
 router.get('/:id/editar', showEditEventoForm);
@@ -28,12 +24,9 @@ router.get('/:id/editar', showEditEventoForm);
 router.get('/:id', getEventoById);
 router.post('/', createEvento);
 router.put('/:id', updateEvento);
-
-// Ruta POST para procesar el formulario de edición desde la vista web
 router.post('/:id/editar', updateEvento);
 
 router.delete('/:id', deleteEvento);
 router.post('/:id/delete', deleteEvento);
 
-//module.exports = router;
 export default router;

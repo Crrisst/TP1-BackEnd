@@ -1,8 +1,3 @@
-/*const express = require('express');
-const router = express.Router();
-const adminController = require('../controllers/adminController');
-const { verificarRol } = require('../middlewares/authMiddleware');*/
-
 import express from 'express';
 const router = express.Router();
 import * as adminController  from '../controllers/adminController.js';
@@ -33,7 +28,5 @@ router.post('/usuarios/eliminar/:id', soloAdmin, adminController.eliminarUsuario
 
 // --- CANCELACIONES ---
 router.get('/cancelaciones', personalInterno, adminController.listarCancelaciones);
-
-//module.exports = router;
 
 export default router;

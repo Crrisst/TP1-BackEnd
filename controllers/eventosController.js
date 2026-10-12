@@ -17,7 +17,8 @@ const getEventos = async (req, res) => {
         eventos, 
         salas: await Sala.find(), 
         entidades: await Entidad.find().sort({ nombre: 1 }), 
-        error: req.query.error 
+        error: req.query.error,
+        exito: req.query.exito 
       });
     }
     res.json(eventos);
@@ -150,4 +151,39 @@ const deleteEvento = async (req, res) => {
   }
 };
 
-export { getEventos, getEventoById, createEvento, showEditEventoForm, updateEvento, deleteEvento };
+// --- GESTIÓN DE ARTISTAS / ENTIDADES ---
+const actualizarEntidad = async (req, res) => {
+  try {
+    const { nombre } = req.body;
+    if (!nombre || !nombre.trim()) return res.redirect('/eventos?error=El+nombre+del+artista+es+obligatorio');
+    
+    await Entidad.findByIdAndUpdate(req.params.id, { nombre: nombre.trim() }, { runValidators: true });
+    res.redirect('/eventos?exito=Artista/Compañía+actualizado+correctamente');
+  } catch (error) {
+    res.redirect('/eventos?error=Error:+Ya+existe+una+entidad+con+ese+nombre');
+  }
+};
+
+const eliminarEntidad = async (req, res) => {
+  try {
+    const tieneEventos = await Evento.exists({ entidad: req.params.id });
+    if (tieneEventos) {
+      return res.redirect('/eventos?error=No+se+puede+eliminar+un+artista+con+eventos+activos');
+    }
+    await Entidad.findByIdAndDelete(req.params.id);
+    res.redirect('/eventos?exito=Artista/Compañía+eliminado+correctamente');
+  } catch (error) {
+    res.redirect('/eventos?error=Error+al+eliminar+el+artista');
+  }
+};
+
+export { 
+  getEventos, 
+  getEventoById, 
+  createEvento, 
+  showEditEventoForm, 
+  updateEvento, 
+  deleteEvento,
+  actualizarEntidad,
+  eliminarEntidad 
+};
