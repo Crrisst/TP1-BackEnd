@@ -156,13 +156,18 @@ async function poblarBaseDeDatos() {
       { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
     );
 
-    const salaTeatro = await Sala.create({
-      nombre: 'Teatro Gran Rex',
-      descripcion: 'Sala clásica céntrica',
-      capacidad: 500,
-      zonas: { General: 300, Platea: 150, VIP: 50 },
-      ubicacion: 'Centro Histórico'
-    });
+    // --- SALAS Y EVENTOS (Corregido con findOneAndUpdate para evitar E11000 en Atlas) ---
+    const salaTeatro = await Sala.findOneAndUpdate(
+      { nombre: 'Teatro Gran Rex' },
+      {
+        nombre: 'Teatro Gran Rex',
+        descripcion: 'Sala clásica céntrica',
+        capacidad: 500,
+        zonas: { General: 300, Platea: 150, VIP: 50 },
+        ubicacion: 'Centro Histórico'
+      },
+      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
+    );
 
     const eventoCultural = await Evento.create({
       nombre: 'Espectáculo Visual - Wayra',
