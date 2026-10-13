@@ -5,42 +5,23 @@ const notFoundHandler = (req, res, next) => {
 };
 
 const errorHandler = (err, req, res, next) => {
-  console.error('❌ Error interno detectado:', err);
-
+  console.error('❌ Error interno:', err);
   const status = err.status || 500;
   const message = err.message || 'Error interno del servidor.';
-
-  const esPeticionApi = req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'));
-
-  if (esPeticionApi) {
-    return res.status(status).json({
-      status: 'error',
-      message
-    });
+  
+  if (req.accepts(['html', 'json']) === 'json' || req.xhr) {
+    return res.status(status).json({ status: 'error', message });
   }
 
-  return res.status(status).send(`
-    <!DOCTYPE html>
-    <html lang="es">
-      <head>
-        <meta charset="UTF-8">
-        <title>Error en el Servidor</title>
-      </head>
-      <body style="font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f6f9; margin: 0;">
-        <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 500px; width: 100%;">
-          <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
-          <h2 style="color: #dc2626; margin-top: 0; margin-bottom: 10px;">Error del Servidor (${status})</h2>
-          <p style="color: #475569; font-size: 14px; line-height: 1.5; margin-bottom: 25px;">${message}</p>
-          <a href="/admin/dashboard" style="background: #0ea5e9; color: white; padding: 10px 18px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">
-            ⬅️ Volver al Panel
-          </a>
-        </div>
-      </body>
-    </html>
+  // Evitamos buscar vistas inexistentes y enviamos una respuesta HTML directa y segura
+  res.status(status).send(`
+    <div style="font-family: sans-serif; padding: 40px; text-align: center; background-color: #f8fafc; color: #334155;">
+      <h1 style="color: #dc2626; margin-bottom: 10px;">¡Ups! Ocurrió un error (${status})</h1>
+      <p style="font-size: 16px; margin-bottom: 20px; color: #64748b;">${message}</p>
+      <a href="/admin/dashboard" style="background: #0ea5e9; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Volver al Panel de Administración</a>
+    </div>
   `);
 };
 
-export {
-  notFoundHandler,
-  errorHandler
-};
+// Exportación explícita para que index.js lo pueda leer
+export { notFoundHandler, errorHandler };

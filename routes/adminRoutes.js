@@ -6,62 +6,88 @@ import {
   mostrarFormularioEditarUsuario, 
   actualizarUsuario, 
   eliminarUsuario, 
-  listarAuditoriaPagos,
-  listarCancelaciones
+  listarAuditoriaPagos, 
+  listarCancelaciones, 
+  mostrarBoleteria, 
+  procesarVentaFisica 
 } from '../controllers/adminController.js';
-import { 
-  getEventos, 
-  actualizarEntidad, 
-  eliminarEntidad 
-} from '../controllers/eventosController.js';
+import { mostrarGestionEntradas } from '../controllers/entradasController.js';
 import { verificarRol } from '../middlewares/authMiddleware.js';
+import asyncHandler from '../middlewares/asyncHandler.middleware.js';
 import Entidad from '../models/Entidad.js';
-
-import  { mostrarGestionEntradas } from '../controllers/entradasController.js';
 
 const router = express.Router();
 
-// Dashboard general (Administrador, Supervisor, Lector)
-router.get('/dashboard', verificarRol(['Administrador', 'Supervisor', 'Lector']), (req, res) => {
-  res.render('Admin/dashboard', {
-    usuarioLogueado: req.session.usuario,
-    mensajeExito: req.query.exito || null
-  });
-});
+router.use(verificarRol(['Administrador', 'Supervisor', 'Lector']));
 
-// Gestión de Usuarios (Visualización para Admin/Supervisor/Lector, Modificación solo Admin)
-router.get('/usuarios', verificarRol(['Administrador', 'Supervisor', 'Lector']), listarUsuarios);
+// Panel y Gestión de Usuarios
+router.get('/dashboard', (req, res) => res.render('Admin/dashboard', { usuarioLogueado: req.session.usuario }));
+router.get('/usuarios', asyncHandler(listarUsuarios));
 router.get('/crear-personal', verificarRol(['Administrador']), mostrarFormularioCrearPersonal);
-router.post('/crear-personal', verificarRol(['Administrador']), registrarPersonalInterno);
-router.get('/usuarios/editar/:id', verificarRol(['Administrador']), mostrarFormularioEditarUsuario);
-router.post('/usuarios/editar/:id', verificarRol(['Administrador']), actualizarUsuario);
-router.post('/usuarios/eliminar/:id', verificarRol(['Administrador']), eliminarUsuario);
+router.post('/crear-personal', verificarRol(['Administrador']), asyncHandler(registrarPersonalInterno));
+router.get('/usuarios/editar/:id', verificarRol(['Administrador']), asyncHandler(mostrarFormularioEditarUsuario));
+router.post('/usuarios/editar/:id', verificarRol(['Administrador']), asyncHandler(actualizarUsuario));
+router.post('/usuarios/eliminar/:id', verificarRol(['Administrador']), asyncHandler(eliminarUsuario));
 
-// 💳 Auditoría de Compras y Pagos
-router.get('/compras', verificarRol(['Administrador', 'Supervisor', 'Lector']), listarAuditoriaPagos);
+// Auditorías, Informes y Gestión de Entradas
+router.get('/compras', asyncHandler(listarAuditoriaPagos));
+router.get('/cancelaciones', asyncHandler(listarCancelaciones));
+router.get('/entradas', asyncHandler(mostrarGestionEntradas));
 
-// 🚫 Auditoría de Cancelaciones
-router.get('/cancelaciones', verificarRol(['Administrador', 'Supervisor', 'Lector']), listarCancelaciones);
+// Boletería Física y Cobros
+router.get('/boleteria', verificarRol(['Administrador', 'Supervisor']), asyncHandler(mostrarBoleteria));
+router.post('/boleteria/cobrar', verificarRol(['Administrador', 'Supervisor']), asyncHandler(procesarVentaFisica));
 
-// Gestión de Artistas / Entidades
-router.get('/entidades', verificarRol(['Administrador', 'Supervisor', 'Lector']), async (req, res) => {
-  try {
-    const entidades = await Entidad.find().sort({ nombre: 1 });
-    res.render('Admin/entidades', {
-      usuarioLogueado: req.session.usuario,
-      entidades,
-      exito: req.query.exito || null,
-      error: req.query.error || null
-    });
-  } catch (error) {
-    res.status(500).send('Error al cargar entidades.');
+// GESTIÓN DE ARTISTAS / ENTIDADES
+router.get('/entidades', asyncHandler(async (req, res) => {
+  const entidades = await Entidad.find().sort({ nombre: 1 });
+
+  res.render('Admin/entidades', { 
+    usuarioLogueado: req.session.usuario, 
+    entidades, 
+    exito: req.query.exito || null, 
+    error: req.query.error || null 
+  });
+}));
+
+router.post('/entidades/crear', verificarRol(['Administrador', 'Supervisor']), asyncHandler(async (req, res) => {
+  const { nombre } = req.body;
+  if (!nombre || !nombre.trim()) {
+    return res.redirect('/admin/entidades?error=El nombre del artista no puede estar vacío');
   }
-});
 
-router.get('/entradas', verificarRol(['Administrador', 'Supervisor', 'Lector']), mostrarGestionEntradas);
+  try {
+    await Entidad.create({ nombre: nombre.trim() });
+    res.redirect('/admin/entidades?exito=Artista o compañía creado exitosamente');
+  } catch (error) {
+    let mensaje = 'Error al registrar el artista.';
+    if (error.code === 11000) {
+      mensaje = 'Ya existe un artista o compañía con ese nombre.';
+    }
+    res.redirect(`/admin/entidades?error=${encodeURIComponent(mensaje)}`);
+  }
+}));
 
-// 🔒 Edición y Eliminación restringidas solo a Administrador y Supervisor (Lector rebotará con 403)
-router.post('/entidades/editar/:id', verificarRol(['Administrador', 'Supervisor']), actualizarEntidad);
-router.post('/entidades/eliminar/:id', verificarRol(['Administrador', 'Supervisor']), eliminarEntidad);
+router.post('/entidades/editar/:id', verificarRol(['Administrador', 'Supervisor']), asyncHandler(async (req, res) => {
+  const { nombre } = req.body;
+  if (nombre && nombre.trim()) {
+    try {
+      await Entidad.findByIdAndUpdate(req.params.id, { nombre: nombre.trim() }, { runValidators: true });
+      return res.redirect('/admin/entidades?exito=Artista actualizado correctamente');
+    } catch (error) {
+      let mensaje = 'Error al actualizar el artista.';
+      if (error.code === 11000) {
+        mensaje = 'Ya existe otro artista o compañía con ese nombre.';
+      }
+      return res.redirect(`/admin/entidades?error=${encodeURIComponent(mensaje)}`);
+    }
+  }
+  res.redirect('/admin/entidades');
+}));
+
+router.post('/entidades/eliminar/:id', verificarRol(['Administrador', 'Supervisor']), asyncHandler(async (req, res) => {
+  await Entidad.findByIdAndDelete(req.params.id);
+  res.redirect('/admin/entidades?exito=Artista eliminado correctamente');
+}));
 
 export default router;

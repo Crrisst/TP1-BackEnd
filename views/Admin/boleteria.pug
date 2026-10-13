@@ -1,0 +1,202 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    title Punto de Venta - Sucursal
+    style.
+      /* Pantalla de carga */
+      #loadingOverlay {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.8); z-index: 9999; flex-direction: column;
+        justify-content: center; align-items: center; color: white; font-family: sans-serif;
+      }
+      .spinner {
+        width: 60px; height: 60px; border: 6px solid #f3f3f3; border-top: 6px solid #0f766e;
+        border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;
+      }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+      /* Cartel de confirmación personalizado (Modal) */
+      #confirmModal {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.5); z-index: 9998; justify-content: center; align-items: center;
+        font-family: sans-serif;
+      }
+      .modal-content {
+        background: white; padding: 25px; border-radius: 8px; text-align: center; max-width: 400px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      }
+      .modal-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+      .btn-modal { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; }
+      .btn-cancelar { background: #64748b; color: white; }
+      .btn-aceptar { background: #0f766e; color: white; }
+
+      /* Tarjeta de Resumen de Totales */
+      .resumen-total {
+        background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 15px;
+        margin-top: 15px; text-align: right; font-family: sans-serif;
+      }
+      .resumen-linea { display: flex; justify-content: space-between; font-size: 15px; color: #475569; margin-bottom: 5px; }
+      .resumen-descuento { display: none; justify-content: space-between; font-size: 15px; color: #16a34a; font-weight: bold; margin-bottom: 5px; }
+      .resumen-total-final { display: flex; justify-content: space-between; font-size: 20px; color: #0f766e; font-weight: bold; margin-top: 10px; border-top: 1px solid #cbd5e1; padding-top: 10px; }
+
+  body(style="font-family: sans-serif; padding: 30px; background-color: #f4f6f9; max-width: 800px; margin: auto;")
+    
+    //- PANTALLA DE CARGA
+    div#loadingOverlay
+      div.spinner
+      h2#loadingText(style="margin: 0;") Procesando pago... 0%
+      p(style="color: #cbd5e1; font-size: 14px; margin-top: 10px;") Conectando con el medio de pago, por favor espere.
+
+    //- CARTEL DE CONFIRMACIÓN PROPIO
+    div#confirmModal
+      div.modal-content
+        h3(style="margin-top: 0; color: #333;") ⚠️ Confirmar Pago
+        p(style="color: #555;") ¿Está seguro que desea realizar este cobro y emitir el ticket?
+        div.modal-buttons
+          button#btnAceptarModal.btn-modal.btn-aceptar(type="button") Sí, Cobrar
+          button#btnCancelarModal.btn-modal.btn-cancelar(type="button") Cancelar
+
+    div(style="background-color: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);")
+      h2(style="color: #0f766e; margin-top: 0;") 🎫 Venta de Entradas en Sucursal
+
+      if error
+        div(style="background-color: #fee2e2; color: #dc2626; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-weight: bold; border-left: 4px solid #dc2626; font-size: 14px;")
+          | ⚠️ #{error}
+
+      form#formCobro(action="/admin/boleteria/cobrar" method="POST" style="display: flex; flex-direction: column; gap: 15px;")
+        
+        div(style="display: flex; gap: 15px;")
+          div(style="flex: 1;")
+            label(style="font-weight: bold; font-size: 14px; color: #333;") DNI del Cliente
+            input(type="text" name="dniCliente" placeholder="Ej: 12345678" value=datosPrevios ? datosPrevios.dniCliente : '' required pattern="[0-9]{7,8}" minlength="7" maxlength="8" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; margin-top: 5px;")
+          div(style="flex: 1;")
+            label(style="font-weight: bold; font-size: 14px; color: #333;") Nombre y Apellido
+            input(type="text" name="nombreCliente" placeholder="Ej: Juan Pérez" value=datosPrevios ? datosPrevios.nombreCliente : '' required pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+" minlength="3" maxlength="80" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; margin-top: 5px;")
+
+        div
+          label(style="font-weight: bold; font-size: 14px; color: #333;") Evento a Cobrar
+          select(name="eventoId" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; margin-top: 5px; background: #fff;")
+            each evt in eventos
+              option(value=evt._id selected=(datosPrevios && datosPrevios.eventoId === evt._id.toString()))= evt.nombre
+
+        div(style="display: flex; gap: 15px;")
+          div(style="flex: 1;")
+            label(style="font-weight: bold; font-size: 14px; color: #333;") Sector / Tipo
+            input(type="text" name="tipoEntrada" value=datosPrevios ? datosPrevios.tipoEntrada : 'General' required maxlength="50" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; margin-top: 5px;")
+          div(style="flex: 1;")
+            label(style="font-weight: bold; font-size: 14px; color: #333;") Cantidad
+            input#inputCantidad(type="number" name="cantidad" value=datosPrevios ? datosPrevios.cantidad : '1' min="1" max="20" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; margin-top: 5px;")
+          div(style="flex: 1;")
+            label(style="font-weight: bold; font-size: 14px; color: #333;") Precio Unitario ($)
+            input#inputPrecio(type="number" name="precioUnitario" placeholder="Ej: 5000" value=datosPrevios ? datosPrevios.precioUnitario : '' min="0" step="0.01" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; margin-top: 5px;")
+
+        div
+          label(style="font-weight: bold; font-size: 14px; color: #333;") Medio de Pago
+          select#selectMedioPago(name="medioPago" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; margin-top: 5px; background: #fff;")
+            option(value="Efectivo" selected=(datosPrevios && datosPrevios.medioPago === 'Efectivo')) 💵 Efectivo en Caja
+            option(value="Tarjeta POS" selected=(datosPrevios && datosPrevios.medioPago === 'Tarjeta POS')) 💳 Tarjeta (Posnet)
+            option(value="Transferencia Alias" selected=(datosPrevios && datosPrevios.medioPago === 'Transferencia Alias')) 📱 Transferencia / QR
+
+        //- NUEVO PANEL DE RESUMEN DE TOTALES
+        div.resumen-total
+          div.resumen-linea
+            span Subtotal:
+            span $<span id="lblSubtotal">0.00</span>
+          div#boxDescuento.resumen-descuento
+            span Descuento (25% Efectivo):
+            span -$<span id="lblDescuento">0.00</span>
+          div.resumen-total-final
+            span TOTAL A COBRAR:
+            span $<span id="lblTotal">0.00</span>
+
+        button(type="submit" style="background-color: #0f766e; color: white; padding: 12px; border: none; border-radius: 5px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 15px;") 🖨️ Cobrar y Emitir Ticket
+        
+        a(href="/admin/dashboard" style="text-align: center; color: #64748b; text-decoration: none; font-size: 14px; margin-top: 10px; font-weight: bold;") ⬅️ Cancelar y volver al Dashboard
+
+    script.
+      document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('formCobro');
+        const overlay = document.getElementById('loadingOverlay');
+        const text = document.getElementById('loadingText');
+        const confirmModal = document.getElementById('confirmModal');
+        const btnCancelar = document.getElementById('btnCancelarModal');
+        const btnAceptar = document.getElementById('btnAceptarModal');
+
+        // Referencias para el cálculo en vivo
+        const inputCantidad = document.getElementById('inputCantidad');
+        const inputPrecio = document.getElementById('inputPrecio');
+        const selectMedioPago = document.getElementById('selectMedioPago');
+        const lblSubtotal = document.getElementById('lblSubtotal');
+        const lblDescuento = document.getElementById('lblDescuento');
+        const lblTotal = document.getElementById('lblTotal');
+        const boxDescuento = document.getElementById('boxDescuento');
+
+        // Función que recalcula todo
+        function calcularTotal() {
+          const cantidad = parseInt(inputCantidad.value) || 0;
+          const precio = parseFloat(inputPrecio.value) || 0;
+          const medioPago = selectMedioPago.value;
+
+          const subtotal = cantidad * precio;
+          let descuento = 0;
+
+          if (medioPago === 'Efectivo') {
+            descuento = subtotal * 0.25; // 25% de descuento
+            boxDescuento.style.display = 'flex';
+          } else {
+            boxDescuento.style.display = 'none';
+          }
+
+          const total = subtotal - descuento;
+
+          // Formateamos los números a formato local
+          lblSubtotal.innerText = subtotal.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          lblDescuento.innerText = descuento.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          lblTotal.innerText = total.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Event listeners para actualizar en vivo cuando el usuario cambie algo
+        inputCantidad.addEventListener('input', calcularTotal);
+        inputPrecio.addEventListener('input', calcularTotal);
+        selectMedioPago.addEventListener('change', calcularTotal);
+
+        // Llamamos a la función al cargar la página por si hay valores precargados
+        calcularTotal();
+
+        // Al intentar enviar el formulario, mostramos el Modal propio
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          confirmModal.style.display = 'flex';
+        });
+
+        // Si cancela, ocultamos el Modal
+        btnCancelar.addEventListener('click', () => {
+          confirmModal.style.display = 'none';
+        });
+
+        // Si acepta, arranca la animación de pago
+        btnAceptar.addEventListener('click', () => {
+          confirmModal.style.display = 'none'; // Cerramos el modal
+          overlay.style.display = 'flex'; // Abrimos la pantalla de carga
+          
+          let porcentaje = 0;
+          const intervalo = setInterval(() => {
+            porcentaje += Math.floor(Math.random() * 25) + 10;
+            if (porcentaje >= 99) porcentaje = 99;
+            text.innerText = `Procesando pago... ${porcentaje}%`;
+          }, 400);
+
+          setTimeout(() => {
+            clearInterval(intervalo);
+            text.innerText = `Pago Aprobado 100% ✅`;
+            setTimeout(() => { form.submit(); }, 300);
+          }, 2000);
+        });
+
+        // Filtro de teclado
+        const dniInput = document.querySelector('input[name="dniCliente"]');
+        const nombreInput = document.querySelector('input[name="nombreCliente"]');
+        if(dniInput) dniInput.addEventListener('input', function() { this.value = this.value.replace(/[^0-9]/g, ''); });
+        if(nombreInput) nombreInput.addEventListener('input', function() { this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''); });
+      });

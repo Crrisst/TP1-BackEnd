@@ -26,4 +26,5 @@ router.post('/actualizar/:id', verificarRol(['Administrador', 'Supervisor']), up
 // 🔒 Eliminar evento (Solo Administrador y Supervisor)
 router.post('/eliminar/:id', verificarRol(['Administrador', 'Supervisor']), deleteEvento);
 
+// ¡Esta línea es la que faltaba!
 export default router;

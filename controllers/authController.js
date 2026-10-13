@@ -1,17 +1,14 @@
 import Usuario from '../models/Usuario.js';
 
-const procesarLogin = async (req, res) => {
+export const procesarLogin = async (req, res) => {
   try {
     const { identificador, nombreUsuario, password } = req.body;
-    const userField = identificador || nombreUsuario;
+    const user = identificador || nombreUsuario;
     
-    // Búsqueda directa por usuario/email y contraseña en texto plano
-    const usuario = await Usuario.findOne({
-      $or: [
-        { nombreUsuario: userField },
-        { email: userField }
-      ],
-      password
+    // Buscamos directamente coincidencia exacta de usuario/email y contraseña en texto plano
+    const usuario = await Usuario.findOne({ 
+      $or: [{ nombreUsuario: user }, { email: user }],
+      password: password 
     });
     
     if (!usuario) {
@@ -19,7 +16,6 @@ const procesarLogin = async (req, res) => {
     }
 
     req.session.usuario = {
-      id: usuario._id,
       _id: usuario._id,
       nombreUsuario: usuario.nombreUsuario,
       rol: usuario.rol,
@@ -27,58 +23,35 @@ const procesarLogin = async (req, res) => {
       porcentajeDescuento: usuario.porcentajeDescuento
     };
 
-    if (['Administrador', 'Supervisor', 'Lector'].includes(usuario.rol)) {
-      return res.redirect('/admin/dashboard');
-    }
-    
-    return res.redirect('/cliente/menu');
+    return ['Administrador', 'Supervisor', 'Lector'].includes(usuario.rol) 
+      ? res.redirect('/admin/dashboard') 
+      : res.redirect('/cliente/menu');
   } catch (error) {
-    console.error('Error en login:', error);
-    return res.status(500).render('auth/login', { error: 'Error interno en el servidor al intentar iniciar sesión.' });
+    return res.status(500).render('auth/login', { error: 'Error interno al intentar iniciar sesión.' });
   }
 };
 
-const registrarCliente = async (req, res) => {
+export const registrarCliente = async (req, res) => {
   try {
     const { nombreUsuario, nombre, apellido, email, password, dni, fechaNacimiento, telefono } = req.body;
     
-    const usuarioExistente = await Usuario.findOne({ $or: [{ email }, { nombreUsuario }] });
-    if (usuarioExistente) {
+    if (await Usuario.findOne({ $or: [{ email }, { nombreUsuario }] })) {
       return res.status(400).render('auth/registro', { error: 'El email o nombre de usuario ya está registrado en el sistema.' });
     }
 
+    // Se guarda la contraseña tal cual la ingresó el usuario
     const nuevoUsuario = await Usuario.create({
-      nombreUsuario,
-      nombre,
-      apellido,
-      email,
-      password,
-      dni,
-      fechaNacimiento,
-      telefono,
-      rol: 'Cliente',
-      tipoCliente: 'ESTANDAR',
-      porcentajeDescuento: 0
+      nombreUsuario, nombre, apellido, email, password, dni, fechaNacimiento, telefono
     });
 
-    req.session.usuario = {
-      id: nuevoUsuario._id,
-      _id: nuevoUsuario._id,
-      nombreUsuario: nuevoUsuario.nombreUsuario,
-      rol: nuevoUsuario.rol,
-      tipoCliente: nuevoUsuario.tipoCliente,
-      porcentajeDescuento: nuevoUsuario.porcentajeDescuento
+    req.session.usuario = { 
+      _id: nuevoUsuario._id, 
+      nombreUsuario: nuevoUsuario.nombreUsuario, 
+      rol: nuevoUsuario.rol 
     };
-
-    return res.redirect('/cliente/membresia');
     
+    return res.redirect('/cliente/membresia');
   } catch (error) {
-    console.error('Error al registrar usuario:', error);
     return res.status(500).render('auth/registro', { error: 'Error interno al registrar el usuario.' });
   }
-};
-
-export {
-  procesarLogin,
-  registrarCliente
 };

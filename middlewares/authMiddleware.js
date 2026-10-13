@@ -1,61 +1,25 @@
 const verificarAutenticacion = (req, res, next) => {
-  const usuarioLogueado = req.session && req.session.usuario;
-  const esPeticionApi = req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'));
-
-  if (!usuarioLogueado) {
-    if (esPeticionApi) {
-      return res.status(401).json({ error: 'Debes iniciar sesión para realizar esta acción.' });
-    }
-    return res.redirect('/auth/login');
+  const isApi = req.accepts(['html', 'json']) === 'json' || req.xhr;
+  if (!req.session?.usuario) {
+    return isApi ? res.status(401).json({ error: 'Debes iniciar sesión.' }) : res.redirect('/auth/login');
   }
   next();
 };
 
-const verificarRol = (rolesPermitidos) => {
-  return (req, res, next) => {
-    const usuarioLogueado = req.session && req.session.usuario;
-    const esPeticionApi = req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'));
+const verificarRol = (rolesPermitidos) => (req, res, next) => {
+  const isApi = req.accepts(['html', 'json']) === 'json' || req.xhr;
+  const usuario = req.session?.usuario;
 
-    if (!usuarioLogueado) {
-      if (esPeticionApi) {
-        return res.status(401).json({ error: 'Debes iniciar sesión para realizar esta acción.' });
-      }
-      return res.redirect('/auth/login');
-    }
+  if (!usuario) {
+    return isApi ? res.status(401).json({ error: 'Debes iniciar sesión.' }) : res.redirect('/auth/login');
+  }
 
-    if (!rolesPermitidos.includes(usuarioLogueado.rol)) {
-      if (esPeticionApi) {
-        return res.status(403).json({ error: 'No tienes los permisos necesarios para realizar esta acción.' });
-      }
-
-      return res.status(403).send(`
-        <!DOCTYPE html>
-        <html lang="es">
-          <head>
-            <meta charset="UTF-8">
-            <title>Acceso Denegado</title>
-          </head>
-          <body style="font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f6f9; margin: 0;">
-            <div style="background: white; padding: 35px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 450px; width: 100%;">
-              <div style="font-size: 48px; margin-bottom: 15px;">🚫</div>
-              <h2 style="color: #dc2626; margin-top: 0; margin-bottom: 10px;">Acceso Denegado</h2>
-              <p style="color: #475569; font-size: 14px; line-height: 1.5; margin-bottom: 25px;">
-                No tienes los permisos necesarios ni el rol autorizado para realizar esta acción o ingresar a esta sección.
-              </p>
-              <a href="/admin/dashboard" style="background: #0ea5e9; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">
-                ⬅️ Volver al Panel
-              </a>
-            </div>
-          </body>
-        </html>
-      `);
-    }
-
-    next();
-  };
+  if (!rolesPermitidos.includes(usuario.rol)) {
+    return isApi 
+      ? res.status(403).json({ error: 'Permisos insuficientes.' }) 
+      : res.status(403).render('errores/403', { mensaje: 'Acceso Denegado' });
+  }
+  next();
 };
 
-export {
-  verificarAutenticacion,
-  verificarRol
-};
+export { verificarAutenticacion, verificarRol };

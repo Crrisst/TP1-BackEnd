@@ -166,143 +166,110 @@ async function poblarBaseDeDatos() {
       entidad: entidadesGuardadas[2]._id 
     });
 
-    // --- ENTRADAS COMPRADAS ---
+    // --- ENTRADAS COMPRADAS (Base para el sistema de tickets) ---
     await Entrada.create([
-      {
-        cliente: cliente1._id,
-        evento: eventoCultural._id,
-        nombre: 'General - Espectáculo Visual - Wayra',
-        descripcion: 'Acceso adquirido para Espectáculo Visual - Wayra',
-        precio: 8500,
-        cantidad: 1,
-        fila: 'Fila Única',
-        asiento: 'General / Numerado',
-        sector: 'General',
-        estado: 'Completado',
-        codigoBoleto: 'TICK-100001'
-      },
-      {
-        cliente: cliente1._id,
-        evento: eventoMusica._id,
-        nombre: 'Platea - Gran Concierto Sinfónico',
-        descripcion: 'Acceso adquirido para Gran Concierto Sinfónico',
-        precio: 5000,
-        cantidad: 2,
-        fila: 'Fila 4',
-        asiento: 'Platea / 12, 13',
-        sector: 'Platea',
-        estado: 'Completado',
-        codigoBoleto: 'TICK-100002'
-      },
-      {
-        cliente: cliente2._id,
-        evento: eventoCultural._id,
-        nombre: 'General - Espectáculo Visual - Wayra',
-        descripcion: 'Acceso adquirido para Espectáculo Visual - Wayra',
-        precio: 8500,
-        cantidad: 2,
-        fila: 'Fila Única',
-        asiento: 'General / Numerado',
-        sector: 'General',
-        estado: 'Completado',
-        codigoBoleto: 'TICK-100003'
-      },
-      {
-        cliente: cliente2._id,
-        evento: eventoMusica._id,
-        nombre: 'VIP - Gran Concierto Sinfónico',
-        descripcion: 'Acceso VIP adquirido para Gran Concierto Sinfónico',
-        precio: 8000,
-        cantidad: 2,
-        fila: 'Fila 1',
-        asiento: 'VIP / 05, 06',
-        sector: 'VIP',
-        estado: 'Completado',
-        codigoBoleto: 'TICK-100004'
-      }
+      { cliente: cliente1._id, evento: eventoCultural._id, nombre: 'General - Espectáculo Visual - Wayra', descripcion: 'Acceso adquirido', precio: 8500, cantidad: 1, fila: 'Fila Única', asiento: 'General / Numerado', sector: 'General', estado: 'Completado', codigoBoleto: 'TICK-100001' },
+      { cliente: cliente1._id, evento: eventoMusica._id, nombre: 'Platea - Gran Concierto Sinfónico', descripcion: 'Acceso adquirido', precio: 5000, cantidad: 2, fila: 'Fila 4', asiento: 'Platea / 12, 13', sector: 'Platea', estado: 'Completado', codigoBoleto: 'TICK-100002' },
+      { cliente: cliente2._id, evento: eventoCultural._id, nombre: 'General - Espectáculo Visual - Wayra', descripcion: 'Acceso adquirido', precio: 8500, cantidad: 2, fila: 'Fila Única', asiento: 'General / Numerado', sector: 'General', estado: 'Completado', codigoBoleto: 'TICK-100003' },
+      { cliente: cliente2._id, evento: eventoMusica._id, nombre: 'VIP - Gran Concierto Sinfónico', descripcion: 'Acceso VIP adquirido', precio: 8000, cantidad: 2, fila: 'Fila 1', asiento: 'VIP / 05, 06', sector: 'VIP', estado: 'Completado', codigoBoleto: 'TICK-100004' }
     ]);
 
-    // --- HISTORIAL DE TRANSACCIONES / PAGOS ---
+    // --- HISTORIAL DE TRANSACCIONES / PAGOS AMPLIADO ---
     await Transaccion.create([
+      // FECHAS VIEJAS (Histórico - Ej: Principios de 2026)
       {
-        cliente: cliente1._id,
-        nombreCliente: 'cliente1',
-        items: [
-          {
-            eventoId: eventoCultural._id.toString(),
-            nombreEvento: eventoCultural.nombre,
-            tipoEntrada: 'General',
-            precio: 8500,
-            cantidad: 1
-          }
-        ],
-        subtotal: 8500,
-        descuentoAplicado: 2550,
-        total: 5950,
-        medioPago: 'Tarjeta de Crédito',
-        tarjetaUltimosDigitos: '4321',
-        comprobanteId: 'REC-98234101',
-        fechaCompra: new Date('2026-10-01T14:30:00')
+        cliente: cliente1._id, nombreCliente: 'cliente1',
+        items: [{ eventoId: eventoCultural._id.toString(), nombreEvento: eventoCultural.nombre, tipoEntrada: 'General', precio: 8500, cantidad: 1 }],
+        subtotal: 8500, descuentoAplicado: 2550, total: 5950, medioPago: 'Tarjeta de Crédito', tarjetaUltimosDigitos: '4321',
+        comprobanteId: 'REC-OLD-01', fechaCompra: new Date('2026-03-15T14:30:00')
       },
       {
-        cliente: cliente1._id,
-        nombreCliente: 'cliente1',
-        items: [
-          {
-            eventoId: eventoMusica._id.toString(),
-            nombreEvento: eventoMusica.nombre,
-            tipoEntrada: 'Platea',
-            precio: 5000,
-            cantidad: 2
-          }
-        ],
-        subtotal: 10000,
-        descuentoAplicado: 3000,
-        total: 7000,
-        medioPago: 'Mercado Pago',
-        tarjetaUltimosDigitos: '8812',
-        comprobanteId: 'REC-98234102',
-        fechaCompra: new Date('2026-10-05T18:15:00')
+        cliente: cliente2._id, nombreCliente: 'cliente2',
+        items: [{ eventoId: eventoMusica._id.toString(), nombreEvento: eventoMusica.nombre, tipoEntrada: 'Platea', precio: 5000, cantidad: 2 }],
+        subtotal: 10000, descuentoAplicado: 0, total: 10000, medioPago: 'Mercado Pago', tarjetaUltimosDigitos: '8812',
+        comprobanteId: 'REC-OLD-02', fechaCompra: new Date('2026-05-20T10:15:00')
       },
       {
-        cliente: cliente2._id,
-        nombreCliente: 'cliente2',
-        items: [
-          {
-            eventoId: eventoCultural._id.toString(),
-            nombreEvento: eventoCultural.nombre,
-            tipoEntrada: 'General',
-            precio: 8500,
-            cantidad: 2
-          }
-        ],
-        subtotal: 17000,
-        descuentoAplicado: 0,
-        total: 17000,
-        medioPago: 'Tarjeta de Débito',
-        tarjetaUltimosDigitos: '5543',
-        comprobanteId: 'REC-98234103',
-        fechaCompra: new Date('2026-10-08T10:20:00')
+        cliente: cliente1._id, nombreCliente: 'cliente1',
+        items: [{ eventoId: eventoCultural._id.toString(), nombreEvento: eventoCultural.nombre, tipoEntrada: 'General', precio: 8500, cantidad: 3 }],
+        subtotal: 25500, descuentoAplicado: 7650, total: 17850, medioPago: 'Tarjeta de Débito', tarjetaUltimosDigitos: '1122',
+        comprobanteId: 'REC-OLD-03', fechaCompra: new Date('2026-06-10T16:45:00')
       },
       {
-        cliente: cliente2._id,
-        nombreCliente: 'cliente2',
-        items: [
-          {
-            eventoId: eventoMusica._id.toString(),
-            nombreEvento: eventoMusica.nombre,
-            tipoEntrada: 'VIP',
-            precio: 8000,
-            cantidad: 2
-          }
-        ],
-        subtotal: 16000,
-        descuentoAplicado: 0,
-        total: 16000,
-        medioPago: 'Tarjeta de Crédito',
-        tarjetaUltimosDigitos: '9011',
-        comprobanteId: 'REC-98234104',
-        fechaCompra: new Date('2026-10-10T20:45:00')
+        cliente: cliente2._id, nombreCliente: 'cliente2',
+        items: [{ eventoId: eventoMusica._id.toString(), nombreEvento: eventoMusica.nombre, tipoEntrada: 'VIP', precio: 8000, cantidad: 1 }],
+        subtotal: 8000, descuentoAplicado: 0, total: 8000, medioPago: 'Efectivo', tarjetaUltimosDigitos: '0000',
+        comprobanteId: 'REC-OLD-04', fechaCompra: new Date('2026-07-22T09:15:00')
+      },
+      {
+        cliente: cliente1._id, nombreCliente: 'cliente1',
+        items: [{ eventoId: eventoCultural._id.toString(), nombreEvento: eventoCultural.nombre, tipoEntrada: 'General', precio: 8500, cantidad: 2 }],
+        subtotal: 17000, descuentoAplicado: 5100, total: 11900, medioPago: 'Tarjeta de Crédito', tarjetaUltimosDigitos: '4321',
+        comprobanteId: 'REC-OLD-05', fechaCompra: new Date('2026-08-05T19:00:00')
+      },
+
+      // ESTE MES (Octubre 2026, días anteriores a hoy)
+      {
+        cliente: cliente1._id, nombreCliente: 'cliente1',
+        items: [{ eventoId: eventoCultural._id.toString(), nombreEvento: eventoCultural.nombre, tipoEntrada: 'General', precio: 8500, cantidad: 1 }],
+        subtotal: 8500, descuentoAplicado: 2550, total: 5950, medioPago: 'Tarjeta de Crédito', tarjetaUltimosDigitos: '4321',
+        comprobanteId: 'REC-MES-01', fechaCompra: new Date('2026-10-01T14:30:00')
+      },
+      {
+        cliente: cliente1._id, nombreCliente: 'cliente1',
+        items: [{ eventoId: eventoMusica._id.toString(), nombreEvento: eventoMusica.nombre, tipoEntrada: 'Platea', precio: 5000, cantidad: 2 }],
+        subtotal: 10000, descuentoAplicado: 3000, total: 7000, medioPago: 'Mercado Pago', tarjetaUltimosDigitos: '8812',
+        comprobanteId: 'REC-MES-02', fechaCompra: new Date('2026-10-05T18:15:00')
+      },
+      {
+        cliente: cliente2._id, nombreCliente: 'cliente2',
+        items: [{ eventoId: eventoCultural._id.toString(), nombreEvento: eventoCultural.nombre, tipoEntrada: 'General', precio: 8500, cantidad: 2 }],
+        subtotal: 17000, descuentoAplicado: 0, total: 17000, medioPago: 'Tarjeta de Débito', tarjetaUltimosDigitos: '5543',
+        comprobanteId: 'REC-MES-03', fechaCompra: new Date('2026-10-08T10:20:00')
+      },
+      {
+        cliente: cliente2._id, nombreCliente: 'cliente2',
+        items: [{ eventoId: eventoMusica._id.toString(), nombreEvento: eventoMusica.nombre, tipoEntrada: 'VIP', precio: 8000, cantidad: 2 }],
+        subtotal: 16000, descuentoAplicado: 0, total: 16000, medioPago: 'Tarjeta de Crédito', tarjetaUltimosDigitos: '9011',
+        comprobanteId: 'REC-MES-04', fechaCompra: new Date('2026-10-10T20:45:00')
+      },
+      {
+        cliente: cliente1._id, nombreCliente: 'cliente1',
+        items: [{ eventoId: eventoCultural._id.toString(), nombreEvento: eventoCultural.nombre, tipoEntrada: 'General', precio: 8500, cantidad: 4 }],
+        subtotal: 34000, descuentoAplicado: 10200, total: 23800, medioPago: 'Mercado Pago', tarjetaUltimosDigitos: '1111',
+        comprobanteId: 'REC-MES-05', fechaCompra: new Date('2026-10-11T11:00:00')
+      },
+
+      // HOY (12 de Octubre 2026)
+      {
+        cliente: cliente2._id, nombreCliente: 'cliente2',
+        items: [{ eventoId: eventoMusica._id.toString(), nombreEvento: eventoMusica.nombre, tipoEntrada: 'General', precio: 5000, cantidad: 1 }],
+        subtotal: 5000, descuentoAplicado: 0, total: 5000, medioPago: 'Efectivo', tarjetaUltimosDigitos: '0000',
+        comprobanteId: 'REC-HOY-01', fechaCompra: new Date('2026-10-12T08:30:00')
+      },
+      {
+        cliente: cliente1._id, nombreCliente: 'cliente1',
+        items: [{ eventoId: eventoCultural._id.toString(), nombreEvento: eventoCultural.nombre, tipoEntrada: 'Platea', precio: 8500, cantidad: 2 }],
+        subtotal: 17000, descuentoAplicado: 5100, total: 11900, medioPago: 'Tarjeta de Crédito', tarjetaUltimosDigitos: '4321',
+        comprobanteId: 'REC-HOY-02', fechaCompra: new Date('2026-10-12T10:15:00')
+      },
+      {
+        cliente: cliente2._id, nombreCliente: 'cliente2',
+        items: [{ eventoId: eventoMusica._id.toString(), nombreEvento: eventoMusica.nombre, tipoEntrada: 'VIP', precio: 8000, cantidad: 3 }],
+        subtotal: 24000, descuentoAplicado: 0, total: 24000, medioPago: 'Tarjeta de Débito', tarjetaUltimosDigitos: '3344',
+        comprobanteId: 'REC-HOY-03', fechaCompra: new Date('2026-10-12T13:45:00')
+      },
+      {
+        cliente: cliente1._id, nombreCliente: 'cliente1',
+        items: [{ eventoId: eventoCultural._id.toString(), nombreEvento: eventoCultural.nombre, tipoEntrada: 'General', precio: 8500, cantidad: 1 }],
+        subtotal: 8500, descuentoAplicado: 2550, total: 5950, medioPago: 'Mercado Pago', tarjetaUltimosDigitos: '8812',
+        comprobanteId: 'REC-HOY-04', fechaCompra: new Date('2026-10-12T16:20:00')
+      },
+      {
+        cliente: cliente2._id, nombreCliente: 'cliente2',
+        items: [{ eventoId: eventoMusica._id.toString(), nombreEvento: eventoMusica.nombre, tipoEntrada: 'Platea', precio: 5000, cantidad: 2 }],
+        subtotal: 10000, descuentoAplicado: 0, total: 10000, medioPago: 'Tarjeta de Crédito', tarjetaUltimosDigitos: '9011',
+        comprobanteId: 'REC-HOY-05', fechaCompra: new Date('2026-10-12T19:05:00')
       }
     ]);
 

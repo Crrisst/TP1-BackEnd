@@ -30,13 +30,15 @@ html(lang="es")
               input(type="text" name="nombre" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
-              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Artista / Compañía / Productora
+              div(style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;")
+                label(style="font-weight: bold; font-size: 13px;") Artista / Compañía / Productora
+                //- Botón unificado para agregar o editar artistas en la misma sección
+                a(href="/admin/entidades" style="font-size: 12px; color: #0284c7; font-weight: bold; text-decoration: none;") ➕ ✏️ Administrar / Editar Artistas
+
               select(name="nombreEntidadSelect" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
                 option(value="") Seleccionar de la lista...
                 each ent in entidades
                   option(value=ent.nombre)= ent.nombre
-              
-              a(href="/admin/entidades" style="display: inline-block; margin-top: 5px; font-size: 13px; color: #0284c7; font-weight: bold; text-decoration: none;") ✏️ Administrar / Editar artistas existentes
 
           div(style="margin-bottom: 15px;")
             label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Descripción

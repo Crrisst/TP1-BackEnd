@@ -3,13 +3,22 @@ import mongoose from 'mongoose';
 import session from 'express-session';
 import path from 'path';
 import { fileURLToPath } from 'url';
-//import crypto from 'node:crypto';
 
-//globalThis.crypto = crypto;
+// Parche de Crypto para compatibilidad global
+import crypto from 'crypto';
+if (!global.crypto) {
+  global.crypto = crypto;
+}
 
+// ----------------------------------------------------
+// IMPORTACIONES DE MIDDLEWARES (Asegurarse de las rutas correctas)
+// ----------------------------------------------------
 import requestLogger from './middlewares/logger.middleware.js';
 import { notFoundHandler, errorHandler } from './middlewares/errorHandler.middleware.js';
 
+// ----------------------------------------------------
+// IMPORTACIONES DE RUTAS
+// ----------------------------------------------------
 import authRoutes from './routes/authRoutes.js';
 import clienteRoutes from './routes/clienteRoutes.js';
 import salasRoutes from './routes/salasRoutes.js';
@@ -18,8 +27,10 @@ import eventosRoutes from './routes/eventosRoutes.js';
 import carritoRoutes from './routes/carritoRoutes.js';
 import entradasRoutes from './routes/entradasRoutes.js';
 
+// Importación del Seed para poblar DB
 import { poblarBaseDeDatos } from './seed.js';
 
+// Configuración de rutas estáticas en ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -41,7 +52,7 @@ app.use(session({
   saveUninitialized: false
 }));
 
-// Montaje de Rutas (Subrutas específicas antes de las generales)
+// Montaje de Rutas
 app.use('/auth', authRoutes);
 app.use('/cliente/carrito', carritoRoutes);
 app.use('/cliente', clienteRoutes);
@@ -50,6 +61,7 @@ app.use('/admin', adminRoutes);
 app.use('/eventos', eventosRoutes); 
 app.use('/entradas', entradasRoutes); 
 
+// Ruta raíz
 app.get('/', (req, res) => {
   res.redirect('/auth/login');
 });

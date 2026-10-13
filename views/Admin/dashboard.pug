@@ -23,6 +23,12 @@ html(lang="es")
 
     div(style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px;")
       
+      //- BOLETERÍA FÍSICA
+      if usuarioLogueado.rol === 'Administrador' || usuarioLogueado.rol === 'Supervisor'
+        a(href="/admin/boleteria" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-decoration: none; border-left: 5px solid #0f766e; display: block; grid-column: 1 / -1;")
+          h3(style="margin: 0 0 8px 0; color: #0f766e; font-size: 18px;") 🎫 Punto de Venta (Boletería)
+          p(style="margin: 0; color: #666; font-size: 14px; line-height: 1.4;") Cobro presencial e impresión inmediata de tickets.
+
       a(href="/admin/crear-personal" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-decoration: none; border-left: 5px solid #007bff; display: block;")
         h3(style="margin: 0 0 8px 0; color: #007bff; font-size: 18px;") ➕ Alta de Personal
         p(style="margin: 0; color: #666; font-size: 14px; line-height: 1.4;") Registrar nuevo personal interno con permisos específicos.
@@ -47,6 +53,7 @@ html(lang="es")
         h3(style="margin: 0 0 8px 0; color: #7c3aed; font-size: 18px;") 🎭 Gestión de Eventos
         p(style="margin: 0; color: #666; font-size: 14px; line-height: 1.4;") Administrar eventos, fechas, salas y disponibilidad de entradas.
       
+      //- INFORME DE ENTRADAS (Agregado por tu compa)
       a(href="/admin/entradas" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-decoration: none; border-left: 5px solid #059669; display: block;")
         h3(style="margin: 0 0 8px 0; color: #059669; font-size: 18px;") 🎟️ Informe de Entradas
         p(style="margin: 0; color: #666; font-size: 14px; line-height: 1.4;") Consultar ventas por evento, ocupación de salas y recaudación.

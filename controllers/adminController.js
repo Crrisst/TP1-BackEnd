@@ -1,177 +1,77 @@
 import Usuario from '../models/Usuario.js';
 import CancelacionLog from '../models/CancelacionLog.js';
 import Transaccion from '../models/Transaccion.js';
+import Evento from '../models/Evento.js';
+import crypto from 'crypto';
 
-const mostrarFormularioCrearPersonal = (req, res) => {
-  const rolActual = req.session.usuario && req.session.usuario.rol;
-  if (rolActual !== 'Administrador') {
-    return res.status(403).send('Acceso denegado: Solo los administradores pueden acceder al formulario de registro.');
-  }
+export const mostrarFormularioCrearPersonal = (req, res) => res.render('Admin/crear-personal', { usuarioLogueado: req.session.usuario, error: null, datos: {} });
 
-  res.render('Admin/crear-personal', {
-    usuarioLogueado: req.session.usuario
-  });
-};
-
-const registrarPersonalInterno = async (req, res) => {
+export const registrarPersonalInterno = async (req, res) => {
   try {
-    const rolActual = req.session.usuario && req.session.usuario.rol;
-    if (rolActual !== 'Administrador') {
-      return res.status(403).send('Acceso denegado.');
-    }
-
-    const { 
-      nombreUsuario, 
-      nombre, 
-      apellido, 
-      email, 
-      password, 
-      dni, 
-      fechaNacimiento, 
-      telefono, 
-      rol,
-      tipoCliente,
-      porcentajeDescuento
-    } = req.body;
-
-    await Usuario.create({
-      nombreUsuario,
-      nombre,
-      apellido,
-      email,
-      password,
-      dni,
-      fechaNacimiento,
-      telefono,
-      rol: rol || 'Cliente',
-      tipoCliente: tipoCliente || 'ESTANDAR',
-      porcentajeDescuento: porcentajeDescuento || 0
-    });
-
-    res.redirect('/admin/usuarios?exito=Usuario creado correctamente');
+    await Usuario.create(req.body);
+    res.redirect('/admin/usuarios?exito=Usuario creado');
   } catch (error) {
-    console.error('Error al crear usuario:', error);
-    
-    let mensajeError = 'No se pudo registrar el usuario. Verifique los datos ingresados.';
+    let mensajeError = 'Error al crear usuario. Verifica los datos.';
     if (error.code === 11000) {
-      const campoDuplicado = Object.keys(error.keyValue || {})[0];
-      if (campoDuplicado === 'nombreUsuario') {
-        mensajeError = 'El nombre de usuario ya está registrado en el sistema.';
-      } else if (campoDuplicado === 'email') {
-        mensajeError = 'El correo electrónico ya está registrado en el sistema.';
-      } else if (campoDuplicado === 'dni') {
-        mensajeError = 'El DNI ya está registrado en el sistema.';
-      } else {
-        mensajeError = 'El nombre de usuario, email o DNI ya está registrado en el sistema.';
-      }
-    } else {
-      mensajeError = error.errors?.fechaNacimiento?.message || error.message;
+      const campo = Object.keys(error.keyValue)[0];
+      mensajeError = `El ${campo} ingresado ya está registrado en el sistema.`;
+    } else if (error.message) {
+      mensajeError = error.message;
     }
-
-    res.status(400).render('Admin/crear-personal', {
-      error: mensajeError,
-      usuarioLogueado: req.session.usuario
+    // Devolvemos los datos previos para que el formulario no se borre
+    res.status(400).render('Admin/crear-personal', { 
+      error: mensajeError, 
+      usuarioLogueado: req.session.usuario, 
+      datos: req.body 
     });
   }
 };
 
-const listarUsuarios = async (req, res) => {
-  try {
-    const usuarios = await Usuario.find().sort({ createdAt: -1 });
-    res.render('Admin/usuarios', {
-      usuarioLogueado: req.session.usuario,
-      usuarios,
-      exito: req.query.exito || null
-    });
-  } catch (error) {
-    console.error('Error al listar usuarios:', error);
-    res.status(500).send('Error interno al obtener los usuarios');
-  }
+export const listarUsuarios = async (req, res) => {
+  const usuarios = await Usuario.find().sort({ createdAt: -1 });
+  res.render('Admin/usuarios', { usuarioLogueado: req.session.usuario, usuarios });
 };
 
-const mostrarFormularioEditarUsuario = async (req, res) => {
-  try {
-    const rolActual = req.session.usuario && req.session.usuario.rol;
-    if (rolActual !== 'Administrador') {
-      return res.status(403).send('Acceso denegado.');
-    }
-
-    const usuarioAEditar = await Usuario.findById(req.params.id);
-    if (!usuarioAEditar) {
-      return res.status(404).send('Usuario no encontrado');
-    }
-    res.render('Admin/editarUsuario', {
-      usuarioLogueado: req.session.usuario,
-      usuarioAEditar
-    });
-  } catch (error) {
-    console.error('Error al cargar edición:', error);
-    res.status(500).send('Error al cargar el usuario');
-  }
+export const mostrarFormularioEditarUsuario = async (req, res) => {
+  const usuarioAEditar = await Usuario.findById(req.params.id);
+  res.render('Admin/editarUsuario', { usuarioLogueado: req.session.usuario, usuarioAEditar });
 };
 
-const actualizarUsuario = async (req, res) => {
+export const actualizarUsuario = async (req, res) => {
   try {
-    const rolActual = req.session.usuario && req.session.usuario.rol;
-    if (rolActual !== 'Administrador') {
-      return res.status(403).send('Acceso denegado.');
-    }
-
-    const { nombreUsuario, nombre, apellido, email, dni, fechaNacimiento, telefono, rol, tipoCliente, porcentajeDescuento } = req.body;
-    
-    await Usuario.findByIdAndUpdate(req.params.id, {
-      nombreUsuario, nombre, apellido, email, dni, fechaNacimiento, telefono, rol, tipoCliente, porcentajeDescuento
-    }, { runValidators: true });
-
-    res.redirect('/admin/usuarios?exito=Usuario actualizado exitosamente');
+    await Usuario.findByIdAndUpdate(req.params.id, req.body, { runValidators: true });
+    res.redirect('/admin/usuarios?exito=Usuario actualizado');
   } catch (error) {
-    console.error('Error al actualizar:', error);
-    
-    let mensajeError = 'Error al actualizar el usuario.';
+    let mensajeError = 'Error al actualizar usuario.';
     if (error.code === 11000) {
-      const campoDuplicado = Object.keys(error.keyValue || {})[0];
-      if (campoDuplicado === 'nombreUsuario') {
-        mensajeError = 'El nombre de usuario ya está registrado por otro usuario.';
-      } else if (campoDuplicado === 'email') {
-        mensajeError = 'El correo electrónico ya está registrado por otro usuario.';
-      } else if (campoDuplicado === 'dni') {
-        mensajeError = 'El DNI ya está registrado por otro usuario.';
-      } else {
-        mensajeError = 'El nombre de usuario, email o DNI ya pertenece a otro usuario registrado.';
-      }
-    } else {
-      mensajeError = error.errors?.fechaNacimiento?.message || error.message;
+      const campo = Object.keys(error.keyValue)[0];
+      mensajeError = `El ${campo} ingresado ya está registrado por otro usuario.`;
+    } else if (error.message) {
+      mensajeError = error.message;
     }
-    
-    const usuarioAEditar = (await Usuario.findById(req.params.id)) || { _id: req.params.id, ...req.body };
-    res.status(400).render('Admin/editarUsuario', {
-      usuarioLogueado: req.session.usuario,
-      usuarioAEditar,
-      error: mensajeError
-    });
+    const usuarioAEditar = await Usuario.findById(req.params.id) || { _id: req.params.id, ...req.body };
+    res.status(400).render('Admin/editarUsuario', { usuarioLogueado: req.session.usuario, usuarioAEditar, error: mensajeError });
   }
 };
 
-const eliminarUsuario = async (req, res) => {
-  try {
-    const rolActual = req.session.usuario && req.session.usuario.rol;
-    if (rolActual !== 'Administrador') {
-      return res.status(403).send('Acceso denegado.');
-    }
-
-    await Usuario.findByIdAndDelete(req.params.id);
-    res.redirect('/admin/usuarios?exito=Usuario eliminado correctamente');
-  } catch (error) {
-    console.error('Error al eliminar:', error);
-    res.status(500).send('Error al eliminar el usuario');
-  }
+export const eliminarUsuario = async (req, res) => {
+  await Usuario.findByIdAndDelete(req.params.id);
+  res.redirect('/admin/usuarios?exito=Eliminado');
 };
 
-// 💳 Auditoría Exclusiva de Pagos y Compras
-const listarAuditoriaPagos = async (req, res) => {
+export const listarAuditoriaPagos = async (req, res) => {
   try {
-    const { busqueda } = req.query;
+    const { busqueda, filtro } = req.query;
     let query = {};
+
+    if (filtro === 'hoy') {
+      const inicioHoy = new Date();
+      inicioHoy.setHours(0, 0, 0, 0);
+      const finHoy = new Date();
+      finHoy.setHours(23, 59, 59, 999);
+      
+      query.fechaCompra = { $gte: inicioHoy,$lte: finHoy };
+    }
 
     if (busqueda && busqueda.trim()) {
       const termino = busqueda.trim();
@@ -179,43 +79,34 @@ const listarAuditoriaPagos = async (req, res) => {
       const esObjectId = /^[a-fA-F0-9]{24}$/.test(termino);
 
       const usuariosCoincidentes = await Usuario.find({
-        $or: [
-          { email: regex },
-          { nombreUsuario: regex },
-          { dni: regex },
-          { nombre: regex },
-          { apellido: regex }
-        ]
+        $or: [{ email: regex }, { nombreUsuario: regex }, { dni: regex }, { nombre: regex }, { apellido: regex }]
       }).select('_id');
       
       const usuariosIds = usuariosCoincidentes.map(u => u._id);
 
       const condiciones = [
-        { comprobanteId: regex },
-        { nombreCliente: regex },
-        { medioPago: regex },
-        { 'items.nombreEvento': regex },
-        { 'items.tipoEntrada': regex },
-        { cliente: { $in: usuariosIds } }
+        { comprobanteId: regex }, { nombreCliente: regex }, { medioPago: regex },
+        { 'items.nombreEvento': regex }, { 'items.tipoEntrada': regex }, { cliente: { $in: usuariosIds } }
       ];
 
       if (esObjectId) {
-        condiciones.push({ _id: termino });
-        condiciones.push({ cliente: termino });
-        condiciones.push({ 'items.eventoId': termino });
+        condiciones.push({ _id: termino }, { cliente: termino }, { 'items.eventoId': termino });
       }
 
-      query = { $or: condiciones };
+      if (query.fechaCompra) {
+        query = { $and: [ { fechaCompra: query.fechaCompra }, {$or: condiciones } ] };
+      } else {
+        query = { $or: condiciones };
+      }
     }
 
-    const compras = await Transaccion.find(query)
-      .populate('cliente')
-      .sort({ fechaCompra: -1 });
+    const compras = await Transaccion.find(query).populate('cliente').sort({ fechaCompra: -1 });
 
-    res.render('Admin/auditoriaPagos', {
-      usuarioLogueado: req.session.usuario,
-      compras,
-      busqueda: busqueda || ''
+    res.render('Admin/auditoriaPagos', { 
+      usuarioLogueado: req.session.usuario, 
+      compras, 
+      busqueda: busqueda || '',
+      filtroActual: filtro || ''
     });
   } catch (error) {
     console.error('Error al listar las transacciones:', error);
@@ -223,8 +114,7 @@ const listarAuditoriaPagos = async (req, res) => {
   }
 };
 
-// 🚫 Auditoría Exclusiva de Cancelaciones (con filtro multicampo)
-const listarCancelaciones = async (req, res) => {
+export const listarCancelaciones = async (req, res) => {
   try {
     const { busqueda } = req.query;
     let query = {};
@@ -234,41 +124,102 @@ const listarCancelaciones = async (req, res) => {
       const regex = new RegExp(termino, 'i');
       const esObjectId = /^[a-fA-F0-9]{24}$/.test(termino);
 
-      const condiciones = [
-        { nombreCliente: regex },
-        { eventoNombre: regex },
-        { codigoBoleto: regex }
-      ];
-
-      if (esObjectId) {
-        condiciones.push({ _id: termino });
-        condiciones.push({ usuario: termino });
-        condiciones.push({ evento: termino });
-      }
-
+      const condiciones = [{ nombreCliente: regex }, { eventoNombre: regex }, { codigoBoleto: regex }];
+      if (esObjectId) condiciones.push({ _id: termino }, { cliente: termino }, { evento: termino });
       query = { $or: condiciones };
     }
 
     const cancelaciones = await CancelacionLog.find(query).sort({ fechaCancelacion: -1 });
 
-    res.render('Admin/cancelaciones', {
-      usuarioLogueado: req.session.usuario,
-      cancelaciones,
-      busqueda: busqueda || ''
-    });
+    res.render('Admin/cancelaciones', { usuarioLogueado: req.session.usuario, cancelaciones, busqueda: busqueda || '' });
   } catch (error) {
     console.error('Error al listar cancelaciones:', error);
     res.status(500).send('Error interno al obtener el historial de cancelaciones');
   }
 };
 
-export {
-  mostrarFormularioCrearPersonal,
-  registrarPersonalInterno,
-  listarUsuarios,
-  mostrarFormularioEditarUsuario,
-  actualizarUsuario,
-  eliminarUsuario,
-  listarAuditoriaPagos,
-  listarCancelaciones
+export const mostrarBoleteria = async (req, res) => {
+  try {
+    const rolActual = req.session.usuario && req.session.usuario.rol;
+    if (rolActual !== 'Administrador' && rolActual !== 'Supervisor') {
+      return res.status(403).send('Acceso denegado.');
+    }
+    
+    const eventos = await Evento.find(); 
+    res.render('Admin/boleteria', { usuarioLogueado: req.session.usuario, eventos });
+  } catch (error) {
+    res.status(500).send('Error interno del servidor.');
+  }
+};
+
+export const procesarVentaFisica = async (req, res) => {
+  try {
+    const rolActual = req.session.usuario && req.session.usuario.rol;
+    if (rolActual !== 'Administrador' && rolActual !== 'Supervisor') {
+      throw new Error('Acceso denegado.');
+    }
+
+    const cajeroActivo = req.session.usuario.nombreUsuario;
+    const { dniCliente, nombreCliente, eventoId, tipoEntrada, cantidad, medioPago, precioUnitario } = req.body;
+    
+    let cliente = await Usuario.findOne({ dni: dniCliente });
+    if (!cliente) {
+      const passwordSegura = crypto.randomBytes(6).toString('hex');
+      cliente = await Usuario.create({
+        nombreUsuario: `cliente_${dniCliente}`,
+        nombre: nombreCliente.split(' ')[0],
+        apellido: 'Sucursal',            
+        dni: dniCliente,
+        rol: 'Cliente',
+        email: `cajero_${cajeroActivo}_${dniCliente}@sucursal.com`, 
+        password: passwordSegura,                   
+        telefono: '0000000000',                 
+        fechaNacimiento: new Date('1990-01-01') 
+      });
+    }
+
+    const evento = await Evento.findById(eventoId);
+    if (!evento) throw new Error('Evento no encontrado');
+    
+    const subtotal = parseFloat(precioUnitario) * parseInt(cantidad, 10);
+    let descuentoAplicado = 0;
+    let total = subtotal;
+
+    if (medioPago === 'Efectivo') {
+      descuentoAplicado = subtotal * 0.25; 
+      total = subtotal - descuentoAplicado;
+    }
+
+    const nuevaVenta = await Transaccion.create({
+      comprobanteId: `SUC-${Date.now().toString().slice(-6)}`,
+      cliente: cliente._id,
+      nombreCliente: `${cliente.nombre} ${cliente.apellido} (Cajero: ${cajeroActivo})`, 
+      medioPago: medioPago,
+      subtotal: subtotal,
+      descuentoAplicado: descuentoAplicado, 
+      total: total,                         
+      canal: 'Sucursal',
+      items: [{
+        eventoId: evento._id,
+        nombreEvento: evento.nombre,
+        tipoEntrada: tipoEntrada,
+        cantidad: parseInt(cantidad, 10),
+        precio: parseFloat(precioUnitario)
+      }]
+    });
+
+    res.render('Admin/imprimirTicket', { venta: nuevaVenta, cajero: cajeroActivo });
+  } catch (error) {
+    try {
+      const eventos = await Evento.find();
+      res.status(400).render('Admin/boleteria', { 
+        usuarioLogueado: req.session.usuario, 
+        eventos, 
+        error: error.message,
+        datosPrevios: req.body 
+      });
+    } catch (fetchError) {
+      res.status(500).send('Ocurrió un error grave al intentar cargar la boletería.');
+    }
+  }
 };
