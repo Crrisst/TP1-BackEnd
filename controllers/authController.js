@@ -27,6 +27,8 @@ export const procesarLogin = async (req, res) => {
       ? res.redirect('/admin/dashboard') 
       : res.redirect('/cliente/menu');
   } catch (error) {
+    // 🔍 Mostramos el error real en la terminal para facilitar la depuración con MongoDB Atlas
+    console.error('❌ ERROR REAL EN LOGIN:', error);
     return res.status(500).render('auth/login', { error: 'Error interno al intentar iniciar sesión.' });
   }
 };
@@ -52,6 +54,8 @@ export const registrarCliente = async (req, res) => {
     
     return res.redirect('/cliente/membresia');
   } catch (error) {
+    // 🔍 Mostramos el error real en la terminal para registro
+    console.error('❌ ERROR REAL EN REGISTRO:', error);
     return res.status(500).render('auth/registro', { error: 'Error interno al registrar el usuario.' });
   }
 };
