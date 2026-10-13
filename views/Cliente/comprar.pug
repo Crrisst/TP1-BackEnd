@@ -33,7 +33,14 @@ html(lang="es")
               h3(style="margin-top: 0; color: #1e293b; margin-bottom: 5px;") #{evento.nombre}
               if evento.entidad
                 p(style="margin: 0 0 10px 0; color: #0284c7; font-weight: bold; font-size: 14px;") 🎭 Presenta: #{evento.entidad.nombre}
-              p(style="color: #64748b; font-size: 13px; margin-bottom: 5px;") 📅 <strong>Stock:</strong> #{evento.entradasDisponibles}
+              
+              p(style="color: #64748b; font-size: 13px; margin-bottom: 5px;") 
+                | 📅 <strong>Stock:</strong> 
+                if evento.entradasDisponibles > 0
+                  span(style="color: #047857; font-weight: bold;") #{evento.entradasDisponibles} disponibles
+                else
+                  span(style="color: #dc2626; font-weight: bold; background: #fee2e2; padding: 2px 6px; border-radius: 4px;") 🚫 ¡Stock Agotado!
+
               p(style="color: #475569; font-size: 14px; margin-bottom: 15px;") #{evento.descripcion || 'Sin descripción.'}
             
             form(onsubmit="agregarAlCarrito(event, this)" action="/cliente/carrito/agregar" method="POST" style="background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0;")
