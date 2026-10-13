@@ -5,14 +5,18 @@ import Transaccion from '../models/Transaccion.js';
 export const verCarrito = (req, res) => {
   const carrito = req.session.carrito || [];
   const subtotal = carrito.reduce((a, b) => a + (b.precio * b.cantidad), 0);
-  const desc = subtotal * (req.session.usuario.porcentajeDescuento || 0);
+  
+  // Solución al bug de punto flotante de JavaScript redondeando a 2 decimales
+  const desc = Number((subtotal * (req.session.usuario.porcentajeDescuento || 0)).toFixed(2));
+  const total = Number((subtotal - desc).toFixed(2));
+
   res.render('Cliente/carrito', { 
     usuarioLogueado: req.session.usuario, 
     carrito, 
     subtotal, 
     descuentoAplicado: desc, 
     porcentajeDescuento: (req.session.usuario.porcentajeDescuento || 0) * 100,
-    total: subtotal - desc 
+    total: total 
   });
 };
 
@@ -71,12 +75,16 @@ export const checkout = (req, res) => {
   if (carrito.length === 0) return res.redirect('/cliente/carrito');
 
   const subtotal = carrito.reduce((a, b) => a + (b.precio * b.cantidad), 0);
-  const desc = subtotal * (req.session.usuario.porcentajeDescuento || 0);
+  const desc = Number((subtotal * (req.session.usuario.porcentajeDescuento || 0)).toFixed(2));
 
   res.render('Cliente/checkout', { 
-    usuarioLogueado: req.session.usuario, subtotal, descuentoAplicado: desc, 
+    usuarioLogueado: req.session.usuario, 
+    subtotal, 
+    descuentoAplicado: desc, 
     porcentajeDescuento: (req.session.usuario.porcentajeDescuento || 0) * 100,
-    total: subtotal - desc, error: null, datos: {}
+    total: Number((subtotal - desc).toFixed(2)), 
+    error: null, 
+    datos: {}
   });
 };
 
@@ -89,7 +97,7 @@ export const procesarPago = async (req, res) => {
 
   try {
     const subtotal = carrito.reduce((a, b) => a + (b.precio * b.cantidad), 0);
-    const descuentoAplicado = subtotal * (req.session.usuario.porcentajeDescuento || 0);
+    const descuentoAplicado = Number((subtotal * (req.session.usuario.porcentajeDescuento || 0)).toFixed(2));
 
     for (const item of carrito) {
       // 1. Reservamos la zona
@@ -105,7 +113,7 @@ export const procesarPago = async (req, res) => {
       entradasCreadas.push(nuevaEntrada._id);
     }
 
-    // Extraemos los últimos 4 dígitos si el usuario pagó con tarjeta
+    // Extraemos los últimos 4 dígitos de la tarjeta para guardarlos correctamente
     const numTarjeta = req.body.numeroTarjeta ? req.body.numeroTarjeta.trim() : '';
     const ultimosDigitos = numTarjeta.length >= 4 ? numTarjeta.slice(-4) : '****';
 
@@ -115,8 +123,8 @@ export const procesarPago = async (req, res) => {
       items: carrito,
       subtotal, 
       descuentoAplicado, 
-      total: subtotal - descuentoAplicado,
-      medioPago: req.body.medioPago || 'Tarjeta',
+      total: Number((subtotal - descuentoAplicado).toFixed(2)),
+      medioPago: req.body.medioPago || 'Tarjeta', 
       tarjetaUltimosDigitos: ultimosDigitos,
       comprobanteId: 'REC-' + Date.now()
     });
