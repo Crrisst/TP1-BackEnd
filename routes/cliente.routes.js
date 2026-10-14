@@ -9,7 +9,7 @@ const esCliente = (req, res, next) => {
     if (req.session.usuario && (req.session.usuario.rol === "Cliente" || req.session.usuario.rol === "Admin")) {
         return next();
     }
-    res.redirect("/auth/login");
+    return res.status(401).json({ error: "No autorizado" });
 };
 
 router.use(esCliente);
@@ -43,10 +43,13 @@ router.post("/carrito/agregar", async (req, res) => {
             req.session.carrito = [];
         }
         req.session.carrito.push(eventoId);
-        res.redirect("/cliente/cartelera");
+        
+        return res.status(200).json({
+            mensaje: "¡Entrada agregada al carrito con éxito!",
+            cantidadCarrito: req.session.carrito.length
+        });
     } catch (error) {
-        console.error("Error al agregar al carrito:", error);
-        res.redirect("/cliente/cartelera");
+        return res.status(500).json({ error: "No se pudo agregar al carrito." });
     }
 });
 
@@ -83,12 +86,23 @@ router.get("/carrito", async (req, res) => {
     }
 });
 
-router.post("/carrito/eliminar/:id", (req, res) => {
-    const { id } = req.params;
-    if (req.session.carrito) {
-        req.session.carrito = req.session.carrito.filter(itemId => itemId !== id);
+router.post("/carrito/eliminar/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (req.session.carrito) {
+            req.session.carrito = req.session.carrito.filter(itemId => itemId !== id);
+        }
+        
+        const eventosEnDb = await Evento.find({ _id: { $in: req.session.carrito } });
+        const nuevoTotal = eventosEnDb.reduce((acc, ev) => acc + ev.precio, 0);
+
+        return res.status(200).json({
+            nuevoTotal,
+            eventosRestantes: req.session.carrito.length
+        });
+    } catch (error) {
+        return res.status(500).json({ error: "Error al eliminar." });
     }
-    res.redirect("/cliente/carrito");
 });
 
 router.get("/checkout", async (req, res) => {
@@ -126,7 +140,7 @@ router.post("/checkout/procesar", async (req, res) => {
     try {
         const carritoIds = req.session.carrito || [];
         if (carritoIds.length === 0) {
-            return res.redirect("/cliente/cartelera");
+            return res.status(400).json({ error: "El carrito está vacío." });
         }
 
         const { nombre, tarjetaNumero, tarjetaExpiracion, tarjetaCvv } = req.body;
@@ -135,48 +149,26 @@ router.post("/checkout/procesar", async (req, res) => {
         const soloNumerosRegex = /^\d+$/;
         const fechaExpRegex = /^(0[1-9]|1[0-2])\/([0-9]{2})$/;
 
-        let errorMensaje = null;
-
         if (!nombre || !soloLetrasRegex.test(nombre.trim())) {
-            errorMensaje = "⚠️ El nombre del titular solo debe contener letras y espacios.";
-        } else if (!tarjetaNumero || !soloNumerosRegex.test(tarjetaNumero) || tarjetaNumero.length < 13 || tarjetaNumero.length > 16) {
-            errorMensaje = "⚠️ El número de tarjeta debe contener exclusivamente números (entre 13 y 16 dígitos).";
-        } else if (!tarjetaExpiracion || !fechaExpRegex.test(tarjetaExpiracion.trim())) {
-            errorMensaje = "⚠️ La fecha de expiración es inválida. Debe tener el formato MM/AA (ej. 12/28).";
-        } else if (!tarjetaCvv || !soloNumerosRegex.test(tarjetaCvv) || (tarjetaCvv.length !== 3 && tarjetaCvv.length !== 4)) {
-            errorMensaje = "⚠️ El código CVV debe ser exclusivamente numérico y tener exactamente 3 o 4 dígitos.";
+            return res.status(400).json({ error: "⚠️ El nombre del titular solo debe contener letras." });
         }
-
-        if (errorMensaje) {
-            const conteoIds = {};
-            carritoIds.forEach(id => { conteoIds[id] = (conteoIds[id] || 0) + 1; });
-            const eventosEnDb = await Evento.find({ _id: { $in: Object.keys(conteoIds) } }).populate("sala");
-            
-            let eventosAgrupados = eventosEnDb.map(ev => ({
-                ...ev.toObject(),
-                cantidad: conteoIds[ev._id.toString()] || 1,
-                subtotal: ev.precio * (conteoIds[ev._id.toString()] || 1)
-            }));
-            const total = eventosAgrupados.reduce((acc, ev) => acc + ev.subtotal, 0);
-
-            return res.render("cliente/checkout", {
-                usuario: req.session.usuario,
-                eventos: eventosAgrupados,
-                total,
-                error: errorMensaje
-            });
+        if (!tarjetaNumero || !soloNumerosRegex.test(tarjetaNumero) || tarjetaNumero.length < 13 || tarjetaNumero.length > 16) {
+            return res.status(400).json({ error: "⚠️ Número de tarjeta inválido (13 a 16 dígitos)." });
+        }
+        if (!tarjetaExpiracion || !fechaExpRegex.test(tarjetaExpiracion.trim())) {
+            return res.status(400).json({ error: "⚠️ La fecha de expiración debe tener el formato MM/AA." });
+        }
+        if (!tarjetaCvv || !soloNumerosRegex.test(tarjetaCvv) || (tarjetaCvv.length !== 3 && tarjetaCvv.length !== 4)) {
+            return res.status(400).json({ error: "⚠️ El código CVV debe tener 3 o 4 dígitos numéricos." });
         }
 
         const conteoIds = {};
         carritoIds.forEach(id => { conteoIds[id] = (conteoIds[id] || 0) + 1; });
 
-        let eventosComprados = [];
         const fechaCompra = new Date();
 
         for (let eventoId of Object.keys(conteoIds)) {
-            const eventoObj = await Evento.findById(eventoId).populate("sala");
             const cantidad = conteoIds[eventoId];
-
             await Entrada.create({
                 usuario: req.session.usuario._id || req.session.usuario.id,
                 evento: eventoId,
@@ -185,51 +177,42 @@ router.post("/checkout/procesar", async (req, res) => {
                 estado: "Valida",
                 fechaCompra: fechaCompra
             });
-
-            if (eventoObj) {
-                eventosComprados.push({
-                    titulo: eventoObj.titulo,
-                    artista: eventoObj.artista,
-                    sala: eventoObj.sala ? eventoObj.sala.nombre : 'N/A',
-                    precio: eventoObj.precio,
-                    cantidad: cantidad,
-                    subtotal: eventoObj.precio * cantidad
-                });
-            }
         }
-
-        const totalPagado = eventosComprados.reduce((acc, ev) => acc + ev.subtotal, 0);
-        const numeroOperacion = "UC-" + Math.floor(100000 + Math.random() * 900000);
-        const ultimosDigitos = tarjetaNumero.slice(-4);
 
         req.session.carrito = [];
 
-        res.render("cliente/factura", {
-            usuario: req.session.usuario,
-            eventos: eventosComprados,
-            total: totalPagado,
-            numeroOperacion,
-            fecha: fechaCompra.toLocaleString(),
-            ultimosDigitos,
-            titular: nombre
+        return res.status(200).json({ 
+            success: true, 
+            redirectUrl: "/cliente/entradas" 
         });
     } catch (error) {
         console.error("Error al procesar el pago:", error);
-        res.redirect("/cliente/carrito");
+        return res.status(500).json({ error: "❌ Error al procesar la transacción." });
     }
 });
 
 router.get("/entradas", async (req, res) => {
     try {
         const usuarioId = req.session.usuario._id || req.session.usuario.id;
+        
+        // Búsqueda robusta asegurando la relación con el evento y su sala
         const entradas = await Entrada.find({ usuario: usuarioId })
-            .populate({ path: "evento", populate: { path: "sala" } })
+            .populate({ 
+                path: "evento", 
+                populate: { path: "sala" } 
+            })
             .sort({ fechaCompra: -1 });
 
-        res.render("cliente/mis-entradas", { usuario: req.session.usuario, entradas });
+        res.render("cliente/mis-entradas", { 
+            usuario: req.session.usuario, 
+            entradas: entradas || [] 
+        });
     } catch (error) {
-        console.error("Error al cargar entradas:", error);
-        res.redirect("/cliente/dashboard");
+        console.error("❌ Error detallado al cargar entradas:", error);
+        res.render("cliente/mis-entradas", { 
+            usuario: req.session.usuario, 
+            entradas: [] 
+        });
     }
 });
 
@@ -237,60 +220,30 @@ router.get("/perfil", (req, res) => {
     res.render("cliente/editar-perfil", { usuario: req.session.usuario, exito: null, error: null });
 });
 
-// ✏️ RUTA DE EDICIÓN DE PERFIL CON PERSISTENCIA Y RESTRICCIONES
 router.post("/perfil", async (req, res) => {
     try {
         const usuarioId = req.session.usuario._id || req.session.usuario.id;
         const { nombre, apellido, dni, correo, password } = req.body;
 
-        // Validaciones de presencia y longitud máxima (máx. 15 caracteres)
-        if (!nombre || nombre.trim().length > 15) {
-            return res.render("cliente/editar-perfil", {
-                usuario: req.session.usuario,
-                exito: null,
-                error: "⚠️ El nombre es obligatorio y no debe superar los 15 caracteres."
-            });
+        if (!nombre || nombre.trim().length > 15 || !apellido || apellido.trim().length > 15) {
+            return res.status(400).json({ error: "⚠️ El nombre y apellido no deben superar los 15 caracteres." });
         }
 
-        if (!apellido || apellido.trim().length > 15) {
-            return res.render("cliente/editar-perfil", {
-                usuario: req.session.usuario,
-                exito: null,
-                error: "⚠️ El apellido es obligatorio y no debe superar los 15 caracteres."
-            });
-        }
-
-        // Validación de solo letras
         const soloLetrasRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
         if (!soloLetrasRegex.test(nombre.trim()) || !soloLetrasRegex.test(apellido.trim())) {
-            return res.render("cliente/editar-perfil", {
-                usuario: req.session.usuario,
-                exito: null,
-                error: "⚠️ El nombre y el apellido deben contener únicamente letras."
-            });
+            return res.status(400).json({ error: "⚠️ El nombre y apellido deben contener únicamente letras." });
         }
 
-        // Validar DNI duplicado
         const dniExistente = await Usuario.findOne({ _id: { $ne: usuarioId }, dni: dni.trim() });
         if (dniExistente) {
-            return res.render("cliente/editar-perfil", {
-                usuario: req.session.usuario,
-                exito: null,
-                error: "⚠️ El DNI ingresado ya se encuentra registrado por otro usuario."
-            });
+            return res.status(400).json({ error: "⚠️ El DNI ya se encuentra registrado por otro usuario." });
         }
 
-        // Validar correo duplicado
         const correoExistente = await Usuario.findOne({ _id: { $ne: usuarioId }, correo: correo.trim() });
         if (correoExistente) {
-            return res.render("cliente/editar-perfil", {
-                usuario: req.session.usuario,
-                exito: null,
-                error: "⚠️ El correo electrónico ingresado ya se encuentra registrado por otro usuario."
-            });
+            return res.status(400).json({ error: "⚠️ El correo electrónico ya se encuentra registrado." });
         }
 
-        // Preparar objeto con los datos a actualizar
         const datosActualizados = {
             nombre: nombre.trim(),
             apellido: apellido.trim(),
@@ -302,28 +255,18 @@ router.post("/perfil", async (req, res) => {
             datosActualizados.password = password;
         }
 
-        // Guardar cambios en MongoDB
         const usuarioActualizado = await Usuario.findByIdAndUpdate(
             usuarioId,
             datosActualizados,
             { new: true }
         );
 
-        // Actualizar datos guardados en la sesión activa
         req.session.usuario = usuarioActualizado;
 
-        res.render("cliente/editar-perfil", {
-            usuario: req.session.usuario,
-            exito: "✅ Tus datos han sido actualizados con éxito.",
-            error: null
-        });
+        return res.status(200).json({ mensaje: "✅ Tus datos han sido actualizados con éxito." });
     } catch (error) {
         console.error("Error al actualizar perfil:", error);
-        res.render("cliente/editar-perfil", {
-            usuario: req.session.usuario,
-            exito: null,
-            error: "❌ Ocurrió un error al intentar guardar tus datos."
-        });
+        return res.status(500).json({ error: "❌ Ocurrió un error al intentar guardar tus datos." });
     }
 });
 

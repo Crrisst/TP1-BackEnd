@@ -1,19 +1,24 @@
 import crypto from "node:crypto";
-globalThis.crypto = crypto; // Soluciona el error de criptografía de MongoDB en Node 18[cite: 18, 35]
+globalThis.crypto = crypto; // Soluciona el error de criptografía de MongoDB en Node 18[cite: 18]
 
+import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
 import mongoose from "mongoose";
 
-// Importar rutas modularizadas
+dotenv.config();
+
+// Importar rutas modularizadas desde la ruta correcta (routes/)[cite: 18]
 import adminRoutes from "./routes/admin.routes.js";
-import clienteRoutes from "./routes/cliente.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import clienteRoutes from "./routes/cliente.routes.js";
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
+// Middlewares obligatorios para formularios tradicionales y peticiones Fetch (JSON)
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.json()); 
 app.set("view engine", "pug");
 
 app.use(session({
@@ -22,12 +27,12 @@ app.use(session({
     saveUninitialized: false
 }));
 
-// Montaje de rutas[cite: 35]
+// Montaje de rutas
 app.use("/auth", authRoutes);       
 app.use("/admin", adminRoutes);     
 app.use("/cliente", clienteRoutes); 
 
-// Ruta Raíz: Redirige al Login por seguridad[cite: 35]
+// Ruta Raíz: Redirige al Login por seguridad
 app.get("/", (req, res) => {
     res.redirect("/auth/login");
 });
@@ -46,17 +51,16 @@ app.get("/logout", (req, res) => {
     });
 });
 
-// Redirección de compatibilidad para evitar el error Cannot GET /auth/logout
 app.get("/auth/logout", (req, res) => {
     res.redirect("/logout");
 });
 
-// Conexión directa a MongoDB y arranque del servidor[cite: 35]
-mongoose.connect("mongodb://127.0.0.1:27017/urbana_cult")
+// Conexión directa a MongoDB y arranque del servidor
+mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/urbana_cult")
     .then(() => {
         console.log("🟢 Conectado a MongoDB con éxito");
-        app.listen(3000, () => {
-            console.log("🚀 Servidor corriendo en http://localhost:3000");
+        app.listen(PORT, () => {
+            console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
         });
     })
     .catch(err => console.error("🔴 Error al conectar a MongoDB:", err));

@@ -21,33 +21,28 @@ html(lang="es")
         a(href="/cliente/perfil" style="color: #2563eb; text-decoration: none; font-weight: bold; font-size: 14px;") ⚙️ Mi Perfil
         a(href="/logout" style="background: #ef4444; color: white; padding: 6px 12px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold;") Cerrar Sesión
 
-    if exito
-      div(style="background-color: #d1e7dd; color: #0f5132; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #badbcc; font-weight: bold;")
-        = exito
-
-    if error
-      div(style="background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f5c6cb; font-weight: bold;")
-        = error
+    div#alertaExito(style="display: none; background-color: #d1e7dd; color: #0f5132; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #badbcc; font-weight: bold;")
+    div#alertaError(style="display: none; background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f5c6cb; font-weight: bold;")
 
     div(style="background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
       h3(style="margin-top: 0; color: #2c3e50; margin-bottom: 20px;") ⚙️ Editar Mis Datos Personales
       
-      form(action="/cliente/perfil" method="POST")
+      form#formPerfil
         div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;")
           div
             label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Nombre (máx. 15 caracteres):
-            input(type="text" name="nombre" value=usuario.nombre maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+            input#nombre(type="text" name="nombre" value=usuario.nombre maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
           div
             label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Apellido (máx. 15 caracteres):
-            input(type="text" name="apellido" value=usuario.apellido maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+            input#apellido(type="text" name="apellido" value=usuario.apellido maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
         div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;")
           div
             label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") DNI (7 a 8 dígitos):
-            input(type="text" name="dni" maxlength="8" value=usuario.dni required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+            input#dni(type="text" name="dni" maxlength="8" value=usuario.dni required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
           div
             label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Correo Electrónico:
-            input(type="email" name="correo" value=usuario.correo required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+            input#correo(type="email" name="correo" value=usuario.correo required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
         div(style="margin-bottom: 15px;")
           label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Nombre de Usuario (Username - No modificable):
@@ -55,8 +50,46 @@ html(lang="es")
 
         div(style="margin-bottom: 25px;")
           label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Nueva Contraseña (Opcional - Dejar en blanco para mantener la actual):
-          input(type="password" name="password" placeholder="••••••••" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+          input#password(type="password" name="password" placeholder="••••••••" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
         div(style="display: flex; gap: 10px;")
           button(type="submit" style="background-color: #2563eb; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;") 💾 Guardar Cambios
           a(href="/cliente/dashboard" style="background-color: #94a3b8; color: white; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;") ⬅️ Volver
+
+    script.
+      document.getElementById('formPerfil').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const divExito = document.getElementById('alertaExito');
+        const divError = document.getElementById('alertaError');
+        divExito.style.display = 'none';
+        divError.style.display = 'none';
+
+        const datos = {
+          nombre: document.getElementById('nombre').value,
+          apellido: document.getElementById('apellido').value,
+          dni: document.getElementById('dni').value,
+          correo: document.getElementById('correo').value,
+          password: document.getElementById('password').value
+        };
+
+        try {
+          const res = await fetch('/cliente/perfil', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+          });
+          const resultado = await res.json();
+
+          if (!res.ok) {
+            divError.style.display = 'block';
+            divError.textContent = resultado.error || '❌ Error al actualizar.';
+          } else {
+            divExito.style.display = 'block';
+            divExito.textContent = resultado.mensaje || '✅ Datos actualizados con éxito.';
+            document.getElementById('password').value = ''; // Limpiar contraseña por seguridad
+          }
+        } catch (err) {
+          divError.style.display = 'block';
+          divError.textContent = '❌ Error de conexión con el servidor.';
+        }
+      });

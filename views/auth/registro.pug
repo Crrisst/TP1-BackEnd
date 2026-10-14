@@ -10,43 +10,42 @@ html(lang="es")
         h2(style="margin: 0; color: #2c3e50;") 🎭 Urbana Cult
         p(style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;") Crea tu cuenta de cliente en segundos
 
-      if error
-        div(style="background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; font-weight: bold;")= error
+      div#mensajeAlerta(style="display: none; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; font-weight: bold;")
 
-      form(action="/auth/registro" method="POST" style="display: flex; flex-direction: column; gap: 15px;")
+      form#formRegistro(style="display: flex; flex-direction: column; gap: 15px;")
         <div>
           label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Nombre (Solo letras, máx. 15)
-          input(type="text" name="nombre" value=(datos ? datos.nombre : '') placeholder="Ej. Juan" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+" maxlength="15" title="El nombre solo debe contener letras y máximo 15 caracteres" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\\s]/g, '')")
+          input#nombre(type="text" name="nombre" placeholder="Ej. Juan" maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
         </div>
 
         <div>
           label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Apellido (Solo letras, máx. 15)
-          input(type="text" name="apellido" value=(datos ? datos.apellido : '') placeholder="Ej. Pérez" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+" maxlength="15" title="El apellido solo debe contener letras y máximo 15 caracteres" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\\s]/g, '')")
+          input#apellido(type="text" name="apellido" placeholder="Ej. Pérez" maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
         </div>
 
         <div>
           label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") DNI (7 u 8 dígitos numéricos)
-          input(type="text" name="dni" value=(datos ? datos.dni : '') placeholder="Ej. 35123456" pattern="\\d{7,8}" maxlength="8" title="Ingrese entre 7 y 8 números" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;" oninput="this.value = this.value.replace(/[^0-9]/g, '')")
+          input#dni(type="text" name="dni" placeholder="Ej. 35123456" maxlength="8" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
         </div>
 
         <div>
           label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Correo Electrónico
-          input(type="email" name="correo" value=(datos ? datos.correo : '') placeholder="correo@ejemplo.com" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
+          input#correo(type="email" name="correo" placeholder="correo@ejemplo.com" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
         </div>
 
         <div>
           label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Fecha de Cumpleaños (+18 años)
-          input(type="date" name="cumpleaños" value=(datos ? datos.cumpleaños : '') required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
+          input#cumpleanos(type="date" name="cumpleaños" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
         </div>
 
         <div>
-          label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Nombre de Usuario (Username, máx. 30)
-          input(type="text" name="username" value=(datos ? datos.username : '') placeholder="juanperez" maxlength="30" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
+          label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Nombre de Usuario (Username)
+          input#username(type="text" name="username" placeholder="juanperez" maxlength="30" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
         </div>
 
         <div>
           label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Contraseña
-          input(type="password" name="password" placeholder="••••••••" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
+          input#password(type="password" name="password" placeholder="••••••••" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
         </div>
 
         <button type="submit" style="background: #2563eb; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px; width: 100%;">Registrarse</button>
@@ -57,3 +56,46 @@ html(lang="es")
         <a href="/auth/login" style="color: #2563eb; text-decoration: none; font-weight: bold;">Iniciar Sesión</a>
       </div>
     </div>
+
+    script.
+      document.getElementById("formRegistro").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const alerta = document.getElementById("mensajeAlerta");
+        alerta.style.display = "none";
+
+        const datos = {
+          nombre: document.getElementById("nombre").value,
+          apellido: document.getElementById("apellido").value,
+          dni: document.getElementById("dni").value,
+          correo: document.getElementById("correo").value,
+          cumpleaños: document.getElementById("cumpleanos").value,
+          username: document.getElementById("username").value,
+          password: document.getElementById("password").value
+        };
+
+        try {
+          const res = await fetch("/auth/registro", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(datos)
+          });
+          const resultado = await res.json();
+
+          alerta.style.display = "block";
+          if (!res.ok) {
+            alerta.style.background = "#fee2e2";
+            alerta.style.color = "#991b1b";
+            alerta.textContent = resultado.error || "⚠️ Error al registrarse.";
+          } else {
+            alerta.style.background = "#d1e7dd";
+            alerta.style.color = "#0f5132";
+            alerta.textContent = "✅ ¡Registro exitoso! Redirigiendo...";
+            setTimeout(() => { window.location.href = resultado.redirectUrl || "/auth/login"; }, 1500);
+          }
+        } catch (err) {
+          alerta.style.display = "block";
+          alerta.style.background = "#fee2e2";
+          alerta.style.color = "#991b1b";
+          alerta.textContent = "❌ Error al conectar con el servidor.";
+        }
+      });

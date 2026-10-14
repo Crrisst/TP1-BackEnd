@@ -5,58 +5,49 @@ html(lang="es")
     title Gestión de Salas - Panel
   body(style="font-family: sans-serif; padding: 30px; max-width: 1000px; margin: auto; background-color: #f4f6f9;")
     
-    //- Encabezado
     div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
       h2(style="margin: 0; color: #2c3e50;") 🏢 Gestión de Salas
       a(href="/admin" style="background: #007bff; color: white; padding: 10px 18px; border-radius: 5px; text-decoration: none; font-size: 14px; font-weight: bold;") ⬅️ Volver al Panel
 
-    if exito
-      div(style="background-color: #d1e7dd; color: #0f5132; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #badbcc; font-weight: bold;")
-        = exito
+    div#alertaSala(style="display: none; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-weight: bold;")
 
-    if error
-      div(style="background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f5c6cb; font-weight: bold;")
-        = error
-
-    //- 🔒 Formulario de Alta de Sala (Acción corregida a /admin/salas)
     if usuarioLogueado && ['Admin', 'Administrador', 'Supervisor'].includes(usuarioLogueado.rol)
       div(style="background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 30px;")
         h3(style="margin-top: 0; color: #2c3e50;") Cargar Nueva Sala
 
-        form(action="/admin/salas" method="POST")
+        form#formSala
           div(style="display: flex; gap: 15px; margin-bottom: 15px;")
             div(style="flex: 2;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Nombre de la Sala
-              input(type="text" name="nombre" value=(datos && datos.nombre ? datos.nombre : '') placeholder="Ej. Sala A - Teatro Principal" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input#nombreSala(type="text" name="nombre" placeholder="Ej. Sala A" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Capacidad Total
-              input(type="number" name="capacidad" min="1" value=(datos && datos.capacidad ? datos.capacidad : '') placeholder="Ej. 100" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input#capacidadSala(type="number" name="capacidad" min="1" placeholder="Ej. 100" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 2;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Ubicación
-              input(type="text" name="ubicacion" value=(datos && datos.ubicacion ? datos.ubicacion : '') placeholder="Ej. Planta Baja / Sector Norte" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input#ubicacionSala(type="text" name="ubicacion" placeholder="Ej. Planta Baja" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
           div(style="margin-bottom: 15px;")
             label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Descripción
-            textarea(name="descripcion" rows="2" placeholder="Breve detalle de las instalaciones, sonido e iluminación..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")=(datos && datos.descripcion ? datos.descripcion : '')
+            textarea#descSala(name="descripcion" rows="2" placeholder="Detalle..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
           div(style="display: flex; gap: 15px; margin-bottom: 20px; background-color: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0;")
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 12px; margin-bottom: 5px; color: #475569;") Sector General
-              input(type="number" name="general" min="0" value=(datos && datos.general !== undefined ? datos.general : '0') placeholder="0" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;")
+              input#general(type="number" name="general" min="0" value="0" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;")
 
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 12px; margin-bottom: 5px; color: #475569;") Sector Platea
-              input(type="number" name="platea" min="0" value=(datos && datos.platea !== undefined ? datos.platea : '0') placeholder="0" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;")
+              input#platea(type="number" name="platea" min="0" value="0" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;")
 
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 12px; margin-bottom: 5px; color: #475569;") Sector VIP
-              input(type="number" name="vip" min="0" value=(datos && datos.vip !== undefined ? datos.vip : '0') placeholder="0" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;")
+              input#vip(type="number" name="vip" min="0" value="0" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;")
 
           button(type="submit" style="background-color: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;") ➕ Crear Sala
 
-    //- 👁️ Listado General de Salas
     div(style="background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
       h3(style="margin-top: 0; color: #2c3e50;") 📋 Listado de Salas Registradas
       
@@ -67,21 +58,93 @@ html(lang="es")
               th(style="padding: 10px; border-bottom: 2px solid #cbd5e1;") Nombre
               th(style="padding: 10px; border-bottom: 2px solid #cbd5e1;") Ubicación
               th(style="padding: 10px; border-bottom: 2px solid #cbd5e1;") Capacidad
-              th(style="padding: 10px; border-bottom: 2px solid #cbd5e1;") Zonas (G / P / V)
               if usuarioLogueado && ['Admin', 'Administrador', 'Supervisor'].includes(usuarioLogueado.rol)
                 th(style="padding: 10px; border-bottom: 2px solid #cbd5e1; text-align: center;") Acciones
           tbody
             each s in salas
-              tr(style="border-bottom: 1px solid #e2e8f0; font-size: 13px;")
+              tr(id=`fila-sala-${s._id}` style="border-bottom: 1px solid #e2e8f0; font-size: 13px;")
                 td(style="padding: 10px; font-weight: bold; color: #1e293b;")= s.nombre
                 td(style="padding: 10px; color: #475569;")= s.ubicacion
                 td(style="padding: 10px; font-weight: bold; color: #0284c7;")= s.capacidad
-                td(style="padding: 10px; color: #475569;")= ((s.zonas && s.zonas.General) || 0) + ' / ' + ((s.zonas && s.zonas.Platea) || 0) + ' / ' + ((s.zonas && s.zonas.VIP) || 0)
                 
                 if usuarioLogueado && ['Admin', 'Administrador', 'Supervisor'].includes(usuarioLogueado.rol)
                   td(style="padding: 10px; text-align: center;")
-                    div(style="display: flex; justify-content: center; gap: 8px;")
-                      form(action=`/admin/salas/eliminar/${s._id}` method="POST" style="margin: 0;" onsubmit="return confirm('¿Estás seguro de eliminar esta sala?');")
-                        button(type="submit" style="background-color: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;") 🗑️ Eliminar
+                    button.btnEliminarSala(data-id=s._id style="background-color: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;") 🗑️ Eliminar
       else
         p(style="color: #64748b; text-align: center; padding: 20px;") No hay salas registradas en este momento.
+
+    script.
+      document.getElementById("formSala").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const alerta = document.getElementById("alertaSala");
+        alerta.style.display = "none";
+
+        const capacidadTotal = Number(document.getElementById("capacidadSala").value);
+        const general = Number(document.getElementById("general").value) || 0;
+        const platea = Number(document.getElementById("platea").value) || 0;
+        const vip = Number(document.getElementById("vip").value) || 0;
+        const sumaZonas = general + platea + vip;
+
+        // Validación en el cliente para verificar la capacidad y los sectores
+        if (sumaZonas !== capacidadTotal) {
+          alerta.style.display = "block";
+          alerta.style.background = "#f8d7da";
+          alerta.style.color = "#721c24";
+          alerta.textContent = `⚠️ La capacidad total (${capacidadTotal}) no coincide con la suma de los sectores (${sumaZonas}: General + Platea + VIP).`;
+          return;
+        }
+
+        const body = {
+          nombre: document.getElementById("nombreSala").value,
+          capacidad: capacidadTotal,
+          ubicacion: document.getElementById("ubicacionSala").value,
+          descripcion: document.getElementById("descSala").value,
+          general,
+          platea,
+          vip
+        };
+
+        try {
+          const res = await fetch("/admin/salas", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+          });
+          
+          const data = await res.json();
+          alerta.style.display = "block";
+
+          if (res.ok) {
+            alerta.style.background = "#d1e7dd"; 
+            alerta.style.color = "#0f5132";
+            alerta.textContent = "✅ " + (data.mensaje || "Sala creada correctamente.");
+            setTimeout(() => location.reload(), 1000);
+          } else {
+            alerta.style.background = "#f8d7da"; 
+            alerta.style.color = "#721c24";
+            alerta.textContent = data.error || "⚠️ Error al crear la sala.";
+          }
+        } catch (err) {
+          console.error("Error detallado:", err);
+          alerta.style.display = "block";
+          alerta.style.background = "#f8d7da";
+          alerta.style.color = "#721c24";
+          alerta.textContent = "❌ Error de conexión con el servidor.";
+        }
+      });
+
+      document.addEventListener("click", async (e) => {
+        if (e.target && e.target.classList.contains("btnEliminarSala")) {
+          if (!confirm("¿Estás seguro de eliminar esta sala?")) return;
+          const id = e.target.getAttribute("data-id");
+          try {
+            const res = await fetch(`/admin/salas/eliminar/${id}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" }
+            });
+            if (res.ok) {
+              document.getElementById(`fila-sala-${id}`).remove();
+            }
+          } catch (err) { console.error(err); }
+        }
+      });

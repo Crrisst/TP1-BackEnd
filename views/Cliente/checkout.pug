@@ -10,8 +10,7 @@ html(lang="es")
         h2(style="margin: 0; color: #2c3e50;") 💳 Checkout / Pago
         if usuario
           div(style="display: flex; align-items: center; gap: 10px; margin-top: 5px;")
-            p(style="margin: 0; font-size: 14px; color: #64748b;") ¡Hola, #{usuario.nombre}
-            span(style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;") #{usuario.rol}
+            p(style="margin: 0; font-size: 14px; color: #64748b;") ¡Hola, #{usuario.nombre}!
       
       div(style="display: flex; gap: 15px; align-items: center;")
         a(href="/cliente/dashboard" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🏠 Inicio
@@ -23,8 +22,7 @@ html(lang="es")
 
     div(style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
       
-      if error
-        div(style="background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; font-weight: bold;")= error
+      div#mensajeError(style="display: none; background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; font-weight: bold;")
 
       div(style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px;")
         
@@ -43,30 +41,65 @@ html(lang="es")
 
         <div>
           h3(style="margin-top: 0; color: #2c3e50; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;") Datos de Tarjeta
-          form(action="/cliente/checkout/procesar" method="POST" style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;")
+          form#formCheckout(style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;")
             <div>
-              label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Nombre en la Tarjeta (Solo letras)
-              input(type="text" name="nombre" placeholder="Ej. Juan Pérez" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+" title="El nombre solo debe contener letras" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
+              label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Nombre en la Tarjeta
+              input#nombre(type="text" name="nombre" placeholder="Ej. Juan Pérez" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
             </div>
 
             <div>
-              label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Número de Tarjeta (Solo números, 13 a 16 dígitos)
-              input(type="text" name="tarjetaNumero" placeholder="4532XXXXXXXXXXXX" pattern="\\d{13,16}" maxlength="16" title="Ingrese entre 13 y 16 números" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
+              label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Número de Tarjeta (13 a 16 dígitos)
+              input#tarjetaNumero(type="text" name="tarjetaNumero" placeholder="4532XXXXXXXXXXXX" maxlength="16" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
             </div>
 
             <div style="display: flex; gap: 10px;">
               <div style="flex: 1;">
                 label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Expiración (MM/AA)
-                input(type="text" name="tarjetaExpiracion" placeholder="12/28" pattern="(0[1-9]|1[0-2])\\/([0-9]{2})" maxlength="5" title="Formato MM/AA requerido" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
+                input#tarjetaExpiracion(type="text" name="tarjetaExpiracion" placeholder="12/28" maxlength="5" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
               </div>
               <div style="flex: 1;">
                 label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") CVV (3 o 4 números)
-                input(type="password" name="tarjetaCvv" placeholder="123" pattern="\\d{3,4}" maxlength="4" title="El CVV debe ser de 3 o 4 dígitos numéricos" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
+                input#tarjetaCvv(type="password" name="tarjetaCvv" placeholder="123" maxlength="4" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
               </div>
             </div>
 
-            <button type="submit" style="background: #16a34a; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px; width: 100%;">Confirmar y Pagar</button>
+            <button type="submit" style="background: #16a34a; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px; width: 100%;">Confirmar y Pagar con Fetch</button>
           </form>
         </div>
 
       </div>
+
+    script.
+      document.getElementById('formCheckout').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errorDiv = document.getElementById('mensajeError');
+        errorDiv.style.display = 'none';
+
+        const payload = {
+          nombre: document.getElementById('nombre').value,
+          tarjetaNumero: document.getElementById('tarjetaNumero').value,
+          tarjetaExpiracion: document.getElementById('tarjetaExpiracion').value,
+          tarjetaCvv: document.getElementById('tarjetaCvv').value
+        };
+
+        try {
+          const respuesta = await fetch('/cliente/checkout/procesar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await respuesta.json();
+
+          if (!respuesta.ok) {
+            errorDiv.style.display = 'block';
+            errorDiv.textContent = data.error || '⚠️ Error al procesar el pago.';
+          } else {
+            // Redirigir a la vista de éxito / mis entradas
+            window.location.href = data.redirectUrl || '/cliente/entradas';
+          }
+        } catch (err) {
+          errorDiv.style.display = 'block';
+          errorDiv.textContent = '❌ Error al conectar con el servidor.';
+        }
+      });

@@ -11,15 +11,16 @@ html(lang="es")
         h2(style="margin: 0; color: #2c3e50;") 🎭 Urbana Cult
         if usuario
           div(style="display: flex; align-items: center; gap: 10px; margin-top: 5px;")
-            p(style="margin: 0; font-size: 14px; color: #64748b;") ¡Hola, #{usuario.nombre}!
+            p(style="margin: 0; font-size: 14px; color: #64748b;") ¡Hola, #{usuario.nombre} #{usuario.apellido} 
+              span(style="color: #94a3b8;") (@#{usuario.username})
+              | !
             span(style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;") #{usuario.rol}
       
       div(style="display: flex; gap: 15px; align-items: center;")
         a(href="/cliente/dashboard" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🏠 Inicio
         a(href="/cliente/cartelera" style="color: #2563eb; text-decoration: none; font-weight: bold; font-size: 14px;") 🎭 Cartelera
         a(href="/cliente/carrito" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🛒 Carrito 
-          if cantidadCarrito && cantidadCarrito > 0
-            span(style="background: #2563eb; color: white; padding: 2px 6px; border-radius: 50%; font-size: 11px; margin-left: 4px;")= cantidadCarrito
+          span#contadorCarrito(style=`background: #2563eb; color: white; padding: 2px 6px; border-radius: 50%; font-size: 11px; margin-left: 4px; display: ${cantidadCarrito && cantidadCarrito > 0 ? 'inline-block' : 'none'};`)= cantidadCarrito || 0
         a(href="/cliente/entradas" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🎫 Mis Entradas
         a(href="/cliente/perfil" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") ⚙️ Mi Perfil
         a(href="/logout" style="background: #ef4444; color: white; padding: 6px 12px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold;") Cerrar Sesión
@@ -27,13 +28,12 @@ html(lang="es")
     //- Contenedor Principal
     div(style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
       
-      //- Banner superior flotante si hay elementos en el carrito
-      if cantidadCarrito && cantidadCarrito > 0
-        div(style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px 20px; border-radius: 6px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
-          div
-            p(style="margin: 0; color: #1e40af; font-weight: bold; font-size: 14px;") 🛒 ¡Has agregado #{cantidadCarrito} entrada(s) al carrito!
-            p(style="margin: 2px 0 0 0; color: #3b82f6; font-size: 12px;") Puedes continuar seleccionando más eventos o ir directo al pago.
-          a(href="/cliente/carrito" style="background: #2563eb; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 2px 4px rgba(37,99,235,0.2);") 💳 Ir a Pagar / Ver Carrito
+      //- Banner superior flotante dinámico con Fetch
+      div#bannerCarrito(style=`background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px 20px; border-radius: 6px; margin-bottom: 25px; display: ${cantidadCarrito && cantidadCarrito > 0 ? 'flex' : 'none'}; justify-content: space-between; align-items: center; transition: all 0.3s ease;`)
+        div
+          p(style="margin: 0; color: #1e40af; font-weight: bold; font-size: 14px;") 🛒 ¡Has agregado <span id="textoCantidadBanner">#{cantidadCarrito || 0}</span> entrada(s) al carrito!
+          p(style="margin: 2px 0 0 0; color: #3b82f6; font-size: 12px;") Puedes continuar seleccionando más eventos o ir directo al pago.
+        a(href="/cliente/carrito" style="background: #2563eb; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 2px 4px rgba(37,99,235,0.2);") 💳 Ir a Pagar / Ver Carrito
 
       h3(style="margin-top: 0; color: #2c3e50;") 🎭 Eventos Disponibles para Comprar
       
@@ -48,14 +48,67 @@ html(lang="es")
               p(style="margin: 5px 0; font-size: 1em; font-weight: bold; color: #16a34a;") 💵 Precio: $#{ev.precio}
               
               if usuario && usuario.rol === 'Cliente'
-                //- Calculamos cuántas veces se agregó este evento específico al carrito
                 - const cantidadEnCarrito = carritoIds ? carritoIds.filter(id => id.toString() === ev._id.toString()).length : 0
                 
-                form(action="/cliente/carrito/agregar" method="POST" style="margin-top: 15px;")
-                  input(type="hidden" name="eventoId" value=ev._id)
-                  button(type="submit" style="background: #10b981; color: white; border: none; padding: 10px 12px; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: transform 0.1s ease, background-color 0.2s;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'") 
+                div(style="margin-top: 15px;")
+                  button.btnAgregarCarrito(data-id=ev._id style="background: #10b981; color: white; border: none; padding: 10px 12px; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: transform 0.1s ease, background-color 0.2s;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'") 
                     span 🛒 Agregar al Carrito
-                    if cantidadEnCarrito > 0
-                      span(style="background: #065f46; color: #ffffff; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;") #{cantidadEnCarrito}
+                    span.badgeItem(style=`background: #065f46; color: #ffffff; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; display: ${cantidadEnCarrito > 0 ? 'inline-block' : 'none'};`) #{cantidadEnCarrito}
       else
         p(style="color: #64748b; text-align: center; padding: 20px;") No hay eventos disponibles en este momento.
+
+    script.
+      document.addEventListener("click", async (e) => {
+        const btn = e.target.closest(".btnAgregarCarrito");
+        if (!btn) return;
+
+        const eventoId = btn.getAttribute("data-id");
+        const badge = btn.querySelector(".badgeItem");
+        const contadorNavbar = document.getElementById("contadorCarrito");
+        const banner = document.getElementById("bannerCarrito");
+        const textoBanner = document.getElementById("textoCantidadBanner");
+
+        // Efecto visual rápido de carga en el botón
+        const spanTexto = btn.querySelector("span:first-child");
+        const textoOriginal = spanTexto.textContent;
+        spanTexto.textContent = "Agregando...";
+        btn.style.opacity = "0.7";
+
+        try {
+          const res = await fetch("/cliente/carrito/agregar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ eventoId })
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            // Actualizar badge individual del evento
+            let cantidadActual = parseInt(badge.textContent || "0");
+            badge.textContent = cantidadActual + 1;
+            badge.style.display = "inline-block";
+
+            // Actualizar contador global del navbar
+            if (contadorNavbar && data.cantidadCarrito !== undefined) {
+              contadorNavbar.textContent = data.cantidadCarrito;
+              contadorNavbar.style.display = "inline-block";
+            }
+
+            // Mostrar u actualizar el banner flotante superior
+            if (banner && textoBanner) {
+              textoBanner.textContent = data.cantidadCarrito;
+              banner.style.display = "flex";
+            }
+          } else {
+            alert(data.error || "No se pudo agregar al carrito.");
+          }
+        } catch (err) {
+          console.error("Error al agregar:", err);
+          alert("Ocurrió un error de conexión.");
+        } finally {
+          // Restaurar botón
+          spanTexto.textContent = textoOriginal;
+          btn.style.opacity = "1";
+        }
+      });

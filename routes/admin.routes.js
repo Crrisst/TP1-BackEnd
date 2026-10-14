@@ -11,7 +11,7 @@ const esAdmin = (req, res, next) => {
     if (req.session.usuario && (req.session.usuario.rol === "Admin" || req.session.usuario.rol === "Administrador")) {
         return next();
     }
-    res.redirect("/auth/login");
+    return res.status(401).json({ error: "No autorizado" });
 };
 
 router.use(esAdmin);
@@ -68,17 +68,10 @@ router.post("/usuarios", validarUsuario, async (req, res) => {
         });
 
         await nuevoUsuario.save();
-        res.redirect("/admin/usuarios");
+        return res.status(200).json({ success: true, mensaje: "Usuario creado con éxito." });
     } catch (error) {
         console.error(error);
-        const usuarios = await Usuario.find();
-        res.render("admin/usuarios", {
-            usuario: req.session.usuario,
-            usuarios,
-            editUsuario: null,
-            datos: req.body,
-            error: "⚠️ Error al registrar el usuario."
-        });
+        return res.status(400).json({ error: "⚠️ Error al registrar el usuario. Verifique los datos." });
     }
 });
 
@@ -89,63 +82,39 @@ router.post("/usuarios/editar/:id", async (req, res) => {
 
         const dniDuplicado = await Usuario.findOne({ _id: { $ne: id }, dni });
         if (dniDuplicado) {
-            const usuarios = await Usuario.find();
-            const editUsuario = await Usuario.findById(id);
-            return res.render("admin/usuarios", {
-                usuario: req.session.usuario, usuarios, editUsuario, datos: req.body,
-                error: "⚠️ El DNI ingresado ya pertenece a otro usuario."
-            });
+            return res.status(400).json({ error: "⚠️ El DNI ingresado ya pertenece a otro usuario." });
         }
 
         const correoDuplicado = await Usuario.findOne({ _id: { $ne: id }, correo });
         if (correoDuplicado) {
-            const usuarios = await Usuario.find();
-            const editUsuario = await Usuario.findById(id);
-            return res.render("admin/usuarios", {
-                usuario: req.session.usuario, usuarios, editUsuario, datos: req.body,
-                error: "⚠️ El correo electrónico ingresado ya pertenece a otro usuario."
-            });
+            return res.status(400).json({ error: "⚠️ El correo electrónico ya pertenece a otro usuario." });
         }
 
         const usernameDuplicado = await Usuario.findOne({ _id: { $ne: id }, username });
         if (usernameDuplicado) {
-            const usuarios = await Usuario.find();
-            const editUsuario = await Usuario.findById(id);
-            return res.render("admin/usuarios", {
-                usuario: req.session.usuario, usuarios, editUsuario, datos: req.body,
-                error: "⚠️ El nombre de usuario (username) ya está siendo utilizado por otro usuario."
-            });
+            return res.status(400).json({ error: "⚠️ El nombre de usuario ya está en uso." });
         }
 
         const datosActualizados = { nombre, apellido, dni, correo, cumpleaños, username, rol };
-        
         if (password && password.trim() !== "") {
             datosActualizados.password = password;
         }
 
         await Usuario.findByIdAndUpdate(id, datosActualizados);
-        res.redirect("/admin/usuarios");
+        return res.status(200).json({ success: true, mensaje: "Usuario modificado con éxito." });
     } catch (error) { 
         console.error(error);
-        const usuarios = await Usuario.find();
-        const editUsuario = await Usuario.findById(req.params.id);
-        res.render("admin/usuarios", { 
-            usuario: req.session.usuario, 
-            usuarios, 
-            editUsuario,
-            datos: req.body,
-            error: "❌ Error al modificar los datos del usuario." 
-        });
+        return res.status(500).json({ error: "❌ Error al modificar los datos del usuario." });
     }
 });
 
 router.post("/usuarios/eliminar/:id", async (req, res) => {
     try {
         await Usuario.findByIdAndDelete(req.params.id);
-        res.redirect("/admin/usuarios");
+        return res.status(200).json({ success: true });
     } catch (error) {
         console.error(error);
-        res.redirect("/admin/usuarios");
+        return res.status(500).json({ error: "Error al eliminar usuario." });
     }
 });
 
@@ -172,11 +141,24 @@ router.post("/salas", validarSala, async (req, res) => {
     try {
         const { nombre, capacidad, ubicacion, descripcion, general, platea, vip } = req.body;
 
+        if (!nombre || !capacidad || !ubicacion) {
+            return res.status(400).json({ error: "⚠️ Complete los campos obligatorios de la sala." });
+        }
+
+        const capTotal = Number(capacidad);
+        const sumaZonas = (Number(general) || 0) + (Number(platea) || 0) + (Number(vip) || 0);
+
+        if (sumaZonas !== capTotal) {
+            return res.status(400).json({ 
+                error: `⚠️ La capacidad total (${capTotal}) no coincide con la suma de los sectores (${sumaZonas}: General + Platea + VIP).` 
+            });
+        }
+
         const nuevaSala = new Sala({
-            nombre,
-            capacidad: Number(capacidad),
-            ubicacion,
-            descripcion: descripcion || "",
+            nombre: nombre.trim(),
+            capacidad: capTotal,
+            ubicacion: ubicacion.trim(),
+            descripcion: descripcion ? descripcion.trim() : "",
             zonas: {
                 General: Number(general) || 0,
                 Platea: Number(platea) || 0,
@@ -185,27 +167,20 @@ router.post("/salas", validarSala, async (req, res) => {
         });
 
         await nuevaSala.save();
-        res.redirect("/admin/salas");
+        return res.status(200).json({ success: true, mensaje: "Sala creada con éxito." });
     } catch (error) {
-        console.error(error);
-        const salas = await Sala.find();
-        res.render("admin/salas", { 
-            usuarioLogueado: req.session.usuario, 
-            salas, 
-            datos: req.body, 
-            error: "⚠️ Error interno al registrar la sala.", 
-            exito: null 
-        });
+        console.error("Error al crear sala:", error);
+        return res.status(400).json({ error: "⚠️ Error al registrar la sala. Verifique que no esté duplicada." });
     }
 });
 
 router.post("/salas/eliminar/:id", async (req, res) => {
     try {
         await Sala.findByIdAndDelete(req.params.id);
-        res.redirect("/admin/salas");
+        return res.status(200).json({ success: true });
     } catch (error) {
         console.error(error);
-        res.redirect("/admin/salas");
+        return res.status(500).json({ error: "Error al eliminar sala." });
     }
 });
 
@@ -234,45 +209,72 @@ router.post("/eventos", validarEvento, async (req, res) => {
     try {
         const { titulo, artista, descripcion, sala, fecha, hora, precio } = req.body;
 
+        if (!titulo || !artista || !sala || !fecha || !hora || precio === undefined) {
+            return res.status(400).json({ error: "⚠️ Complete todos los campos obligatorios del evento." });
+        }
+
+        const precioNum = Number(precio);
+        if (isNaN(precioNum) || precioNum <= 1000) {
+            return res.status(400).json({ error: "⚠️ El precio del evento debe ser mayor a $1000." });
+        }
+
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+
+        const [anio, mes, dia] = fecha.split("-").map(Number);
+        const fechaEvento = new Date(anio, mes - 1, dia);
+        fechaEvento.setHours(0, 0, 0, 0);
+
+        if (fechaEvento < hoy) {
+            return res.status(400).json({ error: "⚠️ La fecha del evento no puede ser anterior al día de hoy." });
+        }
+
+        if (fechaEvento.getTime() === hoy.getTime()) {
+            const [horasEv, minutosEv] = hora.split(":").map(Number);
+            const horaActual = new Date();
+            const minutosActualesTotal = horaActual.getHours() * 60 + horaActual.getMinutes();
+            const minutosEventoTotal = horasEv * 60 + minutosEv;
+
+            if (minutosEventoTotal < minutosActualesTotal) {
+                return res.status(400).json({ error: "⚠️ La hora del evento no puede ser anterior a la hora actual para el día de hoy." });
+            }
+        }
+
+        const salaExiste = await Sala.findById(sala);
+        if (!salaExiste) {
+            return res.status(400).json({ error: "⚠️ La sala seleccionada no es válida o ya no existe." });
+        }
+
         const nuevoEvento = new Evento({
-            titulo,
-            artista,
-            descripcion: descripcion || "",
+            titulo: titulo.trim(),
+            artista: artista.trim(),
+            descripcion: descripcion ? descripcion.trim() : "",
             sala,
             fecha,
             hora,
-            precio: Number(precio)
+            precio: precioNum
         });
 
         await nuevoEvento.save();
-        res.redirect("/admin/eventos");
+        return res.status(200).json({ success: true, mensaje: "Evento creado con éxito." });
     } catch (error) {
-        console.error(error);
-        const eventos = await Evento.find().populate("sala");
-        const salas = await Sala.find();
-        res.render("admin/eventos", { 
-            usuario: req.session.usuario, 
-            eventos, 
-            salas, 
-            datos: req.body, 
-            error: "⚠️ Error al registrar el evento en la base de datos.", 
-            exito: null 
-        });
+        console.error("Error al crear evento:", error);
+        return res.status(400).json({ error: "⚠️ Error al registrar el evento en la base de datos." });
     }
 });
 
 router.post("/eventos/eliminar/:id", async (req, res) => {
     try {
         await Evento.findByIdAndDelete(req.params.id);
-        res.redirect("/admin/eventos");
+        return res.status(200).json({ success: true });
     } catch (error) {
         console.error(error);
-        res.redirect("/admin/eventos");
+        return res.status(500).json({ error: "Error al eliminar evento." });
     }
 });
 
 // ==========================================
-// 💳 GESTIÓN Y VISUALIZACIÓN DE TRANSACCIONES (CLIENTES)
+// 💳 TRANSACCIONES (CLIENTES)
 // ==========================================
 router.get("/transacciones", async (req, res) => {
     try {

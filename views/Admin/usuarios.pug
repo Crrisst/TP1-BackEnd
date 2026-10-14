@@ -1,102 +1,224 @@
-extends ../layout
-
-block contenido
-  div.nav
-    h2 👥 Gestión de Usuarios
-    a(href="/admin" style="background: #475569; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none;") ⬅️ Volver al Panel
-
-  hr
-
-  if error
-    div(style="background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f5c6cb; font-weight: bold;")
-      = error
-
-  div(style="background: #f8fafc; padding: 20px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 25px;")
-    h3(style="margin-top: 0; color: #1e293b;")= editUsuario ? '✏️ Modificar Datos del Usuario' : '➕ Registrar Nuevo Usuario'
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    title Gestión de Usuarios - Panel
+  body(style="font-family: sans-serif; padding: 30px; max-width: 1000px; margin: auto; background-color: #f4f6f9;")
     
-    form(action=editUsuario ? `/admin/usuarios/editar/${editUsuario._id}` : "/admin/usuarios" method="POST")
-      div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;")
-        div
-          label(style="font-weight: bold; font-size: 0.9em;") Nombre (Solo letras):
-          input#inputNombre(type="text" name="nombre" value=editUsuario ? editUsuario.nombre : (datos ? datos.nombre : '') placeholder="Ej. Juan" required)
-        div
-          label(style="font-weight: bold; font-size: 0.9em;") Apellido (Solo letras):
-          input#inputApellido(type="text" name="apellido" value=editUsuario ? editUsuario.apellido : (datos ? datos.apellido : '') placeholder="Ej. Pérez" required)
+    div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
+      h2(style="margin: 0; color: #2c3e50;") 👥 Gestión de Usuarios
+      a(href="/admin" style="background: #007bff; color: white; padding: 10px 18px; border-radius: 5px; text-decoration: none; font-size: 14px; font-weight: bold;") ⬅️ Volver al Panel
 
-      div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;")
-        div
-          label(style="font-weight: bold; font-size: 0.9em;") DNI (7 a 8 dígitos numéricos):
-          input#inputDni(type="text" name="dni" maxlength="8" value=editUsuario ? editUsuario.dni : (datos ? datos.dni : '') placeholder="Ej. 35123456" required)
-        div
-          label(style="font-weight: bold; font-size: 0.9em;") Correo Electrónico:
-          input(type="email" name="correo" value=editUsuario ? editUsuario.correo : (datos ? datos.correo : '') placeholder="ejemplo@correo.com" required)
+    div#alertaUsuario(style="display: none; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-weight: bold;")
 
-      div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;")
-        div
-          label(style="font-weight: bold; font-size: 0.9em;") Cumpleaños (Mayor de edad):
-          input(type="date" name="cumpleaños" value=editUsuario ? editUsuario.cumpleaños : (datos ? datos.cumpleaños : '') required)
-        div
-          label(style="font-weight: bold; font-size: 0.9em;") Nombre de Usuario (Username):
-          input(type="text" name="username" value=editUsuario ? editUsuario.username : (datos ? datos.username : '') placeholder="ej. juan_perez" required)
+    if usuario && (usuario.rol === 'Admin' || usuario.rol === 'Administrador')
+      div(style="background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 30px;")
+        h3(style="margin-top: 0; color: #2c3e50;") Cargar Nuevo Usuario
 
-      div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;")
-        div
-          label(style="font-weight: bold; font-size: 0.9em;") Contraseña #{editUsuario ? '(Opcional - Dejar en blanco para no cambiar)' : ''}:
-          input(type="password" name="password" placeholder="••••••••" required=!editUsuario)
-        div
-          label(style="font-weight: bold; font-size: 0.9em;") Rol en el Sistema:
-          select(name="rol" required style="background: white; padding: 8px; margin: 5px 0 15px 0; width: 100%; border: 1px solid #cbd5e1; border-radius: 4px;")
-            - const rolActual = editUsuario ? editUsuario.rol : (datos ? datos.rol : 'Cliente')
-            option(value="Cliente" selected=rolActual === 'Cliente') 👤 Cliente (Compra de entradas)
-            option(value="Admin" selected=rolActual === 'Admin') 🛠️ Administrador (Gestión total)
+        form#formUsuario
+          div(style="display: flex; gap: 15px; margin-bottom: 15px;")
+            div(style="flex: 1;")
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Nombre (Solo letras)
+              input#nombre(type="text" name="nombre" placeholder="Ej. Juan" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
-      div(style="margin-top: 15px;")
-        button(type="submit" style="padding: 10px 20px; font-weight: bold;")= editUsuario ? '💾 Guardar Cambios' : '➕ Crear Usuario'
-        if editUsuario
-          a(href="/admin/usuarios" style="margin-left: 10px; background: #94a3b8; color: white; padding: 10px 15px; border-radius: 4px; text-decoration: none; display: inline-block;") ❌ Cancelar
+            div(style="flex: 1;")
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Apellido (Solo letras)
+              input#apellido(type="text" name="apellido" placeholder="Ej. Pérez" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
-  hr
+            div(style="flex: 1;")
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") DNI (7 a 8 dígitos)
+              input#dni(type="text" name="dni" placeholder="Ej. 35123456" maxlength="8" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
-  h3(style="color: #1e293b;") 📋 Lista de Usuarios Registrados
-  
-  if usuarios.length > 0
-    each usr in usuarios
-      div.card(style="display: flex; justify-content: space-between; align-items: center; background: white; border-left: 4px solid " + (usr.rol === 'Admin' ? '#2563eb' : '#10b981') + ";")
-        div
-          h4(style="margin: 0 0 5px 0; color: #1e293b;") #{usr.nombre} #{usr.apellido}
-          p(style="margin: 2px 0; font-size: 0.9em; color: #64748b;") 
-            strong Usuario: 
-            | #{usr.username} | 
-            strong DNI: 
-            | #{usr.dni} | 
-            strong Correo: 
-            | #{usr.correo}
-          p(style="margin: 2px 0; font-size: 0.85em;")
-            span(style="background: " + (usr.rol === 'Admin' ? '#dbeafe' : '#d1fae5') + "; color: " + (usr.rol === 'Admin' ? '#1e40af' : '#065f46') + "; padding: 2px 8px; border-radius: 10px; font-weight: bold;") Rol: #{usr.rol}
-        
-        div(style="display: flex; gap: 8px;")
-          a(href=`/admin/usuarios?editar=${usr._id}` style="background: #e2e8f0; color: #334155; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 0.9em; font-weight: bold;") ✏️ Editar
+          div(style="display: flex; gap: 15px; margin-bottom: 15px;")
+            div(style="flex: 2;")
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Correo Electrónico
+              input#correo(type="email" name="correo" placeholder="correo@ejemplo.com" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+
+            div(style="flex: 1;")
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Fecha de Nacimiento
+              input#nacimiento(type="date" name="cumpleaños" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+
+          div(style="display: flex; gap: 15px; margin-bottom: 20px;")
+            div(style="flex: 1;")
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Usuario (Username)
+              input#username(type="text" name="username" placeholder="juanperez" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+
+            div(style="flex: 1;")
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Contraseña
+              input#password(type="password" name="password" placeholder="********" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+
+            div(style="flex: 1;")
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Rol
+              select#rol(name="rol" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; background: white;")
+                option(value="Cliente") Cliente
+                option(value="Supervisor") Supervisor
+                option(value="Admin") Admin
+
+          button(type="submit" style="background-color: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;") ➕ Registrar Usuario
+
+    div(style="background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
+      h3(style="margin-top: 0; color: #2c3e50;") 📋 Listado de Usuarios Registrados
+      
+      if usuarios && usuarios.length > 0
+        table(style="width: 100%; border-collapse: collapse; margin-top: 15px;")
+          thead
+            tr(style="background-color: #f1f5f9; text-align: left; font-size: 14px; color: #333;")
+              th(style="padding: 10px; border-bottom: 2px solid #cbd5e1;") Nombre y Apellido
+              th(style="padding: 10px; border-bottom: 2px solid #cbd5e1;") DNI
+              th(style="padding: 10px; border-bottom: 2px solid #cbd5e1;") Correo
+              th(style="padding: 10px; border-bottom: 2px solid #cbd5e1;") Rol
+              if usuario && (usuario.rol === 'Admin' || usuario.rol === 'Administrador')
+                th(style="padding: 10px; border-bottom: 2px solid #cbd5e1; text-align: center;") Acciones
+          tbody
+            each u in usuarios
+              tr(id=`fila-usuario-${u._id}` style="border-bottom: 1px solid #e2e8f0; font-size: 13px;")
+                td(style="padding: 10px; font-weight: bold; color: #1e293b;")= u.nombre + ' ' + u.apellido
+                td(style="padding: 10px; color: #475569;")= u.dni
+                td(style="padding: 10px; color: #475569;")= u.correo
+                td(style="padding: 10px; color: #0284c7; font-weight: bold;")= u.rol
+                
+                if usuario && (usuario.rol === 'Admin' || usuario.rol === 'Administrador')
+                  td(style="padding: 10px; text-align: center;")
+                    button.btnEliminarUsuario(data-id=u._id style="background-color: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;") 🗑️ Eliminar
+      else
+        p(style="color: #64748b; text-align: center; padding: 20px;") No hay usuarios registrados en este momento.
+
+    script.
+      const hoy = new Date();
+      const anioMax = hoy.getFullYear() - 18;
+      const mesMax = String(hoy.getMonth() + 1).padStart(2, '0');
+      const diaMax = String(hoy.getDate()).padStart(2, '0');
+      document.getElementById("nacimiento").max = `${anioMax}-${mesMax}-${diaMax}`;
+
+      // Restricción en vivo: Evita que escriban números o símbolos en nombre y apellido
+      const validarSoloLetrasInput = (e) => {
+        e.target.value = e.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '');
+      };
+      document.getElementById("nombre").addEventListener("input", validarSoloLetrasInput);
+      document.getElementById("apellido").addEventListener("input", validarSoloLetrasInput);
+
+      // Restricción en vivo: Evita que escriban letras en el DNI y limita a 8 dígitos
+      const dniInput = document.getElementById("dni");
+      dniInput.addEventListener("input", (e) => {
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 8);
+      });
+
+      document.getElementById("formUsuario").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const alerta = document.getElementById("alertaUsuario");
+        alerta.style.display = "none";
+
+        const nombre = document.getElementById("nombre").value.trim();
+        const apellido = document.getElementById("apellido").value.trim();
+        const dni = document.getElementById("dni").value.trim();
+        const correo = document.getElementById("correo").value.trim();
+        const cumpleaños = document.getElementById("nacimiento").value;
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+        const rol = document.getElementById("rol").value;
+
+        const soloLetrasRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+        if (!soloLetrasRegex.test(nombre) || !soloLetrasRegex.test(apellido)) {
+          alerta.style.display = "block";
+          alerta.style.background = "#f8d7da";
+          alerta.style.color = "#721c24";
+          alerta.textContent = "⚠️ El nombre y el apellido deben contener únicamente letras.";
+          return;
+        }
+
+        const dniRegex = /^\d{7,8}$/;
+        if (!dniRegex.test(dni)) {
+          alerta.style.display = "block";
+          alerta.style.background = "#f8d7da";
+          alerta.style.color = "#721c24";
+          alerta.textContent = "⚠️ El DNI debe ser numérico y tener exactamente 7 u 8 dígitos.";
+          return;
+        }
+
+        const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!correoRegex.test(correo)) {
+          alerta.style.display = "block";
+          alerta.style.background = "#f8d7da";
+          alerta.style.color = "#721c24";
+          alerta.textContent = "⚠️ El formato del correo electrónico no es válido.";
+          return;
+        }
+
+        const fechaNacimiento = new Date(cumpleaños);
+        if (isNaN(fechaNacimiento.getTime())) {
+          alerta.style.display = "block";
+          alerta.style.background = "#f8d7da";
+          alerta.style.color = "#721c24";
+          alerta.textContent = "⚠️ La fecha de nacimiento ingresada no es válida.";
+          return;
+        }
+
+        let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+        const diferenciaMeses = hoy.getMonth() - fechaNacimiento.getMonth();
+        if (diferenciaMeses < 0 || (diferenciaMeses === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
+          edad--;
+        }
+
+        if (edad < 18) {
+          alerta.style.display = "block";
+          alerta.style.background = "#f8d7da";
+          alerta.style.color = "#721c24";
+          alerta.textContent = "❌ El usuario debe ser mayor de edad (18 años o más) para registrarse.";
+          return;
+        }
+
+        const body = { nombre, apellido, dni, correo, cumpleaños, username, password, rol };
+
+        try {
+          const res = await fetch("/admin/usuarios", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+          });
           
-          form(action=`/admin/usuarios/eliminar/${usr._id}` method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este usuario?');" style="margin: 0;")
-            button(type="submit" style="background: #fee2e2; color: #b91c1c; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; font-weight: bold;") 🗑️ Eliminar
-  else
-    p(style="color: #64748b; font-style: italic;") No hay usuarios registrados en la base de datos.
+          const contentType = res.headers.get("content-type");
+          let data;
+          
+          if (contentType && contentType.includes("application/json")) {
+            data = await res.json();
+          } else {
+            const textoPlano = await res.text();
+            throw new Error(textoPlano || "Respuesta desconocida del servidor");
+          }
 
-  script.
-    const validarSoloLetras = (e) => {
-      const char = String.fromCharCode(e.keyCode || e.which);
-      if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/.test(char) && e.key !== "Backspace" && e.key !== "Tab" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
-        e.preventDefault();
-      }
-    };
+          alerta.style.display = "block";
 
-    const validarSoloNumeros = (e) => {
-      const char = String.fromCharCode(e.keyCode || e.which);
-      if (!/^\d*$/.test(char) && e.key !== "Backspace" && e.key !== "Tab" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
-        e.preventDefault();
-      }
-    };
+          if (res.ok) {
+            alerta.style.background = "#d1e7dd"; 
+            alerta.style.color = "#0f5132";
+            alerta.textContent = "✅ " + (data.mensaje || "Usuario registrado con éxito.");
+            setTimeout(() => location.reload(), 1000);
+          } else {
+            alerta.style.background = "#f8d7da"; 
+            alerta.style.color = "#721c24";
+            alerta.textContent = data.error || "⚠️ No se pudo registrar el usuario.";
+          }
+        } catch (err) {
+          console.error("Error detallado:", err);
+          alerta.style.display = "block";
+          alerta.style.background = "#f8d7da";
+          alerta.style.color = "#721c24";
+          alerta.textContent = "❌ Error: " + (err.message || "Fallo en la petición.");
+        }
+      });
 
-    document.getElementById('inputNombre').addEventListener('keypress', validarSoloLetras);
-    document.getElementById('inputApellido').addEventListener('keypress', validarSoloLetras);
-    document.getElementById('inputDni').addEventListener('keypress', validarSoloNumeros);
+      document.addEventListener("click", async (e) => {
+        if (e.target && e.target.classList.contains("btnEliminarUsuario")) {
+          if (!confirm("¿Estás seguro de eliminar este usuario?")) return;
+          const id = e.target.getAttribute("data-id");
+          try {
+            const res = await fetch(`/admin/usuarios/eliminar/${id}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" }
+            });
+            if (res.ok) {
+              document.getElementById(`fila-usuario-${id}`).remove();
+            }
+          } catch (err) { console.error(err); }
+        }
+      });

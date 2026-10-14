@@ -9,52 +9,46 @@ html(lang="es")
       h2(style="margin: 0; color: #2c3e50;") 🎭 Gestión de Eventos
       a(href="/admin" style="background: #007bff; color: white; padding: 10px 18px; border-radius: 5px; text-decoration: none; font-size: 14px; font-weight: bold;") ⬅️ Volver al Panel
 
-    if exito
-      div(style="background-color: #d1e7dd; color: #0f5132; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #badbcc; font-weight: bold;")
-        = exito
-
-    if error
-      div(style="background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f5c6cb; font-weight: bold;")
-        = error
+    div#alertaEstado(style="display: none; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-weight: bold;")
 
     if usuario && (usuario.rol === 'Admin' || usuario.rol === 'Administrador' || usuario.rol === 'Supervisor')
       div(style="background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 30px;")
         h3(style="margin-top: 0; color: #2c3e50;") Cargar Nuevo Evento
 
-        form(action="/admin/eventos" method="POST")
+        form#formEvento
           div(style="display: flex; gap: 20px; margin-bottom: 15px;")
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Título del Evento
-              input(type="text" name="titulo" value=(datos && datos.titulo ? datos.titulo : '') placeholder="Ej. Concierto de Rock" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input#titulo(type="text" name="titulo" placeholder="Ej. Concierto de Rock" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
-              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Artista / Compañía / Productora
-              input(type="text" name="artista" value=(datos && datos.artista ? datos.artista : '') placeholder="Ej. Banda Urbana o Prod. Central" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Artista / Compañía
+              input#artista(type="text" name="artista" placeholder="Ej. Banda Urbana" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
           div(style="display: flex; gap: 20px; margin-bottom: 15px;")
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Sala
-              select(name="sala" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; background: white;")
+              select#sala(name="sala" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; background: white;")
                 option(value="") Seleccionar Sala...
                 each sala in salas
-                  option(value=sala._id selected=(datos && datos.sala === sala._id.toString()))= sala.nombre + ' (Cap: ' + sala.capacidad + ')'
+                  option(value=sala._id)= sala.nombre + ' (Cap: ' + sala.capacidad + ')'
 
           div(style="margin-bottom: 15px;")
             label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Descripción
-            textarea(name="descripcion" rows="3" placeholder="Detalles o sinopsis del evento..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")= (datos && datos.descripcion ? datos.descripcion : '')
+            textarea#descripcion(name="descripcion" rows="3" placeholder="Detalles o sinopsis..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
           div(style="display: flex; gap: 15px; margin-bottom: 15px;")
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Fecha
-              input(type="date" name="fecha" value=(datos && datos.fecha ? datos.fecha : '') required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input#fecha(type="date" name="fecha" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Hora
-              input(type="time" name="hora" value=(datos && datos.hora ? datos.hora : '') required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input#hora(type="time" name="hora" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Precio ($)
-              input(type="number" name="precio" min="0" value=(datos && datos.precio !== undefined ? datos.precio : '') placeholder="Ej. 4500" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input#precio(type="number" name="precio" min="0" placeholder="Ej. 1500" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
           button(type="submit" style="background-color: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;") ➕ Crear Evento
 
@@ -70,23 +64,117 @@ html(lang="es")
               th(style="padding: 10px; border-bottom: 2px solid #cbd5e1;") Sala
               th(style="padding: 10px; border-bottom: 2px solid #cbd5e1;") Fecha y Hora
               th(style="padding: 10px; border-bottom: 2px solid #cbd5e1;") Precio
-              th(style="padding: 10px; border-bottom: 2px solid #cbd5e1;") Entradas Vendidas
               if usuario && (usuario.rol === 'Admin' || usuario.rol === 'Administrador' || usuario.rol === 'Supervisor')
                 th(style="padding: 10px; border-bottom: 2px solid #cbd5e1; text-align: center;") Acciones
           tbody
             each ev in eventos
-              tr(style="border-bottom: 1px solid #e2e8f0; font-size: 13px;")
+              tr(id=`fila-evento-${ev._id}` style="border-bottom: 1px solid #e2e8f0; font-size: 13px;")
                 td(style="padding: 10px; font-weight: bold; color: #1e293b;")= ev.titulo
                 td(style="padding: 10px; color: #475569;")= ev.artista
                 td(style="padding: 10px; color: #475569;")= ev.sala ? ev.sala.nombre : 'Sin asignar'
                 td(style="padding: 10px; color: #475569;")= new Date(ev.fecha).toLocaleDateString() + ' ' + (ev.hora || '')
                 td(style="padding: 10px; font-weight: bold; color: #16a34a;")= '$' + ev.precio
-                td(style="padding: 10px; color: #475569;")= `${ev.entradasVendidas} / ${ev.sala ? ev.sala.capacidad : 0}`
                 
                 if usuario && (usuario.rol === 'Admin' || usuario.rol === 'Administrador' || usuario.rol === 'Supervisor')
                   td(style="padding: 10px; text-align: center;")
-                    div(style="display: flex; justify-content: center; gap: 8px;")
-                      form(action=`/admin/eventos/eliminar/${ev._id}` method="POST" style="margin: 0;" onsubmit="return confirm('¿Estás seguro de eliminar este evento?');")
-                        button(type="submit" style="background-color: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;") 🗑️ Eliminar
+                    button.btnEliminarEvento(data-id=ev._id style="background-color: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;") 🗑️ Eliminar
       else
         p(style="color: #64748b; text-align: center; padding: 20px;") No hay eventos registrados en este momento.
+
+    script.
+      document.getElementById("formEvento").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const alerta = document.getElementById("alertaEstado");
+        alerta.style.display = "none";
+
+        const titulo = document.getElementById("titulo").value;
+        const artista = document.getElementById("artista").value;
+        const sala = document.getElementById("sala").value;
+        const descripcion = document.getElementById("descripcion").value;
+        const fechaStr = document.getElementById("fecha").value;
+        const horaStr = document.getElementById("hora").value;
+        const precio = Number(document.getElementById("precio").value);
+
+        if (precio <= 1000) {
+          alerta.style.display = "block";
+          alerta.style.background = "#f8d7da";
+          alerta.style.color = "#721c24";
+          alerta.textContent = "⚠️ El precio del evento debe ser mayor a $1000.";
+          return;
+        }
+
+        const ahora = new Date();
+        const anioLoc = ahora.getFullYear();
+        const mesLoc = String(ahora.getMonth() + 1).padStart(2, '0');
+        const diaLoc = String(ahora.getDate()).padStart(2, '0');
+        const hoyStrLocal = `${anioLoc}-${mesLoc}-${diaLoc}`;
+
+        if (fechaStr < hoyStrLocal) {
+          alerta.style.display = "block";
+          alerta.style.background = "#f8d7da";
+          alerta.style.color = "#721c24";
+          alerta.textContent = "⚠️ La fecha del evento no puede ser anterior al día de hoy.";
+          return;
+        }
+
+        if (fechaStr === hoyStrLocal) {
+          const [horasEv, minutosEv] = horaStr.split(":").map(Number);
+          const minutosActualesTotal = ahora.getHours() * 60 + ahora.getMinutes();
+          const minutosEventoTotal = horasEv * 60 + minutosEv;
+
+          if (minutosEventoTotal < minutosActualesTotal) {
+            const horaActualFormateada = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
+            alerta.style.display = "block";
+            alerta.style.background = "#f8d7da";
+            alerta.style.color = "#721c24";
+            alerta.textContent = `⚠️ La hora del evento (${horaStr}) no puede ser anterior a la hora actual (${horaActualFormateada}) para el día de hoy.`;
+            return;
+          }
+        }
+
+        const body = { titulo, artista, sala, descripcion, fecha: fechaStr, hora: horaStr, precio };
+
+        try {
+          const res = await fetch("/admin/eventos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+          });
+          
+          const data = await res.json();
+          alerta.style.display = "block";
+
+          if (res.ok) {
+            alerta.style.background = "#d1e7dd"; 
+            alerta.style.color = "#0f5132";
+            alerta.textContent = "✅ " + (data.mensaje || "Evento creado con éxito.");
+            setTimeout(() => location.reload(), 1000);
+          } else {
+            alerta.style.background = "#f8d7da"; 
+            alerta.style.color = "#721c24";
+            alerta.textContent = data.error || "⚠️ No se pudo crear el evento.";
+          }
+        } catch (err) {
+          console.error("Error detallado:", err);
+          alerta.style.display = "block";
+          alerta.style.background = "#f8d7da";
+          alerta.style.color = "#721c24";
+          alerta.textContent = "❌ Error de conexión con el servidor.";
+        }
+      });
+
+      document.addEventListener("click", async (e) => {
+        if (e.target && e.target.classList.contains("btnEliminarEvento")) {
+          if (!confirm("¿Estás seguro de eliminar este evento?")) return;
+          const id = e.target.getAttribute("data-id");
+          try {
+            const res = await fetch(`/admin/eventos/eliminar/${id}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" }
+            });
+            if (res.ok) {
+              document.getElementById(`fila-evento-${id}`).remove();
+            }
+          } catch (err) { console.error(err); }
+        }
+      });

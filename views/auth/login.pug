@@ -10,17 +10,16 @@ html(lang="es")
       h2(style="margin-top: 0; color: #1e293b;") 🎭 Ingresar a Urbana Cult
       p(style="color: #64748b; font-size: 14px; margin-bottom: 20px;") Ingrese su nombre de usuario y contraseña:
 
-      if error
-        div(style="background: #fee2e2; color: #b91c1c; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; font-weight: bold;") #{error}
+      div#mensajeError(style="display: none; background: #fee2e2; color: #b91c1c; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; font-weight: bold;")
 
-      form(action="/auth/login" method="POST")
+      form#formLogin
         div(style="margin-bottom: 15px;")
           label(for="username" style="display: block; font-size: 13px; font-weight: bold; color: #334155; margin-bottom: 5px;") Nombre de Usuario:
-          input(type="text" name="username" placeholder="ej. admin o cliente" required style="padding: 10px; width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;")
+          input#username(type="text" name="username" placeholder="ej. admin o cliente" required style="padding: 10px; width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;")
         
         div(style="margin-bottom: 20px;")
           label(for="password" style="display: block; font-size: 13px; font-weight: bold; color: #334155; margin-bottom: 5px;") Contraseña:
-          input(type="password" name="password" placeholder="********" required style="padding: 10px; width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;")
+          input#password(type="password" name="password" placeholder="********" required style="padding: 10px; width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;")
         
         button(type="submit" style="background: #2563eb; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: bold; font-size: 15px; cursor: pointer;") Iniciar Sesión
 
@@ -37,3 +36,36 @@ html(lang="es")
           div(style="flex: 1; background: white; padding: 10px; border-radius: 4px; border: 1px solid #dbeafe;")
             p(style="margin: 0; font-weight: bold; color: #1e293b;") 👤 Cliente:
             p(style="margin: 3px 0 0 0;") <code>cliente</code> / <code>cliente</code>
+
+    script.
+      document.getElementById("formLogin").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errorDiv = document.getElementById("mensajeError");
+        errorDiv.style.display = "none";
+
+        const credentials = {
+          username: document.getElementById("username").value,
+          password: document.getElementById("password").value
+        };
+
+        try {
+          const res = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(credentials)
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            errorDiv.style.display = "block";
+            errorDiv.textContent = data.error || "⚠️ Usuario o contraseña incorrectos.";
+          } else {
+            // Redirección manejada por el frontend tras login exitoso por fetch
+            window.location.href = data.redirectUrl;
+          }
+        } catch (err) {
+          errorDiv.style.display = "block";
+          errorDiv.textContent = "❌ Error al conectar con el servidor.";
+        }
+      });

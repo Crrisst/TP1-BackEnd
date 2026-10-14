@@ -23,32 +23,56 @@ html(lang="es")
     div(style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
       h3(style="margin-top: 0; color: #2c3e50; margin-bottom: 20px;") Entradas Seleccionadas
       
-      if eventos && eventos.length > 0
-        table(style="width: 100%; border-collapse: collapse; margin-bottom: 20px;")
-          thead
-            tr(style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;")
-              th(style="padding: 12px; color: #475569; font-size: 14px;") Evento
-              th(style="padding: 12px; color: #475569; font-size: 14px;") Precio Unit.
-              th(style="padding: 12px; color: #475569; font-size: 14px;") Cantidad
-              th(style="padding: 12px; color: #475569; font-size: 14px;") Subtotal
-              th(style="padding: 12px; color: #475569; font-size: 14px; text-align: center;") Acción
-          tbody
-            each ev in eventos
-              tr(style="border-bottom: 1px solid #e2e8f0;")
-                td(style="padding: 12px; color: #1e293b; font-weight: bold; font-size: 14px;")= ev.titulo
-                td(style="padding: 12px; color: #475569; font-size: 14px;") $#{ev.precio}
-                td(style="padding: 12px; color: #1e293b; font-weight: bold; font-size: 14px;") #{ev.cantidad} unidad(es)
-                td(style="padding: 12px; color: #16a34a; font-weight: bold; font-size: 14px;") $#{ev.subtotal}
-                td(style="padding: 12px; text-align: center;")
-                  form(action=`/cliente/carrito/eliminar/${ev._id}` method="POST" style="margin: 0;")
-                    button(type="submit" style="background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: bold;") ❌ Quitar
+      div#contenedorTablaCarrito
+        if eventos && eventos.length > 0
+          table(style="width: 100%; border-collapse: collapse; margin-bottom: 20px;")
+            thead
+              tr(style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;")
+                th(style="padding: 12px; color: #475569; font-size: 14px;") Evento
+                th(style="padding: 12px; color: #475569; font-size: 14px;") Precio Unit.
+                th(style="padding: 12px; color: #475569; font-size: 14px;") Cantidad
+                th(style="padding: 12px; color: #475569; font-size: 14px;") Subtotal
+                th(style="padding: 12px; color: #475569; font-size: 14px; text-align: center;") Acción
+            tbody
+              each ev in eventos
+                tr(id=`fila-${ev._id}` style="border-bottom: 1px solid #e2e8f0;")
+                  td(style="padding: 12px; color: #1e293b; font-weight: bold; font-size: 14px;")= ev.titulo
+                  td(style="padding: 12px; color: #475569; font-size: 14px;") $#{ev.precio}
+                  td(style="padding: 12px; color: #1e293b; font-weight: bold; font-size: 14px;") #{ev.cantidad} unidad(es)
+                  td(style="padding: 12px; color: #16a34a; font-weight: bold; font-size: 14px;") $#{ev.subtotal}
+                  td(style="padding: 12px; text-align: center;")
+                    button.btnQuitar(data-id=ev._id style="background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: bold;") ❌ Quitar
 
-        div(style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #e2e8f0; padding-top: 20px;")
-          h3(style="margin: 0; color: #1e293b;") Total a Pagar: <span style="color: #16a34a;">$#{total}</span>
-          div(style="display: flex; gap: 10px;")
-            a(href="/cliente/cartelera" style="background: #64748b; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;") ⬅️ Seguir Comprando
-            a(href="/cliente/checkout" style="background: #2563eb; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;") 💳 Proceder al Pago
-      else
-        div(style="text-align: center; padding: 40px 0;")
-          p(style="color: #64748b; font-size: 16px; margin-bottom: 20px;") Tu carrito está vacío. ¡Explora la cartelera y elige tus eventos favoritos!
-          a(href="/cliente/cartelera" style="background: #2563eb; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;") 🎭 Ir a la Cartelera
+          div(style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #e2e8f0; padding-top: 20px;")
+            h3(style="margin: 0; color: #1e293b;") Total a Pagar: <span id="totalPagar" style="color: #16a34a;">$#{total}</span>
+            div(style="display: flex; gap: 10px;")
+              a(href="/cliente/cartelera" style="background: #64748b; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;") ⬅️ Seguir Comprando
+              a(href="/cliente/checkout" style="background: #2563eb; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;") 💳 Proceder al Pago
+        else
+          div(style="text-align: center; padding: 40px 0;")
+            p(style="color: #64748b; font-size: 16px; margin-bottom: 20px;") Tu carrito está vacío. ¡Explora la cartelera y elige tus eventos favoritos!
+            a(href="/cliente/cartelera" style="background: #2563eb; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;") 🎭 Ir a la Cartelera
+
+    script.
+      document.addEventListener('click', async (e) => {
+        if (e.target && e.target.classList.contains('btnQuitar')) {
+          const id = e.target.getAttribute('data-id');
+          try {
+            const respuesta = await fetch(`/cliente/carrito/eliminar/${id}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await respuesta.json();
+            if (respuesta.ok) {
+              const fila = document.getElementById(`fila-${id}`);
+              if (fila) fila.remove();
+              document.getElementById('totalPagar').textContent = '$' + data.nuevoTotal;
+              if (data.eventosRestantes === 0) {
+                location.reload(); // Recarga limpia si el carrito se vació por completo
+              }
+            }
+          } catch (err) {
+            console.error('Error al quitar del carrito:', err);
+          }
+        }
+      });
