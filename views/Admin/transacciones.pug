@@ -24,32 +24,56 @@ html(lang="es")
 
     //- Contenedor de la Tabla de Transacciones
     div(style="background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
-      h3(style="margin-top: 0; color: #2c3e50; margin-bottom: 20px;") 💳 Registro de Ventas Globales
+      div(style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px;")
+        h3(style="margin: 0; color: #2c3e50;") 💳 Registro de Ventas Globales
+        span(style="color: #64748b; font-size: 13px;") Detalle de compras de los clientes
       
       if transacciones && transacciones.length > 0
         table(style="width: 100%; border-collapse: collapse; text-align: left;")
           thead
             tr(style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;")
-              th(style="padding: 12px; color: #475569; font-size: 14px;") Cliente
-              th(style="padding: 12px; color: #475569; font-size: 14px;") DNI
-              th(style="padding: 12px; color: #475569; font-size: 14px;") Evento
-              th(style="padding: 12px; color: #475569; font-size: 14px;") Fecha Compra
-              th(style="padding: 12px; color: #475569; font-size: 14px;") Cantidad
-              th(style="padding: 12px; color: #475569; font-size: 14px;") Estado
-              th(style="padding: 12px; color: #475569; font-size: 14px;") Total Pagado
+              th(style="padding: 12px; color: #475569; font-size: 13px;") Cliente / Contacto
+              th(style="padding: 12px; color: #475569; font-size: 13px;") Evento & Sala
+              th(style="padding: 12px; color: #475569; font-size: 13px;") Cantidad
+              th(style="padding: 12px; color: #475569; font-size: 13px;") Precio Unit.
+              th(style="padding: 12px; color: #475569; font-size: 13px;") Total Pagado
+              th(style="padding: 12px; color: #475569; font-size: 13px;") Fecha & Hora
+              th(style="padding: 12px; color: #475569; font-size: 13px; text-align: center;") Estado
           tbody
             each t in transacciones
+              - const precioUnit = t.evento ? t.evento.precio : 0
+              - const cant = t.cantidad || 1
+              - const totalPagado = precioUnit * cant
+
               tr(style="border-bottom: 1px solid #e2e8f0;")
-                td(style="padding: 12px; color: #1e293b; font-size: 14px; font-weight: bold;") #{t.usuario ? t.usuario.nombre + ' ' + t.usuario.apellido : 'Usuario Eliminado'}
-                td(style="padding: 12px; color: #64748b; font-size: 14px;") #{t.usuario ? t.usuario.dni : '-'}
-                td(style="padding: 12px; color: #1e293b; font-size: 14px;") #{t.evento ? t.evento.titulo : 'Evento Eliminado'}
-                td(style="padding: 12px; color: #64748b; font-size: 14px;") #{new Date(t.fechaCompra).toLocaleString()}
-                td(style="padding: 12px; color: #1e293b; font-weight: bold; font-size: 14px;") #{t.cantidad || 1}
-                td(style="padding: 12px;")
-                  span(style="background: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;") #{t.estado}
-                td(style="padding: 12px; color: #16a34a; font-weight: bold; font-size: 15px;") 
-                  - const precioUnit = t.evento ? t.evento.precio : 0
-                  - const cant = t.cantidad || 1
-                  | $#{precioUnit * cant}
+                //- Datos del Cliente
+                td(style="padding: 12px; font-size: 13px;")
+                  div(style="color: #1e293b; font-weight: bold;") #{t.usuario ? t.usuario.nombre + ' ' + t.usuario.apellido : 'Usuario Eliminado'}
+                  div(style="color: #64748b; font-size: 11px;") DNI: #{t.usuario ? t.usuario.dni : '-'}
+                  div(style="color: #2563eb; font-size: 11px;") #{t.usuario ? t.usuario.correo : ''}
+
+                //- Datos del Evento y Sala
+                td(style="padding: 12px; font-size: 13px;")
+                  div(style="color: #0f172a; font-weight: bold;") #{t.evento ? t.evento.titulo : 'Evento Eliminado'}
+                  div(style="color: #475569; font-size: 12px;") 🎤 Artista: #{t.evento ? t.evento.artista : 'N/A'}
+                  div(style="color: #64748b; font-size: 11px;") 🏢 Sala: #{t.evento && t.evento.sala ? t.evento.sala.nombre : 'Sin sala'}
+
+                //- Cantidad con pill destacado
+                td(style="padding: 12px; font-size: 13px;")
+                  span(style="background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block;") #{cant} entrada(s)
+
+                //- Precio unitario
+                td(style="padding: 12px; color: #475569; font-size: 13px;") $#{precioUnit} c/u
+
+                //- Total acumulado
+                td(style="padding: 12px; color: #16a34a; font-weight: bold; font-size: 15px;") $#{totalPagado}
+
+                //- Fecha y Hora
+                td(style="padding: 12px; color: #64748b; font-size: 12px;") #{new Date(t.fechaCompra).toLocaleString()}
+
+                //- Estado del ticket
+                td(style="padding: 12px; text-align: center;")
+                  span(style="background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;") #{t.estado}
       else
-        p(style="color: #64748b; text-align: center; padding: 40px 0; font-size: 15px;") Aún no se han registrado ventas en el sistema.
+        div(style="text-align: center; padding: 40px 0;")
+          p(style="color: #64748b; font-size: 15px;") Aún no se han registrado ventas en el sistema.

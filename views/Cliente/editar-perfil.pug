@@ -42,7 +42,7 @@ html(lang="es")
             input#dni(type="text" name="dni" maxlength="8" value=usuario.dni required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
           div
             label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Correo Electrónico:
-            input#correo(type="email" name="correo" value=usuario.correo required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+            input#correo(type="email" name="correo" value=usuario.correo maxlength="254" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
         div(style="margin-bottom: 15px;")
           label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Nombre de Usuario (Username - No modificable):
@@ -57,6 +57,28 @@ html(lang="es")
           a(href="/cliente/dashboard" style="background-color: #94a3b8; color: white; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;") ⬅️ Volver
 
     script.
+      const aplicarFiltroLetras = (inputElement) => {
+        inputElement.addEventListener("input", (e) => {
+          let valorLimpio = e.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, "");
+          if (valorLimpio.length > 15) {
+            valorLimpio = valorLimpio.slice(0, 15);
+          }
+          e.target.value = valorLimpio;
+        });
+      };
+
+      aplicarFiltroLetras(document.getElementById("nombre"));
+      aplicarFiltroLetras(document.getElementById("apellido"));
+
+      const dniInput = document.getElementById("dni");
+      dniInput.addEventListener("input", (e) => {
+        let valorLimpio = e.target.value.replace(/\D/g, "");
+        if (valorLimpio.length > 8) {
+          valorLimpio = valorLimpio.slice(0, 8);
+        }
+        e.target.value = valorLimpio;
+      });
+
       document.getElementById('formPerfil').addEventListener('submit', async (e) => {
         e.preventDefault();
         const divExito = document.getElementById('alertaExito');
@@ -64,9 +86,19 @@ html(lang="es")
         divExito.style.display = 'none';
         divError.style.display = 'none';
 
+        const nombre = document.getElementById('nombre').value.trim();
+        const apellido = document.getElementById('apellido').value.trim();
+
+        const soloLetrasRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+        if (!soloLetrasRegex.test(nombre) || !soloLetrasRegex.test(apellido)) {
+          divError.style.display = 'block';
+          divError.textContent = '⚠️ El nombre y el apellido deben contener únicamente letras.';
+          return;
+        }
+
         const datos = {
-          nombre: document.getElementById('nombre').value,
-          apellido: document.getElementById('apellido').value,
+          nombre,
+          apellido,
           dni: document.getElementById('dni').value,
           correo: document.getElementById('correo').value,
           password: document.getElementById('password').value
@@ -86,7 +118,7 @@ html(lang="es")
           } else {
             divExito.style.display = 'block';
             divExito.textContent = resultado.mensaje || '✅ Datos actualizados con éxito.';
-            document.getElementById('password').value = ''; // Limpiar contraseña por seguridad
+            document.getElementById('password').value = ''; 
           }
         } catch (err) {
           divError.style.display = 'block';

@@ -68,7 +68,7 @@ html(lang="es")
               if (fila) fila.remove();
               document.getElementById('totalPagar').textContent = '$' + data.nuevoTotal;
               if (data.eventosRestantes === 0) {
-                location.reload(); // Recarga limpia si el carrito se vació por completo
+                location.reload();
               }
             }
           } catch (err) {

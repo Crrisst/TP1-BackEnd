@@ -37,7 +37,7 @@ html(lang="es")
           div(style="display: flex; gap: 15px; margin-bottom: 15px;")
             div(style="flex: 2;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Correo Electrónico
-              input#correo(type="email" name="correo" value=editUsuario ? editUsuario.correo : "" placeholder="correo@ejemplo.com" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input#correo(type="email" name="correo" value=editUsuario ? editUsuario.correo : "" placeholder="correo@ejemplo.com" maxlength="254" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Fecha de Nacimiento (+18)
@@ -45,8 +45,8 @@ html(lang="es")
 
           div(style="display: flex; gap: 15px; margin-bottom: 20px;")
             div(style="flex: 1;")
-              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Usuario (Username)
-              input#username(type="text" name="username" value=editUsuario ? editUsuario.username : "" placeholder="juanperez" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Usuario (Username, máx. 15)
+              input#username(type="text" name="username" value=editUsuario ? editUsuario.username : "" placeholder="juanperez" maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Contraseña #{editUsuario ? '(Dejar en blanco para no cambiar)' : ''}
@@ -105,6 +105,11 @@ html(lang="es")
       document.getElementById("nombre").addEventListener("input", validarSoloLetrasInput);
       document.getElementById("apellido").addEventListener("input", validarSoloLetrasInput);
 
+      const usernameInput = document.getElementById("username");
+      usernameInput.addEventListener("input", (e) => {
+        e.target.value = e.target.value.slice(0, 15);
+      });
+
       const dniInput = document.getElementById("dni");
       dniInput.addEventListener("input", (e) => {
         e.target.value = e.target.value.replace(/\D/g, '').slice(0, 8);
@@ -125,11 +130,11 @@ html(lang="es")
         const password = document.getElementById("password").value;
         const rol = document.getElementById("rol").value;
 
-        if (nombre.length > 15 || apellido.length > 15) {
+        if (nombre.length > 15 || apellido.length > 15 || username.length > 15) {
           alerta.style.display = "block";
           alerta.style.background = "#f8d7da";
           alerta.style.color = "#721c24";
-          alerta.textContent = "⚠️ El nombre y el apellido no deben superar los 15 caracteres.";
+          alerta.textContent = "⚠️ El nombre, apellido y nombre de usuario no deben superar los 15 caracteres.";
           return;
         }
 

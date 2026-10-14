@@ -2,10 +2,10 @@ import crypto from "node:crypto";
 globalThis.crypto = crypto; // Soluciona el error de criptografía en Node 18 para el seed
 
 import mongoose from "mongoose";
-import Usuario from "./models/Usuario.js";
-import Sala from "./models/Sala.js";
-import Evento from "./models/Evento.js";
-import Entrada from "./models/Entrada.js";
+import Usuario from "../models/Usuario.js";
+import Sala from "../models/Sala.js";
+import Evento from "../models/Evento.js";
+import Entrada from "../models/Entrada.js";
 
 const poblar = async () => {
     try {

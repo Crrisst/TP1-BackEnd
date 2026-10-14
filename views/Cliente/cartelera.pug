@@ -38,7 +38,6 @@ html(lang="es")
       if eventos && eventos.length > 0
         div(style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 15px;")
           each ev in eventos
-            //- Tomamos el stock asegurando que si no viene definido sea 0
             - const stock = ev.entradasDisponibles !== undefined ? ev.entradasDisponibles : 0
             
             div(style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; background: #f8fafc;")
@@ -47,7 +46,6 @@ html(lang="es")
               p(style="margin: 5px 0; color: #475569; font-size: 0.9em;") 🏢 <strong>Sala:</strong> #{ev.sala ? ev.sala.nombre : 'Por definir'}
               p(style="margin: 5px 0; color: #475569; font-size: 0.9em;") 📅 <strong>Fecha:</strong> #{new Date(ev.fecha).toLocaleDateString()} - #{ev.hora}
               
-              //- 🟢 SE MUESTRA EL STOCK EXACTO (O 0 SI QUEDÓ VACÍO)
               p(style="margin: 5px 0; color: #059669; font-size: 0.9em; font-weight: bold;") 🎟️ Stock disponible: #{stock} entradas
 
               p(style="margin: 5px 0; font-size: 1em; font-weight: bold; color: #16a34a;") 💵 Precio: $#{ev.precio}
@@ -58,13 +56,12 @@ html(lang="es")
                 - const limiteAlcanzado = cantidadEnCarrito >= stock
                 
                 div(style="margin-top: 15px;")
-                  //- 🟢 EL TEXTO DE AGOTADO VA EXCLUSIVAMENTE EN EL BOTÓN
                   if sinStock
                     button(disabled style="background: #94a3b8; color: white; border: none; padding: 10px 12px; border-radius: 6px; width: 100%; font-weight: bold; cursor: not-allowed; display: flex; justify-content: center; align-items: center;") 🚫 Entradas agotadas
                   else if limiteAlcanzado
                     button(disabled style="background: #94a3b8; color: white; border: none; padding: 10px 12px; border-radius: 6px; width: 100%; font-weight: bold; cursor: not-allowed; display: flex; justify-content: center; align-items: center;") ⚠️ Límite en carrito
                   else
-                    button.btnAgregarCarrito(data-id=ev._id style="background: #10b981; color: white; border: none; padding: 10px 12px; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: transform 0.1s ease, background-color 0.2s;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'") 
+                    button.btnAgregarCarrito(data-id=ev._id style="background: #10b981; color: white; border: none; padding: 10px 12px; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;") 
                       span 🛒 Agregar al Carrito
                       span.badgeItem(style=`background: #065f46; color: #ffffff; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; display: ${cantidadEnCarrito > 0 ? 'inline-block' : 'none'};`) #{cantidadEnCarrito}
       else
@@ -110,7 +107,8 @@ html(lang="es")
               banner.style.display = "flex";
             }
             
-            setTimeout(() => { location.reload(); }, 500); 
+            // Recarga sutil para actualizar estados de límite sin alterar stock real
+            setTimeout(() => { location.reload(); }, 300); 
           } else {
             alert(data.error || "No se pudo agregar al carrito.");
           }

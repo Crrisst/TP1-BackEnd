@@ -2,10 +2,11 @@ doctype html
 html(lang="es")
   head
     meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
     title Mis Entradas - Urbana Cult
-  body(style="font-family: sans-serif; padding: 30px; max-width: 1000px; margin: auto; background-color: #f4f6f9;")
+  body(style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; max-width: 1000px; margin: auto; background-color: #f4f6f9;")
     
-    //- Navbar Superior Unificado
+    //- NAVBAR SUPERIOR
     div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
       div
         h2(style="margin: 0; color: #2c3e50;") 🎭 Urbana Cult
@@ -22,25 +23,51 @@ html(lang="es")
         a(href="/cliente/perfil" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") ⚙️ Mi Perfil
         a(href="/logout" style="background: #ef4444; color: white; padding: 6px 12px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold;") Cerrar Sesión
 
+    //- CONTENEDOR PRINCIPAL
     div(style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
-      h3(style="margin-top: 0; color: #2c3e50;") 🎫 Tus Tickets Registrados
-      
+      div(style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px;")
+        h3(style="margin: 0; color: #2c3e50;") 🎫 Pases de Acceso Digitales
+        span(style="color: #64748b; font-size: 13px;") Muestra el código QR en el ingreso al evento
+
       if entradas && entradas.length > 0
-        div(style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;")
+        div(style="display: flex; flex-direction: column; gap: 20px;")
           each ent in entradas
-            div(style="border: 1px solid #e2e8f0; border-left: 5px solid #10b981; border-radius: 6px; padding: 20px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center;")
+            - const totalEntradas = ent.cantidad || 1
+            - for (let i = 0; i < totalEntradas; i++)
               
-              //- Información a la izquierda
-              div
-                h4(style="margin: 0 0 5px 0; color: #1e293b; font-size: 18px;")= ent.evento ? ent.evento.titulo : 'Evento no disponible'
-                p(style="margin: 2px 0; color: #0284c7; font-weight: bold; font-size: 13px;") Artista: #{ent.evento ? ent.evento.artista : 'N/A'}
-                p(style="margin: 2px 0; color: #475569; font-size: 13px;") 🏢 Sala: #{ent.evento && ent.evento.sala ? ent.evento.sala.nombre : 'Sin sala'}
-                p(style="margin: 2px 0; color: #475569; font-size: 13px;") 📅 Fecha del Evento: #{ent.evento ? new Date(ent.evento.fecha).toLocaleDateString() + ' a las ' + ent.evento.hora + ' hs' : 'Fecha por confirmar'}
-                p(style="margin: 6px 0 0 0; font-size: 12px; color: #94a3b8;") Comprado el: #{new Date(ent.fechaCompra).toLocaleString()}
-              
-              //- Estado y Precio a la derecha
-              div(style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;")
-                span(style="background: #d1fae5; color: #065f46; padding: 6px 12px; border-radius: 12px; font-weight: bold; font-size: 13px;") Estado: #{ent.estado}
-                p(style="margin: 0; font-weight: bold; color: #16a34a; font-size: 18px;") $#{ent.evento ? ent.evento.precio : 0}
+              //- TARJETA TIPO TICKET DIGITAL REAL
+              div(style="border: 1px dashed #cbd5e1; border-left: 6px solid #2563eb; border-radius: 8px; padding: 20px; background: #ffffff; display: flex; justify-content: space-between; align-items: center; gap: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.03);")
+                
+                //- SECCIÓN IZQUIERDA: DETALLES DEL EVENTO
+                div(style="flex: 1;")
+                  div(style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;")
+                    span(style="background: #eff6ff; color: #1d4ed8; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; border: 1px solid #bfdbfe;") TICKET DIGITAL ##{i + 1} de #{totalEntradas}
+                    span(style="background: #d1fae5; color: #065f46; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;") #{ent.estado}
+
+                  h3(style="margin: 0 0 5px 0; color: #0f172a; font-size: 20px;")= ent.evento ? ent.evento.titulo : 'Evento no disponible'
+                  p(style="margin: 0 0 10px 0; color: #2563eb; font-weight: bold; font-size: 14px;") 🎤 Artista: #{ent.evento ? ent.evento.artista : 'N/A'}
+                  
+                  div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; color: #475569; background: #f8fafc; padding: 10px; border-radius: 6px;")
+                    div 🏢 <strong>Ubicación:</strong> #{ent.evento && ent.evento.sala ? ent.evento.sala.nombre : 'Sin sala'}
+                    div 📍 <strong>Sector:</strong> General / Campo
+                    div 📅 <strong>Fecha:</strong> #{ent.evento ? new Date(ent.evento.fecha).toLocaleDateString() : 'Por confirmar'}
+                    div ⏰ <strong>Hora:</strong> #{ent.evento ? ent.evento.hora + ' hs' : 'Por confirmar'}
+                  
+                  div(style="margin-top: 10px; font-size: 11px; color: #94a3b8; display: flex; gap: 15px;")
+                    span 💳 Pago: #{ent.metodoPago}
+                    span 🆔 ID Ticket: #{ent._id.toString().substring(18).toUpperCase()}-0#{i + 1}
+                    span 👤 Titular: #{usuario.nombre} #{usuario.apellido}
+
+                //- SECCIÓN DERECHA: CÓDIGO QR SIMULADO Y ACCIONES
+                div(style="display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 2px dashed #e2e8f0; padding-left: 20px; min-width: 150px;")
+                  
+                  //- Código QR Simulado con API pública gratuita
+                  img(src=`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=URBANA-CULT-${ent._id}-${i+1}` alt="QR Acceso" style="width: 100px; height: 100px; border-radius: 6px; border: 1px solid #e2e8f0; padding: 4px; background: white;")
+                  
+                  span(style="font-size: 10px; color: #64748b; margin-top: 5px; font-weight: bold; letter-spacing: 1px;") ESCANEAR EN PUERTA
+
+                  button(onclick="window.print()" style="margin-top: 10px; background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px;") 🖨️ Descargar / Imprimir
       else
-        p(style="color: #64748b; text-align: center; padding: 30px;") Aún no has comprado ninguna entrada. ¡Explora la cartelera para adquirir una!
+        div(style="text-align: center; padding: 40px 0;")
+          p(style="color: #64748b; font-size: 16px; margin-bottom: 20px;") Aún no tienes entradas registradas.
+          a(href="/cliente/cartelera" style="background: #2563eb; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold;") 🎭 Ver Eventos Disponibles

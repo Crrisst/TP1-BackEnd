@@ -30,7 +30,7 @@ html(lang="es")
 
         <div>
           label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Correo Electrónico
-          input#correo(type="email" name="correo" placeholder="correo@ejemplo.com" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
+          input#correo(type="email" name="correo" placeholder="correo@ejemplo.com" maxlength="254" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
         </div>
 
         <div>
@@ -39,8 +39,8 @@ html(lang="es")
         </div>
 
         <div>
-          label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Nombre de Usuario (Username)
-          input#username(type="text" name="username" placeholder="juanperez" maxlength="30" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
+          label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Nombre de Usuario (Username, máx. 15)
+          input#username(type="text" name="username" placeholder="juanperez" maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
         </div>
 
         <div>
@@ -58,7 +58,6 @@ html(lang="es")
     </div>
 
     script.
-      // Función estricta para bloquear números y caracteres especiales en Nombre y Apellido
       const aplicarFiltroLetras = (inputElement) => {
         inputElement.addEventListener("input", (e) => {
           let valorLimpio = e.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, "");
@@ -72,7 +71,13 @@ html(lang="es")
       aplicarFiltroLetras(document.getElementById("nombre"));
       aplicarFiltroLetras(document.getElementById("apellido"));
 
-      // Función estricta para bloquear letras en el DNI
+      const usernameInput = document.getElementById("username");
+      usernameInput.addEventListener("input", (e) => {
+        if (e.target.value.length > 15) {
+          e.target.value = e.target.value.slice(0, 15);
+        }
+      });
+
       const dniInput = document.getElementById("dni");
       dniInput.addEventListener("input", (e) => {
         let valorLimpio = e.target.value.replace(/\D/g, "");
@@ -94,6 +99,14 @@ html(lang="es")
         const cumpleaños = document.getElementById("cumpleanos").value;
         const username = document.getElementById("username").value.trim();
         const password = document.getElementById("password").value;
+
+        if (nombre.length > 15 || apellido.length > 15 || username.length > 15) {
+          alerta.style.display = "block";
+          alerta.style.background = "#fee2e2";
+          alerta.style.color = "#991b1b";
+          alerta.textContent = "⚠️ El nombre, apellido y nombre de usuario no deben superar los 15 caracteres.";
+          return;
+        }
 
         const soloLetrasRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
         if (!soloLetrasRegex.test(nombre) || !soloLetrasRegex.test(apellido)) {

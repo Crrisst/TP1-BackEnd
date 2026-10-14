@@ -8,7 +8,7 @@ import mongoose from "mongoose";
 
 dotenv.config();
 
-// Importar rutas modularizadas desde la ruta correcta (routes/)
+// Importar rutas modularizadas
 import adminRoutes from "./routes/admin.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import clienteRoutes from "./routes/cliente.routes.js";
@@ -16,7 +16,7 @@ import clienteRoutes from "./routes/cliente.routes.js";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middlewares obligatorios para formularios tradicionales y peticiones Fetch (JSON)
+// Middlewares obligatorios
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); 
 app.set("view engine", "pug");
@@ -27,7 +27,7 @@ app.use(session({
     saveUninitialized: false
 }));
 
-// Montaje de rutas
+// Montaje de rutas (Fíjate que aquí ya no figura /pago)
 app.use("/auth", authRoutes);       
 app.use("/admin", adminRoutes);     
 app.use("/cliente", clienteRoutes); 
@@ -37,9 +37,7 @@ app.get("/", (req, res) => {
     res.redirect("/auth/login");
 });
 
-// ==========================================
-// 🚪 RUTAS DE CERRAR SESIÓN (LOGOUT)
-// ==========================================
+// Rutas de Cerrar Sesión (Logout)
 app.get("/logout", (req, res) => {
     req.session.destroy((err) => {
         if (err) {
@@ -55,7 +53,7 @@ app.get("/auth/logout", (req, res) => {
     res.redirect("/logout");
 });
 
-// Conexión directa a MongoDB y arranque del servidor
+// Conexión a MongoDB y arranque del servidor
 mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/urbana_cult")
     .then(() => {
         console.log("🟢 Conectado a MongoDB con éxito");

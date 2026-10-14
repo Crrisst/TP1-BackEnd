@@ -29,32 +29,34 @@ export const validarSala = async (req, res, next) => {
 };
 
 // ==========================================
-// 👥 VALIDADOR DE USUARIOS
+// 👥 VALIDADOR GENERAL DE USUARIOS (Registro / Admin)
 // ==========================================
 export const validarUsuario = async (req, res, next) => {
     try {
         const { nombre, apellido, dni, correo, cumpleaños, username, password } = req.body;
+        const usuarioId = req.params.id; // Detecta si estamos editando desde el panel de admin
 
-        if (!nombre || !apellido || !dni || !correo || !cumpleaños || !username || !password) {
-            return res.status(400).json({ error: "⚠️ Todos los campos del usuario son obligatorios." });
+        if (!nombre || !apellido || !dni || !correo || !cumpleaños || !username) {
+            return res.status(400).json({ error: "⚠️ Todos los campos obligatorios del usuario son requeridos." });
         }
 
+        // Validación estricta de longitud máxima (15 caracteres)
         if (nombre.trim().length > 15 || apellido.trim().length > 15) {
             return res.status(400).json({ error: "⚠️ El nombre y el apellido no deben superar los 15 caracteres." });
         }
 
         const soloLetrasRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
-        if (!soloLetrasRegex.test(nombre) || !soloLetrasRegex.test(apellido)) {
+        if (!soloLetrasRegex.test(nombre.trim()) || !soloLetrasRegex.test(apellido.trim())) {
             return res.status(400).json({ error: "⚠️ El nombre y el apellido deben contener únicamente letras." });
         }
 
         const dniRegex = /^\d{7,8}$/;
-        if (!dniRegex.test(dni)) {
+        if (!dniRegex.test(dni.trim())) {
             return res.status(400).json({ error: "⚠️ El DNI debe ser numérico y tener entre 7 y 8 dígitos." });
         }
 
         const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!correoRegex.test(correo)) {
+        if (!correoRegex.test(correo.trim())) {
             return res.status(400).json({ error: "⚠️ El formato del correo electrónico no es válido." });
         }
 
@@ -75,29 +77,34 @@ export const validarUsuario = async (req, res, next) => {
             return res.status(400).json({ error: "❌ El usuario debe ser mayor de edad (18 años o más)." });
         }
 
-        const dniExistente = await Usuario.findOne({ dni });
+        // Verificación de duplicados (excluyendo al usuario actual en caso de edición)
+        const queryDni = usuarioId ? { _id: { $ne: usuarioId }, dni: dni.trim() } : { dni: dni.trim() };
+        const dniExistente = await Usuario.findOne(queryDni);
         if (dniExistente) {
-            return res.status(400).json({ error: "⚠️ El DNI ingresado ya se encuentra registrado." });
+            return res.status(400).json({ error: "⚠️ El DNI ingresado ya se encuentra registrado por otro usuario." });
         }
 
-        const correoExistente = await Usuario.findOne({ correo });
+        const queryCorreo = usuarioId ? { _id: { $ne: usuarioId }, correo: correo.trim() } : { correo: correo.trim() };
+        const correoExistente = await Usuario.findOne(queryCorreo);
         if (correoExistente) {
             return res.status(400).json({ error: "⚠️ El correo electrónico ingresado ya se encuentra registrado." });
         }
 
-        const usernameExistente = await Usuario.findOne({ username });
+        const queryUsername = usuarioId ? { _id: { $ne: usuarioId }, username: username.trim() } : { username: username.trim() };
+        const usernameExistente = await Usuario.findOne(queryUsername);
         if (usernameExistente) {
             return res.status(400).json({ error: "⚠️ El nombre de usuario ya está en uso." });
         }
 
         next();
     } catch (error) {
+        console.error("Error en validación de usuario:", error);
         return res.status(400).json({ error: "⚠️ Error en la validación del usuario." });
     }
 };
 
 // ==========================================
-// 🎭 VALIDADOR DE EVENTOS (Asegurado)
+// 🎭 VALIDADOR DE EVENTOS
 // ==========================================
 export const validarEvento = async (req, res, next) => {
     try {
