@@ -5,7 +5,7 @@ html(lang="es")
     title Cartelera - Urbana Cult
   body(style="font-family: sans-serif; padding: 30px; max-width: 1000px; margin: auto; background-color: #f4f6f9;")
     
-    //- Navbar Superior Unificado con Contador Dinámico Global
+    //- Navbar Superior
     div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
       div
         h2(style="margin: 0; color: #2c3e50;") 🎭 Urbana Cult
@@ -25,10 +25,8 @@ html(lang="es")
         a(href="/cliente/perfil" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") ⚙️ Mi Perfil
         a(href="/logout" style="background: #ef4444; color: white; padding: 6px 12px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold;") Cerrar Sesión
 
-    //- Contenedor Principal
     div(style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
       
-      //- Banner superior flotante dinámico con Fetch
       div#bannerCarrito(style=`background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px 20px; border-radius: 6px; margin-bottom: 25px; display: ${cantidadCarrito && cantidadCarrito > 0 ? 'flex' : 'none'}; justify-content: space-between; align-items: center; transition: all 0.3s ease;`)
         div
           p(style="margin: 0; color: #1e40af; font-weight: bold; font-size: 14px;") 🛒 ¡Has agregado <span id="textoCantidadBanner">#{cantidadCarrito || 0}</span> entrada(s) al carrito!
@@ -40,20 +38,35 @@ html(lang="es")
       if eventos && eventos.length > 0
         div(style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 15px;")
           each ev in eventos
+            //- Tomamos el stock asegurando que si no viene definido sea 0
+            - const stock = ev.entradasDisponibles !== undefined ? ev.entradasDisponibles : 0
+            
             div(style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; background: #f8fafc;")
               h4(style="margin-top: 0; color: #1e293b;")= ev.titulo
               p(style="margin: 5px 0; color: #475569; font-size: 0.9em;") 🎤 <strong>Artista:</strong> #{ev.artista}
               p(style="margin: 5px 0; color: #475569; font-size: 0.9em;") 🏢 <strong>Sala:</strong> #{ev.sala ? ev.sala.nombre : 'Por definir'}
               p(style="margin: 5px 0; color: #475569; font-size: 0.9em;") 📅 <strong>Fecha:</strong> #{new Date(ev.fecha).toLocaleDateString()} - #{ev.hora}
+              
+              //- 🟢 SE MUESTRA EL STOCK EXACTO (O 0 SI QUEDÓ VACÍO)
+              p(style="margin: 5px 0; color: #059669; font-size: 0.9em; font-weight: bold;") 🎟️ Stock disponible: #{stock} entradas
+
               p(style="margin: 5px 0; font-size: 1em; font-weight: bold; color: #16a34a;") 💵 Precio: $#{ev.precio}
               
               if usuario && usuario.rol === 'Cliente'
                 - const cantidadEnCarrito = carritoIds ? carritoIds.filter(id => id.toString() === ev._id.toString()).length : 0
+                - const sinStock = stock <= 0
+                - const limiteAlcanzado = cantidadEnCarrito >= stock
                 
                 div(style="margin-top: 15px;")
-                  button.btnAgregarCarrito(data-id=ev._id style="background: #10b981; color: white; border: none; padding: 10px 12px; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: transform 0.1s ease, background-color 0.2s;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'") 
-                    span 🛒 Agregar al Carrito
-                    span.badgeItem(style=`background: #065f46; color: #ffffff; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; display: ${cantidadEnCarrito > 0 ? 'inline-block' : 'none'};`) #{cantidadEnCarrito}
+                  //- 🟢 EL TEXTO DE AGOTADO VA EXCLUSIVAMENTE EN EL BOTÓN
+                  if sinStock
+                    button(disabled style="background: #94a3b8; color: white; border: none; padding: 10px 12px; border-radius: 6px; width: 100%; font-weight: bold; cursor: not-allowed; display: flex; justify-content: center; align-items: center;") 🚫 Entradas agotadas
+                  else if limiteAlcanzado
+                    button(disabled style="background: #94a3b8; color: white; border: none; padding: 10px 12px; border-radius: 6px; width: 100%; font-weight: bold; cursor: not-allowed; display: flex; justify-content: center; align-items: center;") ⚠️ Límite en carrito
+                  else
+                    button.btnAgregarCarrito(data-id=ev._id style="background: #10b981; color: white; border: none; padding: 10px 12px; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: transform 0.1s ease, background-color 0.2s;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'") 
+                      span 🛒 Agregar al Carrito
+                      span.badgeItem(style=`background: #065f46; color: #ffffff; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; display: ${cantidadEnCarrito > 0 ? 'inline-block' : 'none'};`) #{cantidadEnCarrito}
       else
         p(style="color: #64748b; text-align: center; padding: 20px;") No hay eventos disponibles en este momento.
 
@@ -68,7 +81,6 @@ html(lang="es")
         const banner = document.getElementById("bannerCarrito");
         const textoBanner = document.getElementById("textoCantidadBanner");
 
-        // Efecto visual rápido de carga en el botón
         const spanTexto = btn.querySelector("span:first-child");
         const textoOriginal = spanTexto.textContent;
         spanTexto.textContent = "Agregando...";
@@ -84,22 +96,21 @@ html(lang="es")
           const data = await res.json();
 
           if (res.ok) {
-            // Actualizar badge individual del evento
             let cantidadActual = parseInt(badge.textContent || "0");
             badge.textContent = cantidadActual + 1;
             badge.style.display = "inline-block";
 
-            // Actualizar contador global del navbar
             if (contadorNavbar && data.cantidadCarrito !== undefined) {
               contadorNavbar.textContent = data.cantidadCarrito;
               contadorNavbar.style.display = "inline-block";
             }
 
-            // Mostrar u actualizar el banner flotante superior
             if (banner && textoBanner) {
               textoBanner.textContent = data.cantidadCarrito;
               banner.style.display = "flex";
             }
+            
+            setTimeout(() => { location.reload(); }, 500); 
           } else {
             alert(data.error || "No se pudo agregar al carrito.");
           }
@@ -107,7 +118,6 @@ html(lang="es")
           console.error("Error al agregar:", err);
           alert("Ocurrió un error de conexión.");
         } finally {
-          // Restaurar botón
           spanTexto.textContent = textoOriginal;
           btn.style.opacity = "1";
         }

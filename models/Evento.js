@@ -9,7 +9,8 @@ const eventoSchema = new mongoose.Schema({
     hora: { type: String, required: true, trim: true },
     precio: { type: Number, required: true, min: 0 },
     estado: { type: String, enum: ["Proximo", "Finalizado"], default: "Proximo" },
-    entradasVendidas: { type: Number, default: 0 }
+    entradasVendidas: { type: Number, default: 0 },
+    entradasDisponibles: { type: Number, default: 100, min: 0 } // 🟢 Stock disponible integrado al esquema
 });
 
 export default mongoose.model("Evento", eventoSchema);

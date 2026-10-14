@@ -2,104 +2,122 @@ doctype html
 html(lang="es")
   head
     meta(charset="UTF-8")
-    title Checkout - Urbana Cult
-  body(style="font-family: sans-serif; padding: 30px; max-width: 1000px; margin: auto; background-color: #f4f6f9;")
+    title Checkout / Pago - Urbana Cult
+  body(style="font-family: sans-serif; padding: 30px; max-width: 600px; margin: auto; background-color: #f4f6f9;")
     
     div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
-      div
-        h2(style="margin: 0; color: #2c3e50;") 💳 Checkout / Pago
-        if usuario
-          div(style="display: flex; align-items: center; gap: 10px; margin-top: 5px;")
-            p(style="margin: 0; font-size: 14px; color: #64748b;") ¡Hola, #{usuario.nombre}!
+      h2(style="margin: 0; color: #2c3e50;") 💳 Finalizar Compra / Pago
+      a(href="/cliente/carrito" style="background: #007bff; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold;") ⬅️ Volver al Carrito
+
+    div(style="background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
       
-      div(style="display: flex; gap: 15px; align-items: center;")
-        a(href="/cliente/dashboard" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🏠 Inicio
-        a(href="/cliente/cartelera" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🎭 Cartelera
-        a(href="/cliente/carrito" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🛒 Carrito
-        a(href="/cliente/entradas" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🎫 Mis Entradas
-        a(href="/cliente/perfil" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") ⚙️ Mi Perfil
-        a(href="/logout" style="background: #ef4444; color: white; padding: 6px 12px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold;") Cerrar Sesión
+      div#alertaPago(style="display: none; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-weight: bold;")
 
-    div(style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
-      
-      div#mensajeError(style="display: none; background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; font-weight: bold;")
+      form#formCheckout
+        div(style="margin-bottom: 15px;")
+          label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Nombre del Titular (Solo letras)
+          input#titular(type="text" name="titular" placeholder="Ej. Juan Pérez" maxlength="30" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
-      div(style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px;")
-        
-        <div>
-          h3(style="margin-top: 0; color: #2c3e50; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;") Resumen del Pedido
-          ul(style="list-style: none; padding: 0; margin: 15px 0;")
-            each ev in eventos
-              li(style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px;")
-                span(style="color: #1e293b; font-weight: bold;")= ev.titulo + " (x" + ev.cantidad + ")"
-                span(style="color: #16a34a; font-weight: bold;") $#{ev.subtotal}
-          
-          div(style="display: flex; justify-content: space-between; margin-top: 20px; font-size: 18px; font-weight: bold; color: #1e293b;")
-            span Total a Pagar:
-            span(style="color: #16a34a;") $#{total}
-        </div>
+        div(style="margin-bottom: 15px;")
+          label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Número de Tarjeta (16 dígitos)
+          input#tarjeta(type="text" name="tarjeta" placeholder="1234567812345678" maxlength="16" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
-        <div>
-          h3(style="margin-top: 0; color: #2c3e50; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;") Datos de Tarjeta
-          form#formCheckout(style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;")
-            <div>
-              label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Nombre en la Tarjeta
-              input#nombre(type="text" name="nombre" placeholder="Ej. Juan Pérez" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
-            </div>
+        div(style="display: flex; gap: 15px; margin-bottom: 20px;")
+          div(style="flex: 1;")
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Vencimiento (MM/AA)
+            input#vencimiento(type="text" name="vencimiento" placeholder="MM/AA" maxlength="5" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
-            <div>
-              label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Número de Tarjeta (13 a 16 dígitos)
-              input#tarjetaNumero(type="text" name="tarjetaNumero" placeholder="4532XXXXXXXXXXXX" maxlength="16" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
-            </div>
+          div(style="flex: 1;")
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") CVV (3 o 4 dígitos)
+            input#cvv(type="text" name="cvv" placeholder="123" maxlength="4" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
-            <div style="display: flex; gap: 10px;">
-              <div style="flex: 1;">
-                label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Expiración (MM/AA)
-                input#tarjetaExpiracion(type="text" name="tarjetaExpiracion" placeholder="12/28" maxlength="5" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
-              </div>
-              <div style="flex: 1;">
-                label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") CVV (3 o 4 números)
-                input#tarjetaCvv(type="password" name="tarjetaCvv" placeholder="123" maxlength="4" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
-              </div>
-            </div>
-
-            <button type="submit" style="background: #16a34a; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px; width: 100%;">Confirmar y Pagar con Fetch</button>
-          </form>
-        </div>
-
-      </div>
+        //- 🟢 Añadimos un ID al botón para controlarlo desde JavaScript
+        button#btnPagar(type="submit" style="background-color: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; transition: background-color 0.2s;") 💳 Confirmar Pago y Procesar Carrito
 
     script.
-      document.getElementById('formCheckout').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const errorDiv = document.getElementById('mensajeError');
-        errorDiv.style.display = 'none';
+      // Restricción: Titular solo letras y espacios
+      document.getElementById("titular").addEventListener("input", (e) => {
+        e.target.value = e.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '').slice(0, 30);
+      });
 
-        const payload = {
-          nombre: document.getElementById('nombre').value,
-          tarjetaNumero: document.getElementById('tarjetaNumero').value,
-          tarjetaExpiracion: document.getElementById('tarjetaExpiracion').value,
-          tarjetaCvv: document.getElementById('tarjetaCvv').value
+      // Restricción: Tarjeta solo números, máximo 16 dígitos
+      document.getElementById("tarjeta").addEventListener("input", (e) => {
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 16);
+      });
+
+      // Restricción: CVV solo números, máximo 4 dígitos
+      document.getElementById("cvv").addEventListener("input", (e) => {
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+      });
+
+      // Formato automático para Vencimiento MM/AA
+      document.getElementById("vencimiento").addEventListener("input", (e) => {
+        let val = e.target.value.replace(/\D/g, '');
+        if (val.length >= 3) {
+          e.target.value = val.slice(0, 2) + '/' + val.slice(2, 4);
+        } else {
+          e.target.value = val;
+        }
+      });
+
+      document.getElementById("formCheckout").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const alerta = document.getElementById("alertaPago");
+        const btnPagar = document.getElementById("btnPagar");
+        alerta.style.display = "none";
+
+        // 🟢 ANIMACIÓN / ESTADO DE CARGA ACTIVADO
+        btnPagar.disabled = true;
+        btnPagar.style.backgroundColor = "#94a3b8";
+        btnPagar.textContent = "⏳ Procesando pago y guardando datos...";
+
+        const datosBody = {
+          nombre: document.getElementById("titular").value.trim(),
+          tarjetaNumero: document.getElementById("tarjeta").value.trim(),
+          tarjetaExpiracion: document.getElementById("vencimiento").value.trim(),
+          tarjetaCvv: document.getElementById("cvv").value.trim()
         };
 
         try {
-          const respuesta = await fetch('/cliente/checkout/procesar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+          const res = await fetch("/cliente/checkout/procesar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(datosBody)
           });
 
-          const data = await respuesta.json();
+          const data = await res.json();
+          alerta.style.display = "block";
 
-          if (!respuesta.ok) {
-            errorDiv.style.display = 'block';
-            errorDiv.textContent = data.error || '⚠️ Error al procesar el pago.';
+          if (res.ok) {
+            alerta.style.background = "#d1e7dd";
+            alerta.style.color = "#0f5132";
+            alerta.textContent = "✅ ¡Pago aprobado con éxito! Redirigiendo a tus entradas...";
+            
+            // Pausa breve para que el usuario disfrute la transición visual
+            setTimeout(() => { 
+              window.location.href = data.redirectUrl || "/cliente/entradas"; 
+            }, 1200);
           } else {
-            // Redirigir a la vista de éxito / mis entradas
-            window.location.href = data.redirectUrl || '/cliente/entradas';
+            // Si hay error, revertimos el botón para que pueda reintentar
+            btnPagar.disabled = false;
+            btnPagar.style.backgroundColor = "#16a34a";
+            btnPagar.textContent = "💳 Confirmar Pago y Procesar Carrito";
+
+            alerta.style.background = "#f8d7da";
+            alerta.style.color = "#721c24";
+            alerta.textContent = data.error || "⚠️ Error al procesar el pago.";
           }
         } catch (err) {
-          errorDiv.style.display = 'block';
-          errorDiv.textContent = '❌ Error al conectar con el servidor.';
+          console.error("Error:", err);
+          
+          // Revertimos el botón en caso de error de red
+          btnPagar.disabled = false;
+          btnPagar.style.backgroundColor = "#16a34a";
+          btnPagar.textContent = "💳 Confirmar Pago y Procesar Carrito";
+
+          alerta.style.display = "block";
+          alerta.style.background = "#f8d7da";
+          alerta.style.color = "#721c24";
+          alerta.textContent = "❌ Error de conexión con el servidor.";
         }
       });

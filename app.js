@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-globalThis.crypto = crypto; // Soluciona el error de criptografía de MongoDB en Node 18[cite: 18]
+globalThis.crypto = crypto; // Soluciona el error de criptografía de MongoDB en Node 18
 
 import dotenv from "dotenv";
 import express from "express";
@@ -8,7 +8,7 @@ import mongoose from "mongoose";
 
 dotenv.config();
 
-// Importar rutas modularizadas desde la ruta correcta (routes/)[cite: 18]
+// Importar rutas modularizadas desde la ruta correcta (routes/)
 import adminRoutes from "./routes/admin.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import clienteRoutes from "./routes/cliente.routes.js";

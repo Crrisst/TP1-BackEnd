@@ -1,11 +1,11 @@
 import crypto from "node:crypto";
-globalThis.crypto = crypto; // 👈 Soluciona el error de criptografía en Node 18 para el seed
+globalThis.crypto = crypto; // Soluciona el error de criptografía en Node 18 para el seed
 
 import mongoose from "mongoose";
-import Usuario from "../models/Usuario.js";
-import Sala from "../models/Sala.js";
-import Evento from "../models/Evento.js";
-import Entrada from "../models/Entrada.js";
+import Usuario from "./models/Usuario.js";
+import Sala from "./models/Sala.js";
+import Evento from "./models/Evento.js";
+import Entrada from "./models/Entrada.js";
 
 const poblar = async () => {
     try {
@@ -19,8 +19,8 @@ const poblar = async () => {
         await Evento.deleteMany({});
         await Entrada.deleteMany({});
 
-        // 1. Crear múltiples usuarios de prueba (Admins y Clientes)
-        const admin = await Usuario.create({
+        // 1. Crear usuarios de prueba
+        await Usuario.create({
             nombre: "Administrador",
             apellido: "General",
             dni: "12345678",
@@ -53,7 +53,7 @@ const poblar = async () => {
             rol: "Cliente"
         });
 
-        // 2. Crear múltiples salas de prueba
+        // 2. Crear salas de prueba
         const sala1 = await Sala.create({
             nombre: "Sala A - Teatro Principal",
             capacidad: 150,
@@ -70,7 +70,7 @@ const poblar = async () => {
             zonas: { General: 50, Platea: 20, VIP: 10 }
         });
 
-        // 3. Crear múltiples eventos en cartelera
+        // 3. Crear eventos con stock inicial configurado
         const evento1 = await Evento.create({
             titulo: "Concierto de Rock Urbano",
             artista: "The Cults",
@@ -78,7 +78,8 @@ const poblar = async () => {
             sala: sala1._id,
             fecha: "2026-12-31",
             hora: "21:00",
-            precio: 1500
+            precio: 1500,
+            entradasDisponibles: 100 // 🟢 Stock inicial
         });
 
         const evento2 = await Evento.create({
@@ -88,7 +89,8 @@ const poblar = async () => {
             sala: sala2._id,
             fecha: "2026-11-15",
             hora: "22:30",
-            precio: 2200
+            precio: 2200,
+            entradasDisponibles: 80 // 🟢 Stock inicial
         });
 
         const evento3 = await Evento.create({
@@ -98,10 +100,11 @@ const poblar = async () => {
             sala: sala2._id,
             fecha: "2026-10-20",
             hora: "20:00",
-            precio: 1000
+            precio: 1000,
+            entradasDisponibles: 50 // 🟢 Stock inicial
         });
 
-        // 4. Crear entradas/transacciones iniciales de prueba
+        // 4. Crear entradas iniciales de prueba
         await Entrada.create({
             usuario: cliente1._id,
             evento: evento1._id,
@@ -120,7 +123,7 @@ const poblar = async () => {
             fechaCompra: new Date()
         });
 
-        console.log("🌱 Base de datos poblada exitosamente con usuarios, salas, eventos y transacciones.");
+        console.log("🌱 Base de datos poblada exitosamente con stock y transacciones.");
         process.exit(0);
     } catch (error) {
         console.error("❌ Error en seed:", error);

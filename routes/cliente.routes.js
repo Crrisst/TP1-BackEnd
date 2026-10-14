@@ -39,6 +39,22 @@ router.get("/cartelera", async (req, res) => {
 router.post("/carrito/agregar", async (req, res) => {
     try {
         const { eventoId } = req.body;
+
+        const evento = await Evento.findById(eventoId);
+
+        if (!evento) {
+            return res.status(404).json({ error: "⚠️ El evento no existe." });
+        }
+
+        const stockActual = evento.entradasDisponibles !== undefined ? evento.entradasDisponibles : 0;
+
+        if (stockActual <= 0) {
+            return res.status(400).json({ error: "⚠️ Lo sentimos, este evento ya no tiene stock disponible." });
+        }
+
+        evento.entradasDisponibles = stockActual - 1;
+        await evento.save();
+
         if (!req.session.carrito) {
             req.session.carrito = [];
         }
@@ -46,9 +62,11 @@ router.post("/carrito/agregar", async (req, res) => {
         
         return res.status(200).json({
             mensaje: "¡Entrada agregada al carrito con éxito!",
-            cantidadCarrito: req.session.carrito.length
+            cantidadCarrito: req.session.carrito.length,
+            nuevoStock: evento.entradasDisponibles
         });
     } catch (error) {
+        console.error("Error al agregar al carrito:", error);
         return res.status(500).json({ error: "No se pudo agregar al carrito." });
     }
 });
@@ -90,17 +108,29 @@ router.post("/carrito/eliminar/:id", async (req, res) => {
     try {
         const { id } = req.params;
         if (req.session.carrito) {
+            const cantidadAEliminar = req.session.carrito.filter(itemId => itemId === id).length;
             req.session.carrito = req.session.carrito.filter(itemId => itemId !== id);
+
+            if (cantidadAEliminar > 0) {
+                await Evento.findByIdAndUpdate(id, {
+                    $inc: { entradasDisponibles: cantidadAEliminar }
+                });
+            }
         }
         
-        const eventosEnDb = await Evento.find({ _id: { $in: req.session.carrito } });
-        const nuevoTotal = eventosEnDb.reduce((acc, ev) => acc + ev.precio, 0);
+        const eventosEnDb = await Evento.find({ _id: { $in: req.session.carrito } }).populate("sala");
+        let eventosAgrupados = eventosEnDb.map(ev => {
+            const cantidad = req.session.carrito.filter(itemId => itemId === ev._id.toString()).length;
+            return { ...ev.toObject(), subtotal: ev.precio * cantidad };
+        });
+        const nuevoTotal = eventosAgrupados.reduce((acc, ev) => acc + ev.subtotal, 0);
 
         return res.status(200).json({
             nuevoTotal,
             eventosRestantes: req.session.carrito.length
         });
     } catch (error) {
+        console.error("Error al eliminar del carrito:", error);
         return res.status(500).json({ error: "Error al eliminar." });
     }
 });
@@ -169,11 +199,12 @@ router.post("/checkout/procesar", async (req, res) => {
 
         for (let eventoId of Object.keys(conteoIds)) {
             const cantidad = conteoIds[eventoId];
+            
             await Entrada.create({
                 usuario: req.session.usuario._id || req.session.usuario.id,
                 evento: eventoId,
                 cantidad: cantidad,
-                metodoPago: "Tarjeta (Simulada)",
+                metodoPago: "Tarjeta de Crédito",
                 estado: "Valida",
                 fechaCompra: fechaCompra
             });
@@ -195,7 +226,6 @@ router.get("/entradas", async (req, res) => {
     try {
         const usuarioId = req.session.usuario._id || req.session.usuario.id;
         
-        // Búsqueda robusta asegurando la relación con el evento y su sala
         const entradas = await Entrada.find({ usuario: usuarioId })
             .populate({ 
                 path: "evento", 
@@ -227,21 +257,6 @@ router.post("/perfil", async (req, res) => {
 
         if (!nombre || nombre.trim().length > 15 || !apellido || apellido.trim().length > 15) {
             return res.status(400).json({ error: "⚠️ El nombre y apellido no deben superar los 15 caracteres." });
-        }
-
-        const soloLetrasRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
-        if (!soloLetrasRegex.test(nombre.trim()) || !soloLetrasRegex.test(apellido.trim())) {
-            return res.status(400).json({ error: "⚠️ El nombre y apellido deben contener únicamente letras." });
-        }
-
-        const dniExistente = await Usuario.findOne({ _id: { $ne: usuarioId }, dni: dni.trim() });
-        if (dniExistente) {
-            return res.status(400).json({ error: "⚠️ El DNI ya se encuentra registrado por otro usuario." });
-        }
-
-        const correoExistente = await Usuario.findOne({ _id: { $ne: usuarioId }, correo: correo.trim() });
-        if (correoExistente) {
-            return res.status(400).json({ error: "⚠️ El correo electrónico ya se encuentra registrado." });
         }
 
         const datosActualizados = {
