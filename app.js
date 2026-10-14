@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-globalThis.crypto = crypto; // Soluciona el error de criptografía de MongoDB en Node 18
+globalThis.crypto = crypto; // Soluciona el error de criptografía de MongoDB en Node 18[cite: 18, 35]
 
 import express from "express";
 import session from "express-session";
@@ -22,18 +22,18 @@ app.use(session({
     saveUninitialized: false
 }));
 
-// Montaje de rutas
+// Montaje de rutas[cite: 35]
 app.use("/auth", authRoutes);       
 app.use("/admin", adminRoutes);     
 app.use("/cliente", clienteRoutes); 
 
-// Ruta Raíz: Redirige al Login por seguridad
+// Ruta Raíz: Redirige al Login por seguridad[cite: 35]
 app.get("/", (req, res) => {
     res.redirect("/auth/login");
 });
 
 // ==========================================
-// 🚪 RUTA GLOBAL DE CERRAR SESIÓN (LOGOUT)
+// 🚪 RUTAS DE CERRAR SESIÓN (LOGOUT)
 // ==========================================
 app.get("/logout", (req, res) => {
     req.session.destroy((err) => {
@@ -46,7 +46,12 @@ app.get("/logout", (req, res) => {
     });
 });
 
-// Conexión directa a MongoDB y arranque del servidor (Unificado a urbana_cult)
+// Redirección de compatibilidad para evitar el error Cannot GET /auth/logout
+app.get("/auth/logout", (req, res) => {
+    res.redirect("/logout");
+});
+
+// Conexión directa a MongoDB y arranque del servidor[cite: 35]
 mongoose.connect("mongodb://127.0.0.1:27017/urbana_cult")
     .then(() => {
         console.log("🟢 Conectado a MongoDB con éxito");
