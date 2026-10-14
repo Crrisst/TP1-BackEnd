@@ -10,7 +10,9 @@ html(lang="es")
         h2(style="margin: 0; color: #2c3e50;") 🎭 Urbana Cult
         if usuario
           div(style="display: flex; align-items: center; gap: 10px; margin-top: 5px;")
-            p(style="margin: 0; font-size: 14px; color: #64748b;") ¡Hola, #{usuario.nombre}!
+            p(style="margin: 0; font-size: 14px; color: #64748b;") ¡Hola, #{usuario.nombre} #{usuario.apellido} 
+              span(style="color: #94a3b8;") (@#{usuario.username})
+              | !
             span(style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;") #{usuario.rol}
       
       div(style="display: flex; gap: 15px; align-items: center;")
@@ -35,11 +37,11 @@ html(lang="es")
       form(action="/cliente/perfil" method="POST")
         div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;")
           div
-            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Nombre:
-            input(type="text" name="nombre" value=usuario.nombre required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Nombre (máx. 15 caracteres):
+            input(type="text" name="nombre" value=usuario.nombre maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
           div
-            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Apellido:
-            input(type="text" name="apellido" value=usuario.apellido required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Apellido (máx. 15 caracteres):
+            input(type="text" name="apellido" value=usuario.apellido maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
         div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;")
           div

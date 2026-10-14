@@ -1,6 +1,7 @@
 import express from "express";
 import Evento from "../models/Evento.js";
 import Entrada from "../models/Entrada.js";
+import Usuario from "../models/Usuario.js";
 
 const router = express.Router();
 
@@ -236,8 +237,94 @@ router.get("/perfil", (req, res) => {
     res.render("cliente/editar-perfil", { usuario: req.session.usuario, exito: null, error: null });
 });
 
+// ✏️ RUTA DE EDICIÓN DE PERFIL CON PERSISTENCIA Y RESTRICCIONES
 router.post("/perfil", async (req, res) => {
-    res.render("cliente/editar-perfil", { usuario: req.session.usuario, exito: "✅ Datos actualizados.", error: null });
+    try {
+        const usuarioId = req.session.usuario._id || req.session.usuario.id;
+        const { nombre, apellido, dni, correo, password } = req.body;
+
+        // Validaciones de presencia y longitud máxima (máx. 15 caracteres)
+        if (!nombre || nombre.trim().length > 15) {
+            return res.render("cliente/editar-perfil", {
+                usuario: req.session.usuario,
+                exito: null,
+                error: "⚠️ El nombre es obligatorio y no debe superar los 15 caracteres."
+            });
+        }
+
+        if (!apellido || apellido.trim().length > 15) {
+            return res.render("cliente/editar-perfil", {
+                usuario: req.session.usuario,
+                exito: null,
+                error: "⚠️ El apellido es obligatorio y no debe superar los 15 caracteres."
+            });
+        }
+
+        // Validación de solo letras
+        const soloLetrasRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+        if (!soloLetrasRegex.test(nombre.trim()) || !soloLetrasRegex.test(apellido.trim())) {
+            return res.render("cliente/editar-perfil", {
+                usuario: req.session.usuario,
+                exito: null,
+                error: "⚠️ El nombre y el apellido deben contener únicamente letras."
+            });
+        }
+
+        // Validar DNI duplicado
+        const dniExistente = await Usuario.findOne({ _id: { $ne: usuarioId }, dni: dni.trim() });
+        if (dniExistente) {
+            return res.render("cliente/editar-perfil", {
+                usuario: req.session.usuario,
+                exito: null,
+                error: "⚠️ El DNI ingresado ya se encuentra registrado por otro usuario."
+            });
+        }
+
+        // Validar correo duplicado
+        const correoExistente = await Usuario.findOne({ _id: { $ne: usuarioId }, correo: correo.trim() });
+        if (correoExistente) {
+            return res.render("cliente/editar-perfil", {
+                usuario: req.session.usuario,
+                exito: null,
+                error: "⚠️ El correo electrónico ingresado ya se encuentra registrado por otro usuario."
+            });
+        }
+
+        // Preparar objeto con los datos a actualizar
+        const datosActualizados = {
+            nombre: nombre.trim(),
+            apellido: apellido.trim(),
+            dni: dni.trim(),
+            correo: correo.trim()
+        };
+
+        if (password && password.trim() !== "") {
+            datosActualizados.password = password;
+        }
+
+        // Guardar cambios en MongoDB
+        const usuarioActualizado = await Usuario.findByIdAndUpdate(
+            usuarioId,
+            datosActualizados,
+            { new: true }
+        );
+
+        // Actualizar datos guardados en la sesión activa
+        req.session.usuario = usuarioActualizado;
+
+        res.render("cliente/editar-perfil", {
+            usuario: req.session.usuario,
+            exito: "✅ Tus datos han sido actualizados con éxito.",
+            error: null
+        });
+    } catch (error) {
+        console.error("Error al actualizar perfil:", error);
+        res.render("cliente/editar-perfil", {
+            usuario: req.session.usuario,
+            exito: null,
+            error: "❌ Ocurrió un error al intentar guardar tus datos."
+        });
+    }
 });
 
 export default router;
