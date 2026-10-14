@@ -3,41 +3,47 @@ import Usuario from "../models/Usuario.js";
 
 const router = express.Router();
 
-// Mostrar vista de Login
+// ==========================================
+// 🔐 VISTA DE LOGIN
+// ==========================================
 router.get("/login", (req, res) => {
-    res.render("login", { error: null });
+    // Si ya hay una sesión activa, redirigir según su rol
+    if (req.session.usuario) {
+        if (req.session.usuario.rol === "Admin" || req.session.usuario.rol === "Administrador") {
+            return res.redirect("/admin/dashboard");
+        } else {
+            return res.redirect("/cliente/dashboard"); 
+        }
+    }
+    res.render("login", { error: null }); // 👈 Cambiado de "auth/login" a "login"
 });
 
-// Procesar el Login
+// ==========================================
+// 🚀 PROCESAR LOGIN
+// ==========================================
 router.post("/login", async (req, res) => {
     try {
         const { username, password } = req.body;
-        const usuario = await Usuario.findOne({ username, password });
 
-        if (!usuario) {
-            return res.render("login", { error: "⚠️ Usuario o contraseña incorrectos." });
+        const usuarioEncontrado = await Usuario.findOne({ username, password });
+
+        if (!usuarioEncontrado) {
+            return res.render("login", { error: "❌ Usuario o contraseña incorrectos." }); // 👈 Cambiado aquí también
         }
 
-        // Guardar usuario en sesión
-        req.session.usuario = usuario;
+        // Guardamos los datos del usuario en la sesión
+        req.session.usuario = usuarioEncontrado;
 
-        // Redirigir según el rol del usuario
-        if (usuario.rol === "Admin" || usuario.rol === "Administrador") {
-            return res.redirect("/admin");
+        // Redirección según el rol del usuario
+        if (usuarioEncontrado.rol === "Admin" || usuarioEncontrado.rol === "Administrador") {
+            return res.redirect("/admin/dashboard");
         } else {
-            return res.redirect("/cliente/cartelera");
+            return res.redirect("/cliente/dashboard"); 
         }
     } catch (error) {
-        console.error(error);
-        res.render("login", { error: "⚠️ Ocurrió un error al iniciar sesión." });
+        console.error("Error en el login:", error);
+        res.render("login", { error: "❌ Ocurrió un error en el servidor." }); // 👈 Cambiado aquí también
     }
-});
-
-// Cerrar sesión
-router.get("/logout", (req, res) => {
-    req.session.destroy(() => {
-        res.redirect("/auth/login");
-    });
 });
 
 export default router;
