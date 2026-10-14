@@ -1,0 +1,64 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    title Editar Perfil - Urbana Cult
+  body(style="font-family: sans-serif; padding: 30px; max-width: 1000px; margin: auto; background-color: #f4f6f9;")
+    
+    div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
+      div
+        h2(style="margin: 0; color: #2c3e50;") 🎭 Urbana Cult
+        if usuario
+          div(style="display: flex; align-items: center; gap: 10px; margin-top: 5px;")
+            p(style="margin: 0; font-size: 14px; color: #64748b;") ¡Hola, #{usuario.nombre} #{usuario.apellido} 
+              span(style="color: #94a3b8;") (@#{usuario.username})
+              | !
+            span(style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;") #{usuario.rol}
+      
+      div(style="display: flex; gap: 15px; align-items: center;")
+        a(href="/cliente/dashboard" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🏠 Inicio
+        a(href="/cliente/cartelera" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🎭 Cartelera
+        a(href="/cliente/carrito" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🛒 Carrito
+        a(href="/cliente/entradas" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🎫 Mis Entradas
+        a(href="/cliente/perfil" style="color: #2563eb; text-decoration: none; font-weight: bold; font-size: 14px;") ⚙️ Mi Perfil
+        a(href="/logout" style="background: #ef4444; color: white; padding: 6px 12px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold;") Cerrar Sesión
+
+    if exito
+      div(style="background-color: #d1e7dd; color: #0f5132; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #badbcc; font-weight: bold;")
+        = exito
+
+    if error
+      div(style="background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f5c6cb; font-weight: bold;")
+        = error
+
+    div(style="background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
+      h3(style="margin-top: 0; color: #2c3e50; margin-bottom: 20px;") ⚙️ Editar Mis Datos Personales
+      
+      form(action="/cliente/perfil" method="POST")
+        div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;")
+          div
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Nombre:
+            input(type="text" name="nombre" value=usuario.nombre required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+          div
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Apellido:
+            input(type="text" name="apellido" value=usuario.apellido required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+
+        div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;")
+          div
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") DNI (7 a 8 dígitos):
+            input(type="text" name="dni" maxlength="8" value=usuario.dni required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+          div
+            label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Correo Electrónico:
+            input(type="email" name="correo" value=usuario.correo required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+
+        div(style="margin-bottom: 15px;")
+          label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Nombre de Usuario (Username - No modificable):
+          input(type="text" value=usuario.username disabled style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; background: #f1f5f9; color: #64748b; box-sizing: border-box;")
+
+        div(style="margin-bottom: 25px;")
+          label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #334155;") Nueva Contraseña (Opcional - Dejar en blanco para mantener la actual):
+          input(type="password" name="password" placeholder="••••••••" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+
+        div(style="display: flex; gap: 10px;")
+          button(type="submit" style="background-color: #2563eb; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;") 💾 Guardar Cambios
+          a(href="/cliente/dashboard" style="background-color: #94a3b8; color: white; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;") ⬅️ Volver

@@ -1,0 +1,48 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    title Mis Entradas - Urbana Cult
+  body(style="font-family: sans-serif; padding: 30px; max-width: 1000px; margin: auto; background-color: #f4f6f9;")
+    
+    //- Navbar Superior Unificado
+    div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
+      div
+        h2(style="margin: 0; color: #2c3e50;") 🎭 Urbana Cult
+        if usuario
+          div(style="display: flex; align-items: center; gap: 10px; margin-top: 5px;")
+            p(style="margin: 0; font-size: 14px; color: #64748b;") ¡Hola, #{usuario.nombre} #{usuario.apellido} 
+              span(style="color: #94a3b8;") (@#{usuario.username})
+              | !
+            span(style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;") #{usuario.rol}
+      
+      div(style="display: flex; gap: 15px; align-items: center;")
+        a(href="/cliente/dashboard" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🏠 Inicio
+        a(href="/cliente/cartelera" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🎭 Cartelera
+        a(href="/cliente/carrito" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🛒 Carrito
+        a(href="/cliente/entradas" style="color: #2563eb; text-decoration: none; font-weight: bold; font-size: 14px;") 🎫 Mis Entradas
+        a(href="/cliente/perfil" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") ⚙️ Mi Perfil
+        a(href="/logout" style="background: #ef4444; color: white; padding: 6px 12px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold;") Cerrar Sesión
+
+    div(style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
+      h3(style="margin-top: 0; color: #2c3e50;") 🎫 Tus Tickets Registrados
+      
+      if entradas && entradas.length > 0
+        div(style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;")
+          each ent in entradas
+            div(style="border: 1px solid #e2e8f0; border-left: 5px solid #10b981; border-radius: 6px; padding: 20px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center;")
+              
+              //- Información a la izquierda
+              div
+                h4(style="margin: 0 0 5px 0; color: #1e293b; font-size: 18px;")= ent.evento ? ent.evento.titulo : 'Evento no disponible'
+                p(style="margin: 2px 0; color: #0284c7; font-weight: bold; font-size: 13px;") Artista: #{ent.evento ? ent.evento.artista : 'N/A'}
+                p(style="margin: 2px 0; color: #475569; font-size: 13px;") 🏢 Sala: #{ent.evento && ent.evento.sala ? ent.evento.sala.nombre : 'Sin sala'}
+                p(style="margin: 2px 0; color: #475569; font-size: 13px;") 📅 Fecha del Evento: #{ent.evento ? new Date(ent.evento.fecha).toLocaleDateString() + ' a las ' + ent.evento.hora + ' hs' : 'Fecha por confirmar'}
+                p(style="margin: 6px 0 0 0; font-size: 12px; color: #94a3b8;") Comprado el: #{new Date(ent.fechaCompra).toLocaleString()}
+              
+              //- Estado y Precio a la derecha
+              div(style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;")
+                span(style="background: #d1fae5; color: #065f46; padding: 6px 12px; border-radius: 12px; font-weight: bold; font-size: 13px;") Estado: #{ent.estado}
+                p(style="margin: 0; font-weight: bold; color: #16a34a; font-size: 18px;") $#{ent.evento ? ent.evento.precio : 0}
+      else
+        p(style="color: #64748b; text-align: center; padding: 30px;") Aún no has comprado ninguna entrada. ¡Explora la cartelera para adquirir una!

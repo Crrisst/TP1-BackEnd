@@ -1,0 +1,55 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    title Transacciones - Panel de Administración
+  body(style="font-family: sans-serif; padding: 30px; max-width: 1200px; margin: auto; background-color: #f4f6f9;")
+    
+    //- Navbar Superior Unificado del Administrador
+    div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
+      div
+        h2(style="margin: 0; color: #2c3e50;") ⚙️ Panel Admin
+        if usuario
+          div(style="display: flex; align-items: center; gap: 10px; margin-top: 5px;")
+            p(style="margin: 0; font-size: 14px; color: #64748b;") ¡Hola, #{usuario.nombre}!
+            span(style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;") #{usuario.rol}
+      
+      div(style="display: flex; gap: 15px; align-items: center;")
+        a(href="/admin/dashboard" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🏠 Inicio
+        a(href="/admin/usuarios" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 👥 Usuarios
+        a(href="/admin/salas" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🏢 Salas
+        a(href="/admin/eventos" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🎭 Eventos
+        a(href="/admin/transacciones" style="color: #2563eb; text-decoration: none; font-weight: bold; font-size: 14px;") 💳 Transacciones
+        a(href="/logout" style="background: #ef4444; color: white; padding: 6px 12px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold;") Cerrar Sesión
+
+    //- Contenedor de la Tabla de Transacciones
+    div(style="background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
+      h3(style="margin-top: 0; color: #2c3e50; margin-bottom: 20px;") 💳 Registro de Ventas Globales
+      
+      if transacciones && transacciones.length > 0
+        table(style="width: 100%; border-collapse: collapse; text-align: left;")
+          thead
+            tr(style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;")
+              th(style="padding: 12px; color: #475569; font-size: 14px;") Cliente
+              th(style="padding: 12px; color: #475569; font-size: 14px;") DNI
+              th(style="padding: 12px; color: #475569; font-size: 14px;") Evento
+              th(style="padding: 12px; color: #475569; font-size: 14px;") Fecha Compra
+              th(style="padding: 12px; color: #475569; font-size: 14px;") Cantidad
+              th(style="padding: 12px; color: #475569; font-size: 14px;") Estado
+              th(style="padding: 12px; color: #475569; font-size: 14px;") Total Pagado
+          tbody
+            each t in transacciones
+              tr(style="border-bottom: 1px solid #e2e8f0;")
+                td(style="padding: 12px; color: #1e293b; font-size: 14px; font-weight: bold;") #{t.usuario ? t.usuario.nombre + ' ' + t.usuario.apellido : 'Usuario Eliminado'}
+                td(style="padding: 12px; color: #64748b; font-size: 14px;") #{t.usuario ? t.usuario.dni : '-'}
+                td(style="padding: 12px; color: #1e293b; font-size: 14px;") #{t.evento ? t.evento.titulo : 'Evento Eliminado'}
+                td(style="padding: 12px; color: #64748b; font-size: 14px;") #{new Date(t.fechaCompra).toLocaleString()}
+                td(style="padding: 12px; color: #1e293b; font-weight: bold; font-size: 14px;") #{t.cantidad || 1}
+                td(style="padding: 12px;")
+                  span(style="background: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;") #{t.estado}
+                td(style="padding: 12px; color: #16a34a; font-weight: bold; font-size: 15px;") 
+                  - const precioUnit = t.evento ? t.evento.precio : 0
+                  - const cant = t.cantidad || 1
+                  | $#{precioUnit * cant}
+      else
+        p(style="color: #64748b; text-align: center; padding: 40px 0; font-size: 15px;") Aún no se han registrado ventas en el sistema.

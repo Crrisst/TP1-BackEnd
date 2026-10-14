@@ -2,46 +2,54 @@ doctype html
 html(lang="es")
   head
     meta(charset="UTF-8")
-    title Carrito de Compras
-  body(style="font-family: sans-serif; padding: 30px; max-width: 900px; margin: auto; background-color: #f4f6f9;")
-    div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
-      h2(style="margin: 0; color: #2c3e50;") 🛒 Tu Carrito de Entradas
-      a(href="/cliente/menu" style="background: #6c757d; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; font-weight: bold;") ⬅️ Volver al Menú
+    title Carrito de Compras - Urbana Cult
+  body(style="font-family: sans-serif; padding: 30px; max-width: 1000px; margin: auto; background-color: #f4f6f9;")
     
-    div(style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
-      if carrito && carrito.length > 0
+    div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
+      div
+        h2(style="margin: 0; color: #2c3e50;") 🛒 Mi Carrito
+        if usuario
+          div(style="display: flex; align-items: center; gap: 10px; margin-top: 5px;")
+            p(style="margin: 0; font-size: 14px; color: #64748b;") ¡Hola, #{usuario.nombre} #{usuario.apellido}!
+            span(style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;") #{usuario.rol}
+      
+      div(style="display: flex; gap: 15px; align-items: center;")
+        a(href="/cliente/dashboard" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🏠 Inicio
+        a(href="/cliente/cartelera" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🎭 Cartelera
+        a(href="/cliente/carrito" style="color: #2563eb; text-decoration: none; font-weight: bold; font-size: 14px;") 🛒 Carrito
+        a(href="/cliente/entradas" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🎫 Mis Entradas
+        a(href="/cliente/perfil" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") ⚙️ Mi Perfil
+        a(href="/logout" style="background: #ef4444; color: white; padding: 6px 12px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold;") Cerrar Sesión
+
+    div(style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
+      h3(style="margin-top: 0; color: #2c3e50; margin-bottom: 20px;") Entradas Seleccionadas
+      
+      if eventos && eventos.length > 0
         table(style="width: 100%; border-collapse: collapse; margin-bottom: 20px;")
           thead
-            tr(style="background-color: #e2e8f0; text-align: left; font-size: 14px;")
-              th(style="padding: 12px; border: 1px solid #cbd5e1;") Evento
-              th(style="padding: 12px; border: 1px solid #cbd5e1;") Tipo
-              th(style="padding: 12px; border: 1px solid #cbd5e1;") Precio U.
-              th(style="padding: 12px; border: 1px solid #cbd5e1;") Cantidad
-              th(style="padding: 12px; border: 1px solid #cbd5e1;") Subtotal
-              th(style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;") Acción
+            tr(style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;")
+              th(style="padding: 12px; color: #475569; font-size: 14px;") Evento
+              th(style="padding: 12px; color: #475569; font-size: 14px;") Precio Unit.
+              th(style="padding: 12px; color: #475569; font-size: 14px;") Cantidad
+              th(style="padding: 12px; color: #475569; font-size: 14px;") Subtotal
+              th(style="padding: 12px; color: #475569; font-size: 14px; text-align: center;") Acción
           tbody
-            each item, index in carrito
-              tr(style="font-size: 13px;")
-                td(style="padding: 12px; border: 1px solid #e2e8f0; font-weight: bold;") #{item.nombreEvento}
-                td(style="padding: 12px; border: 1px solid #e2e8f0;") #{item.tipoEntrada}
-                td(style="padding: 12px; border: 1px solid #e2e8f0;") $#{item.precio}
-                td(style="padding: 12px; border: 1px solid #e2e8f0;") #{item.cantidad}
-                td(style="padding: 12px; border: 1px solid #e2e8f0; font-weight: bold; color: #0284c7;") $#{item.precio * item.cantidad}
-                td(style="padding: 12px; border: 1px solid #e2e8f0; text-align: center;")
-                  a(href=`/cliente/carrito/quitar/${index}` style="background-color: #dc3545; color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-weight: bold;") ❌ Quitar
-        
-        div(style="border-top: 2px solid #eee; padding-top: 15px; text-align: right; font-size: 15px; color: #334155;")
-          p(style="margin: 4px 0;") Subtotal: $#{subtotal}
-          if porcentajeDescuento > 0
-            p(style="margin: 4px 0; color: #16a34a; font-weight: bold;") Descuento por Membresía (#{porcentajeDescuento}%): -$#{descuentoAplicado}
-          h3(style="margin: 10px 0 20px 0; color: #2c3e50;") Total a Pagar: 
-            span(style="color: #16a34a; font-size: 22px;") $#{total}
-            
-        div(style="display: flex; justify-content: space-between; align-items: center;")
-          a(href="/cliente/comprar" style="color: #0284c7; text-decoration: none; font-weight: bold;") ➕ Seguir comprando
-          a(href="/cliente/carrito/checkout" style="background-color: #16a34a; color: white; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;") 💳 Ir a Pagar
-      
+            each ev in eventos
+              tr(style="border-bottom: 1px solid #e2e8f0;")
+                td(style="padding: 12px; color: #1e293b; font-weight: bold; font-size: 14px;")= ev.titulo
+                td(style="padding: 12px; color: #475569; font-size: 14px;") $#{ev.precio}
+                td(style="padding: 12px; color: #1e293b; font-weight: bold; font-size: 14px;") #{ev.cantidad} unidad(es)
+                td(style="padding: 12px; color: #16a34a; font-weight: bold; font-size: 14px;") $#{ev.subtotal}
+                td(style="padding: 12px; text-align: center;")
+                  form(action=`/cliente/carrito/eliminar/${ev._id}` method="POST" style="margin: 0;")
+                    button(type="submit" style="background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: bold;") ❌ Quitar
+
+        div(style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #e2e8f0; padding-top: 20px;")
+          h3(style="margin: 0; color: #1e293b;") Total a Pagar: <span style="color: #16a34a;">$#{total}</span>
+          div(style="display: flex; gap: 10px;")
+            a(href="/cliente/cartelera" style="background: #64748b; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;") ⬅️ Seguir Comprando
+            a(href="/cliente/checkout" style="background: #2563eb; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;") 💳 Proceder al Pago
       else
-        div(style="text-align: center; padding: 40px;")
-          p(style="color: #666; font-size: 16px; margin-bottom: 20px;") Tu carrito de compras está vacío.
-          a(href="/cliente/comprar" style="background: #007bff; color: white; padding: 12px 25px; border-radius: 5px; text-decoration: none; font-weight: bold;") 🎟️ Ir a la Cartelera
+        div(style="text-align: center; padding: 40px 0;")
+          p(style="color: #64748b; font-size: 16px; margin-bottom: 20px;") Tu carrito está vacío. ¡Explora la cartelera y elige tus eventos favoritos!
+          a(href="/cliente/cartelera" style="background: #2563eb; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;") 🎭 Ir a la Cartelera

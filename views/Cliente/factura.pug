@@ -1,0 +1,72 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    title Comprobante de Pago - Urbana Cult
+  body(style="font-family: sans-serif; padding: 30px; max-width: 800px; margin: auto; background-color: #f4f6f9;")
+    
+    //- Navbar Superior Unificado
+    div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
+      div
+        h2(style="margin: 0; color: #2c3e50;") 🎫 Urbana Cult
+        if usuario
+          div(style="display: flex; align-items: center; gap: 10px; margin-top: 5px;")
+            p(style="margin: 0; font-size: 14px; color: #64748b;") ¡Gracias por tu compra, #{usuario.nombre}!
+            span(style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;") #{usuario.rol}
+      
+      div(style="display: flex; gap: 15px; align-items: center;")
+        a(href="/cliente/dashboard" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🏠 Inicio
+        a(href="/cliente/cartelera" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🎭 Cartelera
+        a(href="/cliente/entradas" style="color: #2563eb; text-decoration: none; font-weight: bold; font-size: 14px;") 🎫 Mis Entradas
+        a(href="/logout" style="background: #ef4444; color: white; padding: 6px 12px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold;") Cerrar Sesión
+
+    //- Contenedor de la Factura / Comprobante
+    div(style="background-color: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid #16a34a;")
+      
+      div(style="text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 25px;")
+        div(style="font-size: 48px; margin-bottom: 10px;") 🎉
+        h2(style="margin: 0; color: #16a34a; font-size: 24px;") ¡Pago Procesado con Éxito!
+        p(style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;") Tu transacción ha sido aprobada y tus entradas ya se encuentran registradas.
+
+      //- Datos generales de la transacción
+      div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #f8fafc; padding: 20px; border-radius: 6px; margin-bottom: 25px; font-size: 14px;")
+        <div>
+          p(style="margin: 0 0 5px 0; color: #64748b;") <strong>Nº de Operación:</strong> #{numeroOperacion}
+          p(style="margin: 0; color: #64748b;") <strong>Fecha y Hora:</strong> #{fecha}
+        </div>
+        <div>
+          p(style="margin: 0 0 5px 0; color: #64748b;") <strong>Titular de Tarjeta:</strong> #{titular}
+          p(style="margin: 0; color: #64748b;") <strong>Método de Pago:</strong> Tarjeta terminada en **** #{ultimosDigitos}
+        </div>
+
+      //- Detalle de ítems
+      h3(style="color: #2c3e50; font-size: 16px; margin-bottom: 15px;") Detalle de Entradas Compradas
+      table(style="width: 100%; border-collapse: collapse; margin-bottom: 25px;")
+        thead
+          tr(style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1; text-align: left;")
+            th(style="padding: 10px; color: #475569; font-size: 13px;") Evento / Artista
+            th(style="padding: 10px; color: #475569; font-size: 13px;") Sala
+            th(style="padding: 10px; color: #475569; font-size: 13px;") Cantidad
+            th(style="padding: 10px; color: #475569; font-size: 13px; text-align: right;") Subtotal
+        tbody
+          each ev in eventos
+            tr(style="border-bottom: 1px solid #e2e8f0;")
+              td(style="padding: 12px; color: #1e293b; font-size: 14px;")
+                strong= ev.titulo
+                br
+                span(style="color: #64748b; font-size: 12px;")= ev.artista
+              td(style="padding: 12px; color: #475569; font-size: 14px;")= ev.sala
+              td(style="padding: 12px; color: #1e293b; font-size: 14px; font-weight: bold;") x#{ev.cantidad}
+              td(style="padding: 12px; color: #16a34a; font-weight: bold; font-size: 14px; text-align: right;") $#{ev.subtotal}
+
+      //- Total Pagado
+      div(style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #e2e8f0; padding-top: 20px; margin-bottom: 30px;")
+        span(style="font-size: 16px; color: #475569; font-weight: bold;") Estado del Pago: <span style="color: #16a34a; background: #d1fae5; padding: 3px 8px; border-radius: 10px; font-size: 12px;">APROBADO</span>
+        div(style="text-align: right;")
+          p(style="margin: 0; font-size: 13px; color: #64748b;") Total Pagado:
+          h2(style="margin: 0; color: #16a34a; font-size: 22px;") $#{total}
+
+      //- Botones de navegación final
+      div(style="display: flex; gap: 15px; justify-content: center;")
+        a(href="/cliente/cartelera" style="background: #64748b; color: white; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;") 🎭 Seguir Comprando
+        a(href="/cliente/entradas" style="background: #2563eb; color: white; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 2px 4px rgba(37,99,235,0.2);") 🎫 Ver Mis Entradas Definitivas

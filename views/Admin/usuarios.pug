@@ -1,59 +1,102 @@
-doctype html
-html(lang="es")
-  head
-    meta(charset="UTF-8")
-    title Gestión de Usuarios - Panel de Administración
-  body(style="font-family: sans-serif; padding: 30px; max-width: 900px; margin: auto; background-color: #f4f6f9;")
-    div(style="background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
-      
-      div(style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;")
-        h2(style="margin: 0; color: #2c3e50;") 👥 Listado de Usuarios del Sistema
-        a(href="/admin/dashboard" style="color: #666; text-decoration: none; font-weight: bold;") ⬅️ Volver al Panel
+extends ../layout
 
-      if exito
-        div(style="background-color: #d1e7dd; color: #0f5132; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #badbcc;")
-          strong= exito
+block contenido
+  div.nav
+    h2 👥 Gestión de Usuarios
+    a(href="/admin" style="background: #475569; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none;") ⬅️ Volver al Panel
 
-      //- El botón de registrar nuevo usuario solo aparece si el rol es Administrador
-      if usuarioLogueado && usuarioLogueado.rol === 'Administrador'
-        div(style="margin-bottom: 20px;")
-          a(href="/admin/crear-personal" style="background-color: #16a34a; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; font-weight: bold;") ➕ Registrar Nuevo Usuario / Personal
+  hr
 
-      if usuarios && usuarios.length > 0
-        //- Contenedor con overflow-x para que la tabla no rompa el diseño principal si es muy ancha
-        div(style="overflow-x: auto; max-width: 100%;")
-          table(style="width: 100%; border-collapse: collapse; margin-top: 10px;")
-            thead
-              tr(style="background-color: #f1f5f9; text-align: left; border-bottom: 2px solid #cbd5e1;")
-                th(style="padding: 10px; min-width: 100px;") Usuario
-                th(style="padding: 10px; min-width: 150px;") Nombre y Apellido
-                //- Ancho fijo para el encabezado del email
-                th(style="padding: 10px; max-width: 250px; min-width: 180px;") Email
-                th(style="padding: 10px; min-width: 80px;") Rol
-                th(style="padding: 10px; min-width: 100px;") Tipo Cliente
-                //- La columna de acciones solo aparece para administradores
-                if usuarioLogueado && usuarioLogueado.rol === 'Administrador'
-                  th(style="padding: 10px; text-align: center; min-width: 160px;") Acciones
-            tbody
-              each user in usuarios
-                tr(style="border-bottom: 1px solid #e2e8f0;")
-                  td(style="padding: 10px;")= user.nombreUsuario
-                  td(style="padding: 10px;")
-                    | #{user.nombre}
-                    br
-                    | #{user.apellido}
-                  //- Aplicación de word-break para cortar los emails excesivamente largos
-                  td(style="padding: 10px; max-width: 250px; word-break: break-all; white-space: normal;")= user.email
-                  td(style="padding: 10px;")
-                    span(style="padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background-color: #e2e8f0;")= user.rol
-                  td(style="padding: 10px;")= user.tipoCliente
-                  
-                  //- Los botones de edición y eliminación solo se muestran si el rol es Administrador
-                  if usuarioLogueado && usuarioLogueado.rol === 'Administrador'
-                    td(style="padding: 10px; text-align: center;")
-                      div(style="display: flex; justify-content: center; gap: 8px;")
-                        a(href=`/admin/usuarios/editar/${user._id}` style="background-color: #0ea5e9; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 12px;") ✏️ Editar
-                        form(action=`/admin/usuarios/eliminar/${user._id}` method="POST" style="margin: 0;" onsubmit="return confirm('¿Estás seguro de eliminar este usuario?');")
-                          button(type="submit" style="background-color: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;") 🗑️ Eliminar
-      else
-        p(style="color: #64748b; text-align: center; padding: 20px;") No hay usuarios registrados en el sistema.
+  if error
+    div(style="background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f5c6cb; font-weight: bold;")
+      = error
+
+  div(style="background: #f8fafc; padding: 20px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 25px;")
+    h3(style="margin-top: 0; color: #1e293b;")= editUsuario ? '✏️ Modificar Datos del Usuario' : '➕ Registrar Nuevo Usuario'
+    
+    form(action=editUsuario ? `/admin/usuarios/editar/${editUsuario._id}` : "/admin/usuarios" method="POST")
+      div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;")
+        div
+          label(style="font-weight: bold; font-size: 0.9em;") Nombre (Solo letras):
+          input#inputNombre(type="text" name="nombre" value=editUsuario ? editUsuario.nombre : (datos ? datos.nombre : '') placeholder="Ej. Juan" required)
+        div
+          label(style="font-weight: bold; font-size: 0.9em;") Apellido (Solo letras):
+          input#inputApellido(type="text" name="apellido" value=editUsuario ? editUsuario.apellido : (datos ? datos.apellido : '') placeholder="Ej. Pérez" required)
+
+      div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;")
+        div
+          label(style="font-weight: bold; font-size: 0.9em;") DNI (7 a 8 dígitos numéricos):
+          input#inputDni(type="text" name="dni" maxlength="8" value=editUsuario ? editUsuario.dni : (datos ? datos.dni : '') placeholder="Ej. 35123456" required)
+        div
+          label(style="font-weight: bold; font-size: 0.9em;") Correo Electrónico:
+          input(type="email" name="correo" value=editUsuario ? editUsuario.correo : (datos ? datos.correo : '') placeholder="ejemplo@correo.com" required)
+
+      div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;")
+        div
+          label(style="font-weight: bold; font-size: 0.9em;") Cumpleaños (Mayor de edad):
+          input(type="date" name="cumpleaños" value=editUsuario ? editUsuario.cumpleaños : (datos ? datos.cumpleaños : '') required)
+        div
+          label(style="font-weight: bold; font-size: 0.9em;") Nombre de Usuario (Username):
+          input(type="text" name="username" value=editUsuario ? editUsuario.username : (datos ? datos.username : '') placeholder="ej. juan_perez" required)
+
+      div(style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;")
+        div
+          label(style="font-weight: bold; font-size: 0.9em;") Contraseña #{editUsuario ? '(Opcional - Dejar en blanco para no cambiar)' : ''}:
+          input(type="password" name="password" placeholder="••••••••" required=!editUsuario)
+        div
+          label(style="font-weight: bold; font-size: 0.9em;") Rol en el Sistema:
+          select(name="rol" required style="background: white; padding: 8px; margin: 5px 0 15px 0; width: 100%; border: 1px solid #cbd5e1; border-radius: 4px;")
+            - const rolActual = editUsuario ? editUsuario.rol : (datos ? datos.rol : 'Cliente')
+            option(value="Cliente" selected=rolActual === 'Cliente') 👤 Cliente (Compra de entradas)
+            option(value="Admin" selected=rolActual === 'Admin') 🛠️ Administrador (Gestión total)
+
+      div(style="margin-top: 15px;")
+        button(type="submit" style="padding: 10px 20px; font-weight: bold;")= editUsuario ? '💾 Guardar Cambios' : '➕ Crear Usuario'
+        if editUsuario
+          a(href="/admin/usuarios" style="margin-left: 10px; background: #94a3b8; color: white; padding: 10px 15px; border-radius: 4px; text-decoration: none; display: inline-block;") ❌ Cancelar
+
+  hr
+
+  h3(style="color: #1e293b;") 📋 Lista de Usuarios Registrados
+  
+  if usuarios.length > 0
+    each usr in usuarios
+      div.card(style="display: flex; justify-content: space-between; align-items: center; background: white; border-left: 4px solid " + (usr.rol === 'Admin' ? '#2563eb' : '#10b981') + ";")
+        div
+          h4(style="margin: 0 0 5px 0; color: #1e293b;") #{usr.nombre} #{usr.apellido}
+          p(style="margin: 2px 0; font-size: 0.9em; color: #64748b;") 
+            strong Usuario: 
+            | #{usr.username} | 
+            strong DNI: 
+            | #{usr.dni} | 
+            strong Correo: 
+            | #{usr.correo}
+          p(style="margin: 2px 0; font-size: 0.85em;")
+            span(style="background: " + (usr.rol === 'Admin' ? '#dbeafe' : '#d1fae5') + "; color: " + (usr.rol === 'Admin' ? '#1e40af' : '#065f46') + "; padding: 2px 8px; border-radius: 10px; font-weight: bold;") Rol: #{usr.rol}
+        
+        div(style="display: flex; gap: 8px;")
+          a(href=`/admin/usuarios?editar=${usr._id}` style="background: #e2e8f0; color: #334155; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 0.9em; font-weight: bold;") ✏️ Editar
+          
+          form(action=`/admin/usuarios/eliminar/${usr._id}` method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este usuario?');" style="margin: 0;")
+            button(type="submit" style="background: #fee2e2; color: #b91c1c; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; font-weight: bold;") 🗑️ Eliminar
+  else
+    p(style="color: #64748b; font-style: italic;") No hay usuarios registrados en la base de datos.
+
+  script.
+    const validarSoloLetras = (e) => {
+      const char = String.fromCharCode(e.keyCode || e.which);
+      if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/.test(char) && e.key !== "Backspace" && e.key !== "Tab" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
+        e.preventDefault();
+      }
+    };
+
+    const validarSoloNumeros = (e) => {
+      const char = String.fromCharCode(e.keyCode || e.which);
+      if (!/^\d*$/.test(char) && e.key !== "Backspace" && e.key !== "Tab" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
+        e.preventDefault();
+      }
+    };
+
+    document.getElementById('inputNombre').addEventListener('keypress', validarSoloLetras);
+    document.getElementById('inputApellido').addEventListener('keypress', validarSoloLetras);
+    document.getElementById('inputDni').addEventListener('keypress', validarSoloNumeros);

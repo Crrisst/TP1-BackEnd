@@ -1,0 +1,25 @@
+extends layout
+
+block contenido
+  h2 🎭 Ingresar a Urbana Cult
+  p Ingrese su nombre de usuario y contraseña:
+
+  if error
+    div(style="background: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 4px; margin-bottom: 15px;") #{error}
+
+  form(action="/auth/login" method="POST")
+    label(for="username") Nombre de Usuario:
+    input(type="text" name="username" placeholder="ej. admin" required)
+    
+    label(for="password") Contraseña:
+    input(type="password" name="password" placeholder="********" required)
+    
+    button(type="submit") Iniciar Sesión
+
+  hr
+  p(style="font-size: 0.9em; color: #64748b;") 
+    strong 💡 Datos de prueba por defecto (ejecutando el seed):
+    br
+    | Admin: <code>admin</code> / <code>admin</code>
+    br
+    | Cliente: <code>cliente</code> / <code>cliente</code>

@@ -1,29 +1,17 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 
-export const conectarDB = async () => {
-  const uriAtlas = process.env.MONGODB_URI;
-  const uriLocal = 'mongodb://127.0.0.1:27017/TP2';
+dotenv.config();
 
-  // 1. Intentar conectar primero a MongoDB Atlas (si está definida la URI)
-  if (uriAtlas) {
+const conectarDB = async () => {
     try {
-      console.log('🌐 Intentando conectar a MongoDB Atlas...');
-      const conexion = await mongoose.connect(uriAtlas, { serverSelectionTimeoutMS: 5000 }); // Timeout de 5 segundos para no quedar esperando
-      console.log(`📦 Conectado exitosamente a MongoDB Atlas: ${conexion.connection.host}`);
-      return conexion;
-    } catch (errorAtlas) {
-      console.warn('⚠️ No se pudo conectar a MongoDB Atlas. Intentando con la base de datos local...');
+        const uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/urbana_cult";
+        await mongoose.connect(uri);
+        console.log("Conectado exitosamente a la Base de Datos");
+    } catch (error) {
+        console.error("Error al conectar a MongoDB:", error);
+        process.exit(1);
     }
-  }
-
-  // 2. Si Atlas falla o no está definido, se conecta a la base de datos local
-  try {
-    console.log('💻 Intentando conectar a MongoDB Local...');
-    const conexionLocal = await mongoose.connect(uriLocal);
-    console.log(`📦 Conectado exitosamente a MongoDB Local: ${conexionLocal.connection.host}`);
-    return conexionLocal;
-  } catch (errorLocal) {
-    console.error('❌ Error crítico: No se pudo conectar ni a Atlas ni a la base de datos local.', errorLocal.message);
-    process.exit(1);
-  }
 };
+
+export default conectarDB;
