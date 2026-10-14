@@ -32,11 +32,20 @@ router.get("/dashboard", (req, res) => {
 // ==========================================
 router.get("/usuarios", async (req, res) => {
     try {
-        const usuarios = await Usuario.find();
+        const usuarios = await Usuario.find().lean();
         const editId = req.query.editar;
         let editUsuario = null;
+        
         if (editId) {
-            editUsuario = await Usuario.findById(editId);
+            const encontrado = await Usuario.findById(editId).lean();
+            if (encontrado) {
+                let fechaFormateada = "";
+                if (encontrado.cumpleaños) {
+                    const d = new Date(encontrado.cumpleaños);
+                    fechaFormateada = !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : String(encontrado.cumpleaños).split('T')[0];
+                }
+                editUsuario = { ...encontrado, cumpleañosStr: fechaFormateada };
+            }
         }
 
         res.render("admin/usuarios", { 
@@ -52,7 +61,6 @@ router.get("/usuarios", async (req, res) => {
     }
 });
 
-// Ruta protegida con el middleware validarUsuario para aplicar todas las restricciones y validaciones
 router.post("/usuarios", validarUsuario, async (req, res) => {
     try {
         const { nombre, apellido, dni, correo, cumpleaños, username, password, rol } = req.body;
@@ -81,27 +89,53 @@ router.post("/usuarios/editar/:id", async (req, res) => {
         const { id } = req.params;
         const { nombre, apellido, dni, correo, cumpleaños, username, password, rol } = req.body;
 
-        const dniDuplicado = await Usuario.findOne({ _id: { $ne: id }, dni });
+        const usuarioAEditar = await Usuario.findById(id);
+        if (!usuarioAEditar) {
+            return res.status(404).json({ error: "⚠️ Usuario no encontrado." });
+        }
+
+        if (usuarioAEditar.username === "admin" && rol !== usuarioAEditar.rol) {
+            return res.status(400).json({ error: "⚠️ No se puede modificar el rol del usuario administrador principal." });
+        }
+
+        if (!nombre || !apellido || !dni || !correo || !cumpleaños || !username) {
+            return res.status(400).json({ error: "⚠️ Todos los campos obligatorios deben ser completados." });
+        }
+
+        if (nombre.trim().length > 15 || apellido.trim().length > 15) {
+            return res.status(400).json({ error: "⚠️ El nombre y el apellido no deben superar los 15 caracteres." });
+        }
+
+        const dniDuplicado = await Usuario.findOne({ _id: { $ne: id }, dni: dni.trim() });
         if (dniDuplicado) {
             return res.status(400).json({ error: "⚠️ El DNI ingresado ya pertenece a otro usuario." });
         }
 
-        const correoDuplicado = await Usuario.findOne({ _id: { $ne: id }, correo });
+        const correoDuplicado = await Usuario.findOne({ _id: { $ne: id }, correo: correo.trim() });
         if (correoDuplicado) {
             return res.status(400).json({ error: "⚠️ El correo electrónico ya pertenece a otro usuario." });
         }
 
-        const usernameDuplicado = await Usuario.findOne({ _id: { $ne: id }, username });
+        const usernameDuplicado = await Usuario.findOne({ _id: { $ne: id }, username: username.trim() });
         if (usernameDuplicado) {
             return res.status(400).json({ error: "⚠️ El nombre de usuario ya está en uso." });
         }
 
-        const datosActualizados = { nombre, apellido, dni, correo, cumpleaños, username, rol };
+        const datosActualizados = { 
+            nombre: nombre.trim(), 
+            apellido: apellido.trim(), 
+            dni: dni.trim(), 
+            correo: correo.trim(), 
+            cumpleaños, 
+            username: username.trim(), 
+            rol: (usuarioAEditar.username === "admin") ? usuarioAEditar.rol : (rol || "Cliente")
+        };
+
         if (password && password.trim() !== "") {
             datosActualizados.password = password;
         }
 
-        await Usuario.findByIdAndUpdate(id, datosActualizados);
+        await Usuario.findByIdAndUpdate(id, datosActualizados, { returnDocument: 'after' });
         return res.status(200).json({ success: true, mensaje: "Usuario modificado con éxito." });
     } catch (error) { 
         console.error(error);
@@ -111,6 +145,15 @@ router.post("/usuarios/editar/:id", async (req, res) => {
 
 router.post("/usuarios/eliminar/:id", async (req, res) => {
     try {
+        const usuarioAEliminar = await Usuario.findById(req.params.id);
+        if (!usuarioAEliminar) {
+            return res.status(404).json({ error: "Usuario no encontrado." });
+        }
+
+        if (usuarioAEliminar.username === "admin") {
+            return res.status(403).json({ error: "⚠️ No se puede eliminar al usuario administrador principal." });
+        }
+
         await Usuario.findByIdAndDelete(req.params.id);
         return res.status(200).json({ success: true });
     } catch (error) {
@@ -151,7 +194,7 @@ router.post("/salas", validarSala, async (req, res) => {
 
         if (sumaZonas !== capTotal) {
             return res.status(400).json({ 
-                error: `⚠️ La capacidad total (${capTotal}) no coincide con la suma de los sectores (${sumaZonas}: General + Platea + VIP).` 
+                error: `⚠️ La capacidad total (${capTotal}) no coincide con la suma de los sectores (${sumaZonas}).` 
             });
         }
 
@@ -264,13 +307,13 @@ router.post("/eventos", validarEvento, async (req, res) => {
     }
 });
 
-router.post("/eventos/eliminar/:id", async (nodeReq, nodeRes, next) => {
+router.post("/eventos/eliminar/:id", async (req, res) => {
     try {
-        await Evento.findByIdAndDelete(nodeReq.params.id);
-        return nodeRes.status(200).json({ success: true });
+        await Evento.findByIdAndDelete(req.params.id);
+        return res.status(200).json({ success: true });
     } catch (error) {
         console.error(error);
-        return nodeRes.status(500).json({ error: "Error al eliminar evento." });
+        return res.status(500).json({ error: "Error al eliminar evento." });
     }
 });
 

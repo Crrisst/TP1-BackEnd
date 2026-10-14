@@ -13,48 +13,53 @@ html(lang="es")
 
     if usuario && (usuario.rol === 'Admin' || usuario.rol === 'Administrador')
       div(style="background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 30px;")
-        h3(style="margin-top: 0; color: #2c3e50;") Cargar Nuevo Usuario
+        div(style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;")
+          h3(style="margin: 0; color: #2c3e50;")= editUsuario ? '✏️ Modificar Usuario' : 'Cargar Nuevo Usuario'
+          if editUsuario
+            a(href="/admin/usuarios" style="background: #6c757d; color: white; padding: 5px 12px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: bold;") ✖️ Cancelar Edición
 
         form#formUsuario
+          input#editId(type="hidden" value=editUsuario ? editUsuario._id : "")
+
           div(style="display: flex; gap: 15px; margin-bottom: 15px;")
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Nombre (Solo letras, máx. 15)
-              input#nombre(type="text" name="nombre" placeholder="Ej. Juan" maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input#nombre(type="text" name="nombre" value=editUsuario ? editUsuario.nombre : "" placeholder="Ej. Juan" maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Apellido (Solo letras, máx. 15)
-              input#apellido(type="text" name="apellido" placeholder="Ej. Pérez" maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input#apellido(type="text" name="apellido" value=editUsuario ? editUsuario.apellido : "" placeholder="Ej. Pérez" maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") DNI (7 a 8 dígitos)
-              input#dni(type="text" name="dni" placeholder="Ej. 35123456" maxlength="8" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input#dni(type="text" name="dni" value=editUsuario ? editUsuario.dni : "" placeholder="Ej. 35123456" maxlength="8" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
           div(style="display: flex; gap: 15px; margin-bottom: 15px;")
             div(style="flex: 2;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Correo Electrónico
-              input#correo(type="email" name="correo" placeholder="correo@ejemplo.com" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input#correo(type="email" name="correo" value=editUsuario ? editUsuario.correo : "" placeholder="correo@ejemplo.com" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Fecha de Nacimiento (+18)
-              input#nacimiento(type="date" name="cumpleaños" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input#nacimiento(type="date" name="cumpleaños" value=editUsuario ? editUsuario.cumpleañosStr : "" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
           div(style="display: flex; gap: 15px; margin-bottom: 20px;")
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Usuario (Username)
-              input#username(type="text" name="username" placeholder="juanperez" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              input#username(type="text" name="username" value=editUsuario ? editUsuario.username : "" placeholder="juanperez" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
-              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Contraseña
-              input#password(type="password" name="password" placeholder="********" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Contraseña #{editUsuario ? '(Dejar en blanco para no cambiar)' : ''}
+              input#password(type="password" name="password" placeholder="********" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
-              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Rol
-              select#rol(name="rol" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; background: white;")
-                option(value="Cliente") Cliente
-                option(value="Supervisor") Supervisor
-                option(value="Admin") Admin
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Rol #{editUsuario && editUsuario.username === 'admin' ? '(Bloqueado)' : ''}
+              select#rol(name="rol" disabled=editUsuario && editUsuario.username === 'admin' style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; background: white;")
+                option(value="Cliente" selected=editUsuario && editUsuario.rol==='Cliente') Cliente
+                option(value="Supervisor" selected=editUsuario && editUsuario.rol==='Supervisor') Supervisor
+                option(value="Admin" selected=editUsuario && editUsuario.rol==='Admin') Admin
 
-          button(type="submit" style="background-color: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;") ➕ Registrar Usuario
+          button(type="submit" style=`background-color: ${editUsuario ? '#f59e0b' : '#16a34a'}; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;`)= editUsuario ? '💾 Guardar Cambios' : '➕ Registrar Usuario'
 
     div(style="background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);")
       h3(style="margin-top: 0; color: #2c3e50;") 📋 Listado de Usuarios Registrados
@@ -78,8 +83,12 @@ html(lang="es")
                 td(style="padding: 10px; color: #0284c7; font-weight: bold;")= u.rol
                 
                 if usuario && (usuario.rol === 'Admin' || usuario.rol === 'Administrador')
-                  td(style="padding: 10px; text-align: center;")
-                    button.btnEliminarUsuario(data-id=u._id style="background-color: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;") 🗑️ Eliminar
+                  td(style="padding: 10px; text-align: center; display: flex; gap: 8px; justify-content: center;")
+                    a(href=`/admin/usuarios?editar=${u._id}` style="background-color: #f59e0b; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: bold;") ✏️ Editar
+                    if u.username !== 'admin'
+                      button.btnEliminarUsuario(data-id=u._id style="background-color: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;") 🗑️ Eliminar
+                    else
+                      div(style="background-color: #e2e8f0; color: #475569; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 4px;") 🔒 Protegido
       else
         p(style="color: #64748b; text-align: center; padding: 20px;") No hay usuarios registrados en este momento.
 
@@ -106,6 +115,7 @@ html(lang="es")
         const alerta = document.getElementById("alertaUsuario");
         alerta.style.display = "none";
 
+        const editId = document.getElementById("editId").value;
         const nombre = document.getElementById("nombre").value.trim();
         const apellido = document.getElementById("apellido").value.trim();
         const dni = document.getElementById("dni").value.trim();
@@ -124,9 +134,10 @@ html(lang="es")
         }
 
         const body = { nombre, apellido, dni, correo, cumpleaños, username, password, rol };
+        const url = editId ? `/admin/usuarios/editar/${editId}` : "/admin/usuarios";
 
         try {
-          const res = await fetch("/admin/usuarios", {
+          const res = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body)
@@ -147,12 +158,12 @@ html(lang="es")
           if (res.ok) {
             alerta.style.background = "#d1e7dd"; 
             alerta.style.color = "#0f5132";
-            alerta.textContent = "✅ " + (data.mensaje || "Usuario registrado con éxito.");
-            setTimeout(() => location.reload(), 1000);
+            alerta.textContent = "✅ " + (data.mensaje || "Operación realizada con éxito.");
+            setTimeout(() => { window.location.href = "/admin/usuarios"; }, 1000);
           } else {
             alerta.style.background = "#f8d7da"; 
             alerta.style.color = "#721c24";
-            alerta.textContent = data.error || "⚠️ No se pudo registrar el usuario.";
+            alerta.textContent = data.error || "⚠️ No se pudo completar la operación.";
           }
         } catch (err) {
           console.error("Error detallado:", err);
@@ -163,7 +174,6 @@ html(lang="es")
         }
       });
 
-      // 🛠️ SCRIPT RESTAURADO: Maneja la petición fetch para eliminar usuarios de forma asíncrona
       document.addEventListener("click", async (e) => {
         if (e.target && e.target.classList.contains("btnEliminarUsuario")) {
           if (!confirm("¿Estás seguro de eliminar este usuario?")) return;
@@ -177,7 +187,8 @@ html(lang="es")
               const fila = document.getElementById(`fila-usuario-${id}`);
               if (fila) fila.remove();
             } else {
-              alert("❌ No se pudo eliminar el usuario.");
+              const data = await res.json().catch(() => ({}));
+              alert("❌ " + (data.error || "No se pudo eliminar el usuario."));
             }
           } catch (err) {
             console.error("Error al eliminar:", err);
