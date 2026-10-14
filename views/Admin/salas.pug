@@ -7,7 +7,7 @@ html(lang="es")
     
     div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
       h2(style="margin: 0; color: #2c3e50;") 🏢 Gestión de Salas
-      a(href="/admin" style="background: #007bff; color: white; padding: 10px 18px; border-radius: 5px; text-decoration: none; font-size: 14px; font-weight: bold;") ⬅️ Volver al Panel
+      a(href="/admin/dashboard" style="background: #007bff; color: white; padding: 10px 18px; border-radius: 5px; text-decoration: none; font-size: 14px; font-weight: bold;") ⬅️ Volver al Panel
 
     div#alertaSala(style="display: none; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-weight: bold;")
 
@@ -85,7 +85,6 @@ html(lang="es")
         const vip = Number(document.getElementById("vip").value) || 0;
         const sumaZonas = general + platea + vip;
 
-        // Validación en el cliente para verificar la capacidad y los sectores
         if (sumaZonas !== capacidadTotal) {
           alerta.style.display = "block";
           alerta.style.background = "#f8d7da";

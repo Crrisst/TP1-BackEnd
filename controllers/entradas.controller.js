@@ -19,11 +19,12 @@ export const venderEntrada = async (req, res, next) => {
             return res.status(403).json({ error: "No se pueden comprar entradas, el evento ya finalizó." });
         }
 
-        // Regla: Validar capacidad máxima de la sala (Corregido a .capacidad)
-        if ((evento.entradasVendidas + cant) > evento.sala.capacidad) {
+        // Regla: Validar capacidad máxima de la sala (Protegido contra undefined usando || 0)
+        const entradasActuales = evento.entradasVendidas || 0;
+        if ((entradasActuales + cant) > evento.sala.capacidad) {
             return res.status(400).json({ 
                 error: "Capacidad máxima superada.",
-                disponibles: evento.sala.capacidad - evento.entradasVendidas
+                disponibles: evento.sala.capacidad - entradasActuales
             });
         }
 
@@ -34,7 +35,7 @@ export const venderEntrada = async (req, res, next) => {
             cantidad: cant 
         });
         
-        evento.entradasVendidas += cant;
+        evento.entradasVendidas = entradasActuales + cant;
         await evento.save();
 
         res.status(201).json({ mensaje: "Compra exitosa", entrada: nuevaEntrada });
@@ -54,8 +55,10 @@ export const cancelarEntrada = async (req, res, next) => {
 
         // Regla de negocio: Liberar el cupo en el Evento
         const evento = await Evento.findById(entrada.evento);
-        evento.entradasVendidas -= entrada.cantidad;
-        await evento.save();
+        if (evento) {
+            evento.entradasVendidas = Math.max(0, (evento.entradasVendidas || 0) - entrada.cantidad);
+            await evento.save();
+        }
 
         res.status(200).json({ mensaje: "Entrada cancelada con éxito. Cupos liberados." });
     } catch (error) { next(error); }

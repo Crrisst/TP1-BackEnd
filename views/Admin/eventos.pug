@@ -7,7 +7,7 @@ html(lang="es")
     
     div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
       h2(style="margin: 0; color: #2c3e50;") 🎭 Gestión de Eventos
-      a(href="/admin" style="background: #007bff; color: white; padding: 10px 18px; border-radius: 5px; text-decoration: none; font-size: 14px; font-weight: bold;") ⬅️ Volver al Panel
+      a(href="/admin/dashboard" style="background: #007bff; color: white; padding: 10px 18px; border-radius: 5px; text-decoration: none; font-size: 14px; font-weight: bold;") ⬅️ Volver al Panel
 
     div#alertaEstado(style="display: none; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-weight: bold;")
 
@@ -72,7 +72,7 @@ html(lang="es")
                 td(style="padding: 10px; font-weight: bold; color: #1e293b;")= ev.titulo
                 td(style="padding: 10px; color: #475569;")= ev.artista
                 td(style="padding: 10px; color: #475569;")= ev.sala ? ev.sala.nombre : 'Sin asignar'
-                td(style="padding: 10px; color: #475569;")= new Date(ev.fecha).toLocaleDateString() + ' ' + (ev.hora || '')
+                td(style="padding: 10px; color: #475569;")= new Date(ev.fecha).toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' }) + ' ' + (ev.hora || '') + ' hs'
                 td(style="padding: 10px; font-weight: bold; color: #16a34a;")= '$' + ev.precio
                 
                 if usuario && (usuario.rol === 'Admin' || usuario.rol === 'Administrador' || usuario.rol === 'Supervisor')
@@ -103,31 +103,33 @@ html(lang="es")
           return;
         }
 
-        const ahora = new Date();
-        const anioLoc = ahora.getFullYear();
-        const mesLoc = String(ahora.getMonth() + 1).padStart(2, '0');
-        const diaLoc = String(ahora.getDate()).padStart(2, '0');
-        const hoyStrLocal = `${anioLoc}-${mesLoc}-${diaLoc}`;
+        // Validación estricta tomando el horario local de Argentina (Buenos Aires)
+        const opcionesFecha = { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' };
+        const opcionesHora = { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit', hour12: false };
+        
+        const fechaArgStr = new Date().toLocaleDateString('en-CA', opcionesFecha); // Formato YYYY-MM-DD
+        const horaArgStr = new Date().toLocaleTimeString('en-GB', opcionesHora);   // Formato HH:MM
 
-        if (fechaStr < hoyStrLocal) {
+        if (fechaStr < fechaArgStr) {
           alerta.style.display = "block";
           alerta.style.background = "#f8d7da";
           alerta.style.color = "#721c24";
-          alerta.textContent = "⚠️ La fecha del evento no puede ser anterior al día de hoy.";
+          alerta.textContent = "⚠️ La fecha del evento no puede ser anterior al día de hoy en Argentina.";
           return;
         }
 
-        if (fechaStr === hoyStrLocal) {
+        if (fechaStr === fechaArgStr) {
           const [horasEv, minutosEv] = horaStr.split(":").map(Number);
-          const minutosActualesTotal = ahora.getHours() * 60 + ahora.getMinutes();
+          const [horasArg, minutosArg] = horaArgStr.split(":").map(Number);
+
+          const minutosActualesTotal = horasArg * 60 + minutosArg;
           const minutosEventoTotal = horasEv * 60 + minutosEv;
 
           if (minutosEventoTotal < minutosActualesTotal) {
-            const horaActualFormateada = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
             alerta.style.display = "block";
             alerta.style.background = "#f8d7da";
             alerta.style.color = "#721c24";
-            alerta.textContent = `⚠️ La hora del evento (${horaStr}) no puede ser anterior a la hora actual (${horaActualFormateada}) para el día de hoy.`;
+            alerta.textContent = `⚠️ La hora del evento (${horaStr}) no puede ser anterior a la hora actual en Argentina (${horaArgStr} hs).`;
             return;
           }
         }

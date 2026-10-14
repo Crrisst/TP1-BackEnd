@@ -7,7 +7,7 @@ html(lang="es")
     
     div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
       h2(style="margin: 0; color: #2c3e50;") 👥 Gestión de Usuarios
-      a(href="/admin" style="background: #007bff; color: white; padding: 10px 18px; border-radius: 5px; text-decoration: none; font-size: 14px; font-weight: bold;") ⬅️ Volver al Panel
+      a(href="/admin/dashboard" style="background: #007bff; color: white; padding: 10px 18px; border-radius: 5px; text-decoration: none; font-size: 14px; font-weight: bold;") ⬅️ Volver al Panel
 
     div#alertaUsuario(style="display: none; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-weight: bold;")
 
@@ -90,14 +90,12 @@ html(lang="es")
       const diaMax = String(hoy.getDate()).padStart(2, '0');
       document.getElementById("nacimiento").max = `${anioMax}-${mesMax}-${diaMax}`;
 
-      // Restricción en vivo: Evita que escriban números o símbolos en nombre y apellido
       const validarSoloLetrasInput = (e) => {
         e.target.value = e.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '');
       };
       document.getElementById("nombre").addEventListener("input", validarSoloLetrasInput);
       document.getElementById("apellido").addEventListener("input", validarSoloLetrasInput);
 
-      // Restricción en vivo: Evita que escriban letras en el DNI y limita a 8 dígitos
       const dniInput = document.getElementById("dni");
       dniInput.addEventListener("input", (e) => {
         e.target.value = e.target.value.replace(/\D/g, '').slice(0, 8);
