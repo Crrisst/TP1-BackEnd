@@ -58,20 +58,62 @@ html(lang="es")
     </div>
 
     script.
+      // Función estricta para bloquear números y caracteres especiales en Nombre y Apellido
+      const aplicarFiltroLetras = (inputElement) => {
+        inputElement.addEventListener("input", (e) => {
+          let valorLimpio = e.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, "");
+          if (valorLimpio.length > 15) {
+            valorLimpio = valorLimpio.slice(0, 15);
+          }
+          e.target.value = valorLimpio;
+        });
+      };
+
+      aplicarFiltroLetras(document.getElementById("nombre"));
+      aplicarFiltroLetras(document.getElementById("apellido"));
+
+      // Función estricta para bloquear letras en el DNI
+      const dniInput = document.getElementById("dni");
+      dniInput.addEventListener("input", (e) => {
+        let valorLimpio = e.target.value.replace(/\D/g, "");
+        if (valorLimpio.length > 8) {
+          valorLimpio = valorLimpio.slice(0, 8);
+        }
+        e.target.value = valorLimpio;
+      });
+
       document.getElementById("formRegistro").addEventListener("submit", async (e) => {
         e.preventDefault();
         const alerta = document.getElementById("mensajeAlerta");
         alerta.style.display = "none";
 
-        const datos = {
-          nombre: document.getElementById("nombre").value,
-          apellido: document.getElementById("apellido").value,
-          dni: document.getElementById("dni").value,
-          correo: document.getElementById("correo").value,
-          cumpleaños: document.getElementById("cumpleanos").value,
-          username: document.getElementById("username").value,
-          password: document.getElementById("password").value
-        };
+        const nombre = document.getElementById("nombre").value.trim();
+        const apellido = document.getElementById("apellido").value.trim();
+        const dni = document.getElementById("dni").value.trim();
+        const correo = document.getElementById("correo").value.trim();
+        const cumpleaños = document.getElementById("cumpleanos").value;
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+
+        const soloLetrasRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+        if (!soloLetrasRegex.test(nombre) || !soloLetrasRegex.test(apellido)) {
+          alerta.style.display = "block";
+          alerta.style.background = "#fee2e2";
+          alerta.style.color = "#991b1b";
+          alerta.textContent = "⚠️ El nombre y el apellido deben contener únicamente letras.";
+          return;
+        }
+
+        const dniRegex = /^\d{7,8}$/;
+        if (!dniRegex.test(dni)) {
+          alerta.style.display = "block";
+          alerta.style.background = "#fee2e2";
+          alerta.style.color = "#991b1b";
+          alerta.textContent = "⚠️ El DNI debe ser numérico y tener entre 7 y 8 dígitos.";
+          return;
+        }
+
+        const datos = { nombre, apellido, dni, correo, cumpleaños, username, password };
 
         try {
           const res = await fetch("/auth/registro", {

@@ -18,12 +18,12 @@ html(lang="es")
         form#formUsuario
           div(style="display: flex; gap: 15px; margin-bottom: 15px;")
             div(style="flex: 1;")
-              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Nombre (Solo letras)
-              input#nombre(type="text" name="nombre" placeholder="Ej. Juan" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Nombre (Solo letras, máx. 15)
+              input#nombre(type="text" name="nombre" placeholder="Ej. Juan" maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
-              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Apellido (Solo letras)
-              input#apellido(type="text" name="apellido" placeholder="Ej. Pérez" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Apellido (Solo letras, máx. 15)
+              input#apellido(type="text" name="apellido" placeholder="Ej. Pérez" maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
               label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") DNI (7 a 8 dígitos)
@@ -35,7 +35,7 @@ html(lang="es")
               input#correo(type="email" name="correo" placeholder="correo@ejemplo.com" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
-              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Fecha de Nacimiento
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Fecha de Nacimiento (+18)
               input#nacimiento(type="date" name="cumpleaños" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
           div(style="display: flex; gap: 15px; margin-bottom: 20px;")
@@ -91,7 +91,7 @@ html(lang="es")
       document.getElementById("nacimiento").max = `${anioMax}-${mesMax}-${diaMax}`;
 
       const validarSoloLetrasInput = (e) => {
-        e.target.value = e.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '');
+        e.target.value = e.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '').slice(0, 15);
       };
       document.getElementById("nombre").addEventListener("input", validarSoloLetrasInput);
       document.getElementById("apellido").addEventListener("input", validarSoloLetrasInput);
@@ -115,53 +115,11 @@ html(lang="es")
         const password = document.getElementById("password").value;
         const rol = document.getElementById("rol").value;
 
-        const soloLetrasRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
-        if (!soloLetrasRegex.test(nombre) || !soloLetrasRegex.test(apellido)) {
+        if (nombre.length > 15 || apellido.length > 15) {
           alerta.style.display = "block";
           alerta.style.background = "#f8d7da";
           alerta.style.color = "#721c24";
-          alerta.textContent = "⚠️ El nombre y el apellido deben contener únicamente letras.";
-          return;
-        }
-
-        const dniRegex = /^\d{7,8}$/;
-        if (!dniRegex.test(dni)) {
-          alerta.style.display = "block";
-          alerta.style.background = "#f8d7da";
-          alerta.style.color = "#721c24";
-          alerta.textContent = "⚠️ El DNI debe ser numérico y tener exactamente 7 u 8 dígitos.";
-          return;
-        }
-
-        const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!correoRegex.test(correo)) {
-          alerta.style.display = "block";
-          alerta.style.background = "#f8d7da";
-          alerta.style.color = "#721c24";
-          alerta.textContent = "⚠️ El formato del correo electrónico no es válido.";
-          return;
-        }
-
-        const fechaNacimiento = new Date(cumpleaños);
-        if (isNaN(fechaNacimiento.getTime())) {
-          alerta.style.display = "block";
-          alerta.style.background = "#f8d7da";
-          alerta.style.color = "#721c24";
-          alerta.textContent = "⚠️ La fecha de nacimiento ingresada no es válida.";
-          return;
-        }
-
-        let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
-        const diferenciaMeses = hoy.getMonth() - fechaNacimiento.getMonth();
-        if (diferenciaMeses < 0 || (diferenciaMeses === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
-          edad--;
-        }
-
-        if (edad < 18) {
-          alerta.style.display = "block";
-          alerta.style.background = "#f8d7da";
-          alerta.style.color = "#721c24";
-          alerta.textContent = "❌ El usuario debe ser mayor de edad (18 años o más) para registrarse.";
+          alerta.textContent = "⚠️ El nombre y el apellido no deben superar los 15 caracteres.";
           return;
         }
 
@@ -205,6 +163,7 @@ html(lang="es")
         }
       });
 
+      // 🛠️ SCRIPT RESTAURADO: Maneja la petición fetch para eliminar usuarios de forma asíncrona
       document.addEventListener("click", async (e) => {
         if (e.target && e.target.classList.contains("btnEliminarUsuario")) {
           if (!confirm("¿Estás seguro de eliminar este usuario?")) return;
@@ -215,8 +174,14 @@ html(lang="es")
               headers: { "Content-Type": "application/json" }
             });
             if (res.ok) {
-              document.getElementById(`fila-usuario-${id}`).remove();
+              const fila = document.getElementById(`fila-usuario-${id}`);
+              if (fila) fila.remove();
+            } else {
+              alert("❌ No se pudo eliminar el usuario.");
             }
-          } catch (err) { console.error(err); }
+          } catch (err) {
+            console.error("Error al eliminar:", err);
+            alert("❌ Error de conexión al intentar eliminar.");
+          }
         }
       });

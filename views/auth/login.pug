@@ -23,6 +23,11 @@ html(lang="es")
         
         button(type="submit" style="background: #2563eb; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: bold; font-size: 15px; cursor: pointer;") Iniciar Sesión
 
+      //- Enlace o botón para ir al registro de nuevos clientes
+      div(style="text-align: center; margin-top: 20px; font-size: 14px;")
+        span(style="color: #64748b;") ¿No tienes una cuenta? 
+        a(href="/auth/registro" style="color: #2563eb; text-decoration: none; font-weight: bold;") Registrarse aquí
+
       hr(style="margin-top: 25px; border: 0; border-top: 1px solid #e2e8f0;")
 
       div(style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px; border-radius: 6px; margin-top: 20px;")
@@ -61,7 +66,6 @@ html(lang="es")
             errorDiv.style.display = "block";
             errorDiv.textContent = data.error || "⚠️ Usuario o contraseña incorrectos.";
           } else {
-            // Redirección manejada por el frontend tras login exitoso por fetch
             window.location.href = data.redirectUrl;
           }
         } catch (err) {

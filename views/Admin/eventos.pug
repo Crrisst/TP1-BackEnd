@@ -47,8 +47,8 @@ html(lang="es")
               input#hora(type="time" name="hora" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
             div(style="flex: 1;")
-              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Precio ($)
-              input#precio(type="number" name="precio" min="0" placeholder="Ej. 1500" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
+              label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") Precio ($ mín. 1000)
+              input#precio(type="number" name="precio" min="1000" placeholder="Ej. 1500" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
           button(type="submit" style="background-color: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;") ➕ Crear Evento
 
@@ -95,20 +95,19 @@ html(lang="es")
         const horaStr = document.getElementById("hora").value;
         const precio = Number(document.getElementById("precio").value);
 
-        if (precio <= 1000) {
+        if (isNaN(precio) || precio < 1000) {
           alerta.style.display = "block";
           alerta.style.background = "#f8d7da";
           alerta.style.color = "#721c24";
-          alerta.textContent = "⚠️ El precio del evento debe ser mayor a $1000.";
+          alerta.textContent = "⚠️ El precio del evento debe ser de al menos $1000.";
           return;
         }
 
-        // Validación estricta tomando el horario local de Argentina (Buenos Aires)
         const opcionesFecha = { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' };
         const opcionesHora = { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit', hour12: false };
         
-        const fechaArgStr = new Date().toLocaleDateString('en-CA', opcionesFecha); // Formato YYYY-MM-DD
-        const horaArgStr = new Date().toLocaleTimeString('en-GB', opcionesHora);   // Formato HH:MM
+        const fechaArgStr = new Date().toLocaleDateString('en-CA', opcionesFecha);
+        const horaArgStr = new Date().toLocaleTimeString('en-GB', opcionesHora);
 
         if (fechaStr < fechaArgStr) {
           alerta.style.display = "block";

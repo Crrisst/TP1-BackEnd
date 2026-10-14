@@ -52,6 +52,7 @@ router.get("/usuarios", async (req, res) => {
     }
 });
 
+// Ruta protegida con el middleware validarUsuario para aplicar todas las restricciones y validaciones
 router.post("/usuarios", validarUsuario, async (req, res) => {
     try {
         const { nombre, apellido, dni, correo, cumpleaños, username, password, rol } = req.body;
@@ -214,8 +215,8 @@ router.post("/eventos", validarEvento, async (req, res) => {
         }
 
         const precioNum = Number(precio);
-        if (isNaN(precioNum) || precioNum <= 1000) {
-            return res.status(400).json({ error: "⚠️ El precio del evento debe ser mayor a $1000." });
+        if (isNaN(precioNum) || precioNum < 1000) {
+            return res.status(400).json({ error: "⚠️ El precio del evento debe ser de al menos $1000." });
         }
 
         const hoy = new Date();
@@ -263,13 +264,13 @@ router.post("/eventos", validarEvento, async (req, res) => {
     }
 });
 
-router.post("/eventos/eliminar/:id", async (req, res) => {
+router.post("/eventos/eliminar/:id", async (nodeReq, nodeRes, next) => {
     try {
-        await Evento.findByIdAndDelete(req.params.id);
-        return res.status(200).json({ success: true });
+        await Evento.findByIdAndDelete(nodeReq.params.id);
+        return nodeRes.status(200).json({ success: true });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: "Error al eliminar evento." });
+        return nodeRes.status(500).json({ error: "Error al eliminar evento." });
     }
 });
 
