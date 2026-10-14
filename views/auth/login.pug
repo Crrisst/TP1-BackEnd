@@ -1,0 +1,34 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    title Iniciar Sesión - Urbana Cult
+  body(style="font-family: sans-serif; padding: 40px; max-width: 400px; margin: auto; background-color: #f4f6f9; display: flex; align-items: center; justify-content: center; min-height: 80vh;")
+    
+    div(style="background-color: #ffffff; padding: 35px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box;")
+      
+      div(style="text-align: center; margin-bottom: 25px;")
+        h2(style="margin: 0; color: #2c3e50;") 🎭 Urbana Cult
+        p(style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;") Ingresa a tu cuenta para continuar
+
+      if error
+        div(style="background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; font-weight: bold; text-align: center;")= error
+
+      form(action="/auth/login" method="POST" style="display: flex; flex-direction: column; gap: 15px;")
+        <div>
+          label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Nombre de Usuario (Username)
+          input(type="text" name="username" placeholder="Ej. cliente o admin" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
+        </div>
+
+        <div>
+          label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Contraseña
+          input(type="password" name="password" placeholder="••••••••" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
+        </div>
+
+        <button type="submit" style="background: #2563eb; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px; width: 100%;">Iniciar Sesión</button>
+      </form>
+
+      <div style="text-align: center; margin-top: 20px; font-size: 14px;">
+        <span style="color: #64748b;">¿No tienes una cuenta? </span>
+        <a href="/auth/registro" style="color: #2563eb; text-decoration: none; font-weight: bold;">Regístrate como Cliente</a>
+      </div>

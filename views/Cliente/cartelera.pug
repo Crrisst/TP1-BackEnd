@@ -11,9 +11,7 @@ html(lang="es")
         h2(style="margin: 0; color: #2c3e50;") 🎭 Urbana Cult
         if usuario
           div(style="display: flex; align-items: center; gap: 10px; margin-top: 5px;")
-            p(style="margin: 0; font-size: 14px; color: #64748b;") ¡Hola, #{usuario.nombre} #{usuario.apellido} 
-              span(style="color: #94a3b8;") (@#{usuario.username})
-              | !
+            p(style="margin: 0; font-size: 14px; color: #64748b;") ¡Hola, #{usuario.nombre}!
             span(style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;") #{usuario.rol}
       
       div(style="display: flex; gap: 15px; align-items: center;")
