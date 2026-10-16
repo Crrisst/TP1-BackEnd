@@ -3,7 +3,7 @@ import Sala from "../models/Sala.js";
 import Usuario from "../models/Usuario.js";
 
 // ==========================================
-// 🏢 VALIDADOR DE SALAS
+// VALIDADOR DE SALAS
 // ==========================================
 export const validarSala = async (req, res, next) => {
     try {
@@ -29,7 +29,7 @@ export const validarSala = async (req, res, next) => {
 };
 
 // ==========================================
-// 👥 VALIDADOR GENERAL DE USUARIOS (Registro / Admin)
+// VALIDADOR GENERAL DE USUARIOS (Registro / Admin)
 // ==========================================
 export const validarUsuario = async (req, res, next) => {
     try {
@@ -104,7 +104,7 @@ export const validarUsuario = async (req, res, next) => {
 };
 
 // ==========================================
-// 🎭 VALIDADOR DE EVENTOS
+// VALIDADOR DE EVENTOS
 // ==========================================
 export const validarEvento = async (req, res, next) => {
     try {

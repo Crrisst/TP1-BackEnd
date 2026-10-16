@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-globalThis.crypto = crypto; // Soluciona el error de criptografía en Node 18 para el seed
+//globalThis.crypto = crypto; // Soluciona el error de criptografía en Node 18 para el seed
 
 import mongoose from "mongoose";
 import Usuario from "../models/Usuario.js";
@@ -11,7 +11,7 @@ const poblar = async () => {
     try {
         const uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/urbana_cult";
         await mongoose.connect(uri);
-        console.log("🟢 Conectado exitosamente a la Base de Datos para el seed");
+        console.log("Conectado exitosamente a la Base de Datos para el seed");
 
         // Limpiar base de datos antes de poblar para evitar duplicados
         await Usuario.deleteMany({});

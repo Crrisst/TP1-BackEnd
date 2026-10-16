@@ -31,7 +31,7 @@ html(lang="es")
             label(style="display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px;") CVV (3 o 4 dígitos)
             input#cvv(type="text" name="cvv" placeholder="123" maxlength="4" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;")
 
-        //- 🟢 Añadimos un ID al botón para controlarlo desde JavaScript
+        //- Añadimos un ID al botón para controlarlo desde JavaScript
         button#btnPagar(type="submit" style="background-color: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; transition: background-color 0.2s;") 💳 Confirmar Pago y Procesar Carrito
 
     script.
@@ -66,7 +66,7 @@ html(lang="es")
         const btnPagar = document.getElementById("btnPagar");
         alerta.style.display = "none";
 
-        // 🟢 ANIMACIÓN / ESTADO DE CARGA ACTIVADO
+        // ANIMACIÓN / ESTADO DE CARGA ACTIVADO
         btnPagar.disabled = true;
         btnPagar.style.backgroundColor = "#94a3b8";
         btnPagar.textContent = "⏳ Procesando pago y guardando datos...";
@@ -118,6 +118,6 @@ html(lang="es")
           alerta.style.display = "block";
           alerta.style.background = "#f8d7da";
           alerta.style.color = "#721c24";
-          alerta.textContent = "❌ Error de conexión con el servidor.";
+          alerta.textContent = "Error de conexión con el servidor.";
         }
       });

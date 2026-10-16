@@ -92,7 +92,7 @@ html(lang="es")
         const soloLetrasRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
         if (!soloLetrasRegex.test(nombre) || !soloLetrasRegex.test(apellido)) {
           divError.style.display = 'block';
-          divError.textContent = '⚠️ El nombre y el apellido deben contener únicamente letras.';
+          divError.textContent = 'El nombre y el apellido deben contener únicamente letras.';
           return;
         }
 
@@ -122,6 +122,6 @@ html(lang="es")
           }
         } catch (err) {
           divError.style.display = 'block';
-          divError.textContent = '❌ Error de conexión con el servidor.';
+          divError.textContent = 'Error de conexión con el servidor.';
         }
       });

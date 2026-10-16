@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-globalThis.crypto = crypto; // Soluciona el error de criptografía de MongoDB en Node 18
+//globalThis.crypto = crypto; // Soluciona el error de criptografía de MongoDB en Node 18
 
 import dotenv from "dotenv";
 import express from "express";
@@ -56,9 +56,9 @@ app.get("/auth/logout", (req, res) => {
 // Conexión a MongoDB y arranque del servidor
 mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/urbana_cult")
     .then(() => {
-        console.log("🟢 Conectado a MongoDB con éxito");
+        console.log("Conectado a MongoDB con éxito");
         app.listen(PORT, () => {
-            console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+            console.log(`Servidor corriendo en http://localhost:${PORT}`);
         });
     })
-    .catch(err => console.error("🔴 Error al conectar a MongoDB:", err));
+    .catch(err => console.error("Error al conectar a MongoDB:", err));
