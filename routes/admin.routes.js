@@ -17,7 +17,6 @@ import { validarSala, validarUsuario, validarEvento } from "../middlewares/valid
 
 const router = express.Router();
 
-// Middleware de Protección de Admin/Supervisor
 const esAdmin = (req, res, next) => {
     if (req.session.usuario && ["Admin", "Administrador", "Supervisor"].includes(req.session.usuario.rol)) {
         return next();
@@ -27,27 +26,26 @@ const esAdmin = (req, res, next) => {
 
 router.use(esAdmin);
 
-// Dashboard
+
 router.get("/", renderDashboardAdmin);
 router.get("/dashboard", renderDashboardAdmin);
 
-// Gestión de Usuarios
+
 router.get("/usuarios", renderUsuariosAdmin);
 router.post("/usuarios", validarUsuario, crearUsuarioAdmin);
 router.post("/usuarios/editar/:id", editarUsuarioAdmin);
 router.post("/usuarios/eliminar/:id", eliminarUsuarioAdmin);
 
-// Gestión de Salas
+
 router.get("/salas", renderSalasAdmin);
 router.post("/salas", validarSala, crearSalaAdmin);
 router.post("/salas/eliminar/:id", eliminarSalaAdmin);
 
-// Gestión de Eventos
+
 router.get("/eventos", renderEventosAdmin);
 router.post("/eventos", validarEvento, crearEventoAdmin);
 router.post("/eventos/eliminar/:id", eliminarEventoAdmin);
 
-// Transacciones
 router.get("/transacciones", renderTransaccionesAdmin);
 
 export default router;

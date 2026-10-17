@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+//import crypto from "node:crypto";
 //globalThis.crypto = crypto; // Soluciona el error de criptografía en Node 18 para el seed
 
 import mongoose from "mongoose";
@@ -79,7 +79,7 @@ const poblar = async () => {
             fecha: "2026-12-31",
             hora: "21:00",
             precio: 1500,
-            entradasDisponibles: 100 // 🟢 Stock inicial
+            entradasDisponibles: 100 
         });
 
         const evento2 = await Evento.create({
@@ -90,7 +90,7 @@ const poblar = async () => {
             fecha: "2026-11-15",
             hora: "22:30",
             precio: 2200,
-            entradasDisponibles: 80 // 🟢 Stock inicial
+            entradasDisponibles: 80 
         });
 
         const evento3 = await Evento.create({
@@ -101,7 +101,7 @@ const poblar = async () => {
             fecha: "2026-10-20",
             hora: "20:00",
             precio: 1000,
-            entradasDisponibles: 50 // 🟢 Stock inicial
+            entradasDisponibles: 50 
         });
 
         // 4. Crear entradas iniciales de prueba

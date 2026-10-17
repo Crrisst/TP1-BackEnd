@@ -48,7 +48,7 @@ html(lang="es")
           input#password(type="password" name="password" placeholder="••••••••" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
         </div>
 
-        <button type="submit" style="background: #2563eb; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px; width: 100%;">Registrarse</button>
+        <button id="btnRegistro" type="submit" style="background: #2563eb; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px; width: 100%;">Registrarse</button>
       </form>
 
       <div style="text-align: center; margin-top: 20px; font-size: 14px;">
@@ -58,6 +58,12 @@ html(lang="es")
     </div>
 
     script.
+      const hoy = new Date();
+      const anioMax = hoy.getFullYear() - 18;
+      const mesMax = String(hoy.getMonth() + 1).padStart(2, '0');
+      const diaMax = String(hoy.getDate()).padStart(2, '0');
+      document.getElementById("cumpleanos").max = `${anioMax}-${mesMax}-${diaMax}`;
+
       const aplicarFiltroLetras = (inputElement) => {
         inputElement.addEventListener("input", (e) => {
           let valorLimpio = e.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, "");
@@ -90,6 +96,7 @@ html(lang="es")
       document.getElementById("formRegistro").addEventListener("submit", async (e) => {
         e.preventDefault();
         const alerta = document.getElementById("mensajeAlerta");
+        const btnRegistro = document.getElementById("btnRegistro");
         alerta.style.display = "none";
 
         const nombre = document.getElementById("nombre").value.trim();
@@ -128,6 +135,10 @@ html(lang="es")
 
         const datos = { nombre, apellido, dni, correo, cumpleaños, username, password };
 
+        btnRegistro.disabled = true;
+        btnRegistro.style.background = "#94a3b8";
+        btnRegistro.textContent = "⏳ Procesando registro...";
+
         try {
           const res = await fetch("/auth/registro", {
             method: "POST",
@@ -138,6 +149,10 @@ html(lang="es")
 
           alerta.style.display = "block";
           if (!res.ok) {
+            btnRegistro.disabled = false;
+            btnRegistro.style.background = "#2563eb";
+            btnRegistro.textContent = "Registrarse";
+
             alerta.style.background = "#fee2e2";
             alerta.style.color = "#991b1b";
             alerta.textContent = resultado.error || "⚠️ Error al registrarse.";
@@ -148,6 +163,10 @@ html(lang="es")
             setTimeout(() => { window.location.href = resultado.redirectUrl || "/auth/login"; }, 1500);
           }
         } catch (err) {
+          btnRegistro.disabled = false;
+          btnRegistro.style.background = "#2563eb";
+          btnRegistro.textContent = "Registrarse";
+          
           alerta.style.display = "block";
           alerta.style.background = "#fee2e2";
           alerta.style.color = "#991b1b";

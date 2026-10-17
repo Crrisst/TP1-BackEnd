@@ -1,11 +1,9 @@
 import Usuario from "../models/Usuario.js";
 
-// Renderizar Vista de Login
 export const renderLogin = (req, res) => {
     res.render("auth/login", { error: null });
 };
 
-// Procesar Login (Fetch)
 export const iniciarSesion = async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -19,7 +17,7 @@ export const iniciarSesion = async (req, res) => {
 
         const redirectUrl = (["Admin", "Administrador", "Supervisor"].includes(usuario.rol))
             ? "/admin"
-            : "/cliente/cartelera";
+            : "/cliente/dashboard";
 
         return res.status(200).json({ redirectUrl });
     } catch (error) {
@@ -28,18 +26,33 @@ export const iniciarSesion = async (req, res) => {
     }
 };
 
-// Renderizar Vista de Registro
 export const renderRegistro = (req, res) => {
     res.render("auth/registro", { error: null });
 };
 
-// Procesar Registro (Fetch)
 export const registrarUsuario = async (req, res) => {
     try {
         const { nombre, apellido, dni, correo, cumpleaños, username, password } = req.body;
 
         if (!nombre || !apellido || !dni || !correo || !cumpleaños || !username || !password) {
             return res.status(400).json({ error: "⚠️ Todos los campos son obligatorios." });
+        }
+
+        let fechaNacimiento = new Date(cumpleaños);
+        if (isNaN(fechaNacimiento.getTime())) {
+            return res.status(400).json({ error: "⚠️ La fecha de cumpleaños ingresada no es válida." });
+        }
+
+        const hoy = new Date();
+        let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+        const diferenciaMeses = hoy.getMonth() - fechaNacimiento.getMonth();
+
+        if (diferenciaMeses < 0 || (diferenciaMeses === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
+            edad--;
+        }
+
+        if (edad < 18) {
+            return res.status(400).json({ error: "❌ Debes ser mayor de edad (18 años o más) para registrarte." });
         }
 
         const dniExistente = await Usuario.findOne({ dni: dni.trim() });
@@ -81,7 +94,6 @@ export const registrarUsuario = async (req, res) => {
     }
 };
 
-// Cerrar Sesión
 export const cerrarSesion = (req, res) => {
     req.session.destroy((err) => {
         if (err) {
