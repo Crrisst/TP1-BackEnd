@@ -2,174 +2,50 @@ doctype html
 html(lang="es")
   head
     meta(charset="UTF-8")
-    title Registro de Cliente - Urbana Cult
-  body(style="font-family: sans-serif; padding: 40px; max-width: 500px; margin: auto; background-color: #f4f6f9;")
+    title Registro de Usuario
+  body(style="font-family: sans-serif; max-width: 500px; margin: 30px auto;")
+    h2 Registro de Usuario
     
-    div(style="background-color: #ffffff; padding: 35px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);")
-      div(style="text-align: center; margin-bottom: 25px;")
-        h2(style="margin: 0; color: #2c3e50;") 🎭 Urbana Cult
-        p(style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;") Crea tu cuenta de cliente en segundos
+    if error
+      div(style="background-color: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #f5c6cb;")
+        strong ⚠️ Error: 
+        = error
 
-      div#mensajeAlerta(style="display: none; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; font-weight: bold;")
+    form(action="/auth/registro" method="POST")
+      div(style="margin-bottom: 10px;")
+        label(for="nombreUsuario") Nombre de Usuario:
+        input#nombreUsuario(type="text" name="nombreUsuario" value=(datos ? datos.nombreUsuario : '') required style="width: 100%; padding: 6px;")
 
-      form#formRegistro(style="display: flex; flex-direction: column; gap: 15px;")
-        <div>
-          label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Nombre (Solo letras, máx. 15)
-          input#nombre(type="text" name="nombre" placeholder="Ej. Juan" maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
-        </div>
+      div(style="margin-bottom: 10px;")
+        label(for="nombre") Nombre:
+        input#nombre(type="text" name="nombre" value=(datos ? datos.nombre : '') required style="width: 100%; padding: 6px;" onkeypress="return event.charCode < 48 || event.charCode > 57")
+        
+      div(style="margin-bottom: 10px;")
+        label(for="apellido") Apellido:
+        input#apellido(type="text" name="apellido" value=(datos ? datos.apellido : '') required style="width: 100%; padding: 6px;" onkeypress="return event.charCode < 48 || event.charCode > 57")
+        
+      div(style="margin-bottom: 10px;")
+        label(for="email") Email:
+        input#email(type="email" name="email" value=(datos ? datos.email : '') required style="width: 100%; padding: 6px;" placeholder="correo@ejemplo.com")
+        
+      div(style="margin-bottom: 10px;")
+        label(for="password") Contraseña:
+        input#password(type="password" name="password" required style="width: 100%; padding: 6px;")
+        
+      div(style="margin-bottom: 10px;")
+        label(for="dni") DNI:
+        input#dni(type="text" name="dni" value=(datos ? datos.dni : '') required maxlength="8" style="width: 100%; padding: 6px;" placeholder="Ej: 12345678" onkeypress="return event.charCode >= 48 && event.charCode <= 57")
+        
+      div(style="margin-bottom: 10px;")
+        label(for="fechaNacimiento") Fecha de Nacimiento:
+        input#fechaNacimiento(type="date" name="fechaNacimiento" value=(datos ? datos.fechaNacimiento : '') required style="width: 100%; padding: 6px;")
+        
+      div(style="margin-bottom: 15px;")
+        label(for="telefono") Teléfono:
+        input#telefono(type="tel" name="telefono" value=(datos ? datos.telefono : '') required pattern="[0-9]{10}" maxlength="10" style="width: 100%; padding: 6px;" placeholder="Ej: 1123456789" onkeypress="return event.charCode >= 48 && event.charCode <= 57")
 
-        <div>
-          label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Apellido (Solo letras, máx. 15)
-          input#apellido(type="text" name="apellido" placeholder="Ej. Pérez" maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
-        </div>
-
-        <div>
-          label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") DNI (7 u 8 dígitos numéricos)
-          input#dni(type="text" name="dni" placeholder="Ej. 35123456" maxlength="8" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
-        </div>
-
-        <div>
-          label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Correo Electrónico
-          input#correo(type="email" name="correo" placeholder="correo@ejemplo.com" maxlength="254" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
-        </div>
-
-        <div>
-          label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Fecha de Cumpleaños (+18 años)
-          input#cumpleanos(type="date" name="cumpleaños" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
-        </div>
-
-        <div>
-          label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Nombre de Usuario (Username, máx. 15)
-          input#username(type="text" name="username" placeholder="juanperez" maxlength="15" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
-        </div>
-
-        <div>
-          label(style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px;") Contraseña
-          input#password(type="password" name="password" placeholder="••••••••" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;")
-        </div>
-
-        <button id="btnRegistro" type="submit" style="background: #2563eb; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px; width: 100%;">Registrarse</button>
-      </form>
-
-      <div style="text-align: center; margin-top: 20px; font-size: 14px;">
-        <span style="color: #64748b;">¿Ya tienes una cuenta? </span>
-        <a href="/auth/login" style="color: #2563eb; text-decoration: none; font-weight: bold;">Iniciar Sesión</a>
-      </div>
-    </div>
-
-    script.
-      const hoy = new Date();
-      const anioMax = hoy.getFullYear() - 18;
-      const mesMax = String(hoy.getMonth() + 1).padStart(2, '0');
-      const diaMax = String(hoy.getDate()).padStart(2, '0');
-      document.getElementById("cumpleanos").max = `${anioMax}-${mesMax}-${diaMax}`;
-
-      const aplicarFiltroLetras = (inputElement) => {
-        inputElement.addEventListener("input", (e) => {
-          let valorLimpio = e.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, "");
-          if (valorLimpio.length > 15) {
-            valorLimpio = valorLimpio.slice(0, 15);
-          }
-          e.target.value = valorLimpio;
-        });
-      };
-
-      aplicarFiltroLetras(document.getElementById("nombre"));
-      aplicarFiltroLetras(document.getElementById("apellido"));
-
-      const usernameInput = document.getElementById("username");
-      usernameInput.addEventListener("input", (e) => {
-        if (e.target.value.length > 15) {
-          e.target.value = e.target.value.slice(0, 15);
-        }
-      });
-
-      const dniInput = document.getElementById("dni");
-      dniInput.addEventListener("input", (e) => {
-        let valorLimpio = e.target.value.replace(/\D/g, "");
-        if (valorLimpio.length > 8) {
-          valorLimpio = valorLimpio.slice(0, 8);
-        }
-        e.target.value = valorLimpio;
-      });
-
-      document.getElementById("formRegistro").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const alerta = document.getElementById("mensajeAlerta");
-        const btnRegistro = document.getElementById("btnRegistro");
-        alerta.style.display = "none";
-
-        const nombre = document.getElementById("nombre").value.trim();
-        const apellido = document.getElementById("apellido").value.trim();
-        const dni = document.getElementById("dni").value.trim();
-        const correo = document.getElementById("correo").value.trim();
-        const cumpleaños = document.getElementById("cumpleanos").value;
-        const username = document.getElementById("username").value.trim();
-        const password = document.getElementById("password").value;
-
-        if (nombre.length > 15 || apellido.length > 15 || username.length > 15) {
-          alerta.style.display = "block";
-          alerta.style.background = "#fee2e2";
-          alerta.style.color = "#991b1b";
-          alerta.textContent = "⚠️ El nombre, apellido y nombre de usuario no deben superar los 15 caracteres.";
-          return;
-        }
-
-        const soloLetrasRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
-        if (!soloLetrasRegex.test(nombre) || !soloLetrasRegex.test(apellido)) {
-          alerta.style.display = "block";
-          alerta.style.background = "#fee2e2";
-          alerta.style.color = "#991b1b";
-          alerta.textContent = "⚠️ El nombre y el apellido deben contener únicamente letras.";
-          return;
-        }
-
-        const dniRegex = /^\d{7,8}$/;
-        if (!dniRegex.test(dni)) {
-          alerta.style.display = "block";
-          alerta.style.background = "#fee2e2";
-          alerta.style.color = "#991b1b";
-          alerta.textContent = "⚠️ El DNI debe ser numérico y tener entre 7 y 8 dígitos.";
-          return;
-        }
-
-        const datos = { nombre, apellido, dni, correo, cumpleaños, username, password };
-
-        btnRegistro.disabled = true;
-        btnRegistro.style.background = "#94a3b8";
-        btnRegistro.textContent = "⏳ Procesando registro...";
-
-        try {
-          const res = await fetch("/auth/registro", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(datos)
-          });
-          const resultado = await res.json();
-
-          alerta.style.display = "block";
-          if (!res.ok) {
-            btnRegistro.disabled = false;
-            btnRegistro.style.background = "#2563eb";
-            btnRegistro.textContent = "Registrarse";
-
-            alerta.style.background = "#fee2e2";
-            alerta.style.color = "#991b1b";
-            alerta.textContent = resultado.error || "⚠️ Error al registrarse.";
-          } else {
-            alerta.style.background = "#d1e7dd";
-            alerta.style.color = "#0f5132";
-            alerta.textContent = "✅ ¡Registro exitoso! Redirigiendo...";
-            setTimeout(() => { window.location.href = resultado.redirectUrl || "/auth/login"; }, 1500);
-          }
-        } catch (err) {
-          btnRegistro.disabled = false;
-          btnRegistro.style.background = "#2563eb";
-          btnRegistro.textContent = "Registrarse";
-          
-          alerta.style.display = "block";
-          alerta.style.background = "#fee2e2";
-          alerta.style.color = "#991b1b";
-          alerta.textContent = "Error al conectar con el servidor.";
-        }
-      });
+      div
+        button(type="submit" style="width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;") Registrarse
+      
+      p(style="margin-top: 15px;") ¿Ya tienes cuenta? 
+        a(href="/auth/login") Inicia sesión aquí

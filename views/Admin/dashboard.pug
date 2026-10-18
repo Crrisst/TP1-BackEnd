@@ -2,31 +2,61 @@ doctype html
 html(lang="es")
   head
     meta(charset="UTF-8")
-    title Dashboard Admin - Urbana Cult
-  body(style="font-family: sans-serif; padding: 30px; max-width: 1000px; margin: auto; background-color: #f4f6f9;")
+    title Panel de Administración
+  body(style="font-family: 'Segoe UI', system-ui, sans-serif; padding: 30px; max-width: 1000px; margin: auto; background-color: #f8fafc; color: #1e293b;")
     
-    //- Navbar Superior del Administrador
-    div(style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;")
-      div
-        h2(style="margin: 0; color: #2c3e50;") ⚙️ Panel Admin
-        if usuario
-          div(style="display: flex; align-items: center; gap: 10px; margin-top: 5px;")
-            p(style="margin: 0; font-size: 14px; color: #64748b;") ¡Hola, #{usuario.nombre}!
-            span(style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;") #{usuario.rol}
-      
-      div(style="display: flex; gap: 15px; align-items: center;")
-        a(href="/admin/dashboard" style="color: #2563eb; text-decoration: none; font-weight: bold; font-size: 14px;") 🏠 Inicio
-        a(href="/admin/usuarios" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 👥 Usuarios
-        a(href="/admin/salas" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🏢 Salas
-        a(href="/admin/eventos" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 🎭 Eventos
-        a(href="/admin/transacciones" style="color: #475569; text-decoration: none; font-weight: bold; font-size: 14px;") 💳 Transacciones
-        a(href="/logout" style="background: #ef4444; color: white; padding: 6px 12px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold;") Cerrar Sesión
+    div(style="background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0;")
+      h2(style="margin: 0; color: #0f172a;") 🏠 Panel de Control - Administración
+      if usuarioLogueado
+        div(style="display: flex; align-items: center; gap: 15px;")
+          span(style="font-size: 14px; color: #475569;") Hola, 
+            strong= usuarioLogueado.nombreUsuario
+            |  (#[strong= usuarioLogueado.rol])
+          a(href="/auth/logout" style="background: #ef4444; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: bold;") 🚪 Salir
 
-    //- Contenedor Principal
-    div(style="background: #ffffff; padding: 50px 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: center;")
-      h1(style="margin-top: 0; color: #1e293b; font-size: 26px;") ¡Bienvenido al Sistema de Gestión! 🛠️
-      p(style="color: #64748b; font-size: 15px; max-width: 600px; margin: 15px auto 30px auto;") Desde aquí puedes administrar los usuarios, configurar las salas, programar la cartelera de eventos y revisar el registro de ventas globales de Urbana Cult.
+    if error
+      div(style="background-color: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-weight: bold;")= error
+
+    div(style="background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 25px;")
+      h3(style="margin-top: 0; color: #0f172a;") Bienvenido al Sistema de Gestión
+      p(style="color: #475569; line-height: 1.6;") Selecciona una de las opciones a continuación para comenzar a administrar los eventos, salas, usuarios y finanzas del sistema.
+
+    //- 🎴 SECCIÓN DE TARJETAS PRINCIPALES
+    div(style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;")
       
-      div(style="margin-top: 25px; display: flex; justify-content: center; gap: 15px;")
-        a(href="/admin/eventos" style="background-color: #2563eb; color: white; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);") 🎭 Gestionar Eventos
-        a(href="/admin/transacciones" style="background-color: #10b981; color: white; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);") 💳 Ver Ventas
+      if usuarioLogueado && ['Administrador', 'Supervisor'].includes(usuarioLogueado.rol)
+        a(href="/admin/boleteria" style="background: #ffffff; padding: 25px; border-radius: 12px; text-decoration: none; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; text-align: center;")
+          span(style="font-size: 40px; margin-bottom: 10px;") 🎫
+          h4(style="margin: 0 0 5px 0; color: #0f172a; font-size: 16px;") Boletería
+          p(style="margin: 0; font-size: 13px; color: #64748b;") Venta presencial de entradas físicas
+
+      a(href="/admin/usuarios" style="background: #ffffff; padding: 25px; border-radius: 12px; text-decoration: none; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; text-align: center;")
+        span(style="font-size: 40px; margin-bottom: 10px;") 👥
+        h4(style="margin: 0 0 5px 0; color: #0f172a; font-size: 16px;") Usuarios
+        p(style="margin: 0; font-size: 13px; color: #64748b;") Gestión de cuentas y roles
+
+      a(href="/admin/eventos" style="background: #ffffff; padding: 25px; border-radius: 12px; text-decoration: none; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; text-align: center;")
+        span(style="font-size: 40px; margin-bottom: 10px;") 🎭
+        h4(style="margin: 0 0 5px 0; color: #0f172a; font-size: 16px;") Eventos
+        p(style="margin: 0; font-size: 13px; color: #64748b;") Cartelera y programación
+
+      a(href="/admin/salas" style="background: #ffffff; padding: 25px; border-radius: 12px; text-decoration: none; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; text-align: center;")
+        span(style="font-size: 40px; margin-bottom: 10px;") 🏢
+        h4(style="margin: 0 0 5px 0; color: #0f172a; font-size: 16px;") Salas
+        p(style="margin: 0; font-size: 13px; color: #64748b;") Configuración de espacios y sectores
+
+      a(href="/admin/pagos" style="background: #ffffff; padding: 25px; border-radius: 12px; text-decoration: none; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; text-align: center;")
+        span(style="font-size: 40px; margin-bottom: 10px;") 💳
+        h4(style="margin: 0 0 5px 0; color: #0f172a; font-size: 16px;") Pagos
+        p(style="margin: 0; font-size: 13px; color: #64748b;") Auditoría de transacciones
+
+      //- 👉 AQUÍ ESTABA EL ERROR: Cambiado de /admin/entradas a /admin/informe
+      a(href="/admin/informe" style="background: #ffffff; padding: 25px; border-radius: 12px; text-decoration: none; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; text-align: center;")
+        span(style="font-size: 40px; margin-bottom: 10px;") 📊
+        h4(style="margin: 0 0 5px 0; color: #0f172a; font-size: 16px;") Informes
+        p(style="margin: 0; font-size: 13px; color: #64748b;") Balance y estadísticas de venta
+
+      a(href="/admin/cancelaciones" style="background: #ffffff; padding: 25px; border-radius: 12px; text-decoration: none; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; text-align: center;")
+        span(style="font-size: 40px; margin-bottom: 10px;") 🛡️
+        h4(style="margin: 0 0 5px 0; color: #0f172a; font-size: 16px;") Cancelaciones
+        p(style="margin: 0; font-size: 13px; color: #64748b;") Historial de entradas canceladas
